@@ -1,0 +1,12 @@
+"""
+Question domain shared business invariant constants.
+"""
+
+MIN_DIFFICULTY = 1
+MAX_DIFFICULTY = 3
+
+MIN_MARKET_WEIGHT = 0.0
+MAX_MARKET_WEIGHT = 1.0
+
+DEFAULT_MARKET_WEIGHT = 0.5
+DEFAULT_FOLLOWUP_ALLOWED = True

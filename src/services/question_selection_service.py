@@ -1,6 +1,9 @@
 from src.domain.question.question import Question
 from src.domain.scoring.scoring_context import ScoringContext
 from src.interfaces.scoring_engine import ScoringEngine
+from src.domain.filter.candidate_filter import (
+    CandidateFilter,
+)
 
 
 class QuestionSelectionService:
