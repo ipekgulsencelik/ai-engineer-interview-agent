@@ -70,7 +70,11 @@ class QuestionSelectionService:
             ranked_candidates,
         )
 
-        return self._selection_policy.select(
+        selected_candidate = self._selection_policy.select(
             ranked_candidates=ranked_candidates,
-            context=context,
+        )
+
+        return self._result_builder.build(
+            selected_candidate=selected_candidate,
+            candidate_count=len(ranked_candidates),
         )
