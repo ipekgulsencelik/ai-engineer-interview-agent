@@ -1,50 +1,199 @@
 from __future__ import annotations
 
-from src.domain.enums.level import Level
-from src.domain.results.evaluation_result import EvaluationResult
+import math
+from dataclasses import fields
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+from src.domain.constants.validation_messages import (
+    ERR_BOOL_FIELD,
+    ERR_BOOL_ITEM,
+    ERR_EMPTY,
+    ERR_FIELD_TYPE,
+    ERR_ITEM_FINITE,
+    ERR_ITEM_MAX,
+    ERR_ITEM_MIN,
+    ERR_ITEM_NUMERIC,
+    ERR_ITEM_TYPE,
+    ERR_SESSION_TYPE,
+    ERR_TZ_AWARE,
+)
+from src.domain.validation.interview_session_validation_schema import (
+    FieldRule,
+    INTERVIEW_SESSION_VALIDATION_SCHEMA,
+)
+
+if TYPE_CHECKING:
+    from src.domain.interview.interview_session import InterviewSession
 
 
 class InterviewSessionValidator:
-    @staticmethod
-    def validate(session: "InterviewSession") -> None:
-        InterviewSessionValidator._validate_session_id(session.session_id)
-        InterviewSessionValidator._validate_level(session.current_level)
-        InterviewSessionValidator._validate_question_ids(session.asked_question_ids)
-        InterviewSessionValidator._validate_results(session.completed_results)
-        InterviewSessionValidator._validate_scores(session.recent_scores)
+    """
+    InterviewSession domain invariant validation.
+    """
+
+    @classmethod
+    def validate(cls, session: "InterviewSession") -> None:
+        cls._validate_model_type(session)
+
+        for model_field in fields(session):
+            field_name = model_field.name
+            value = getattr(session, field_name)
+            rules: FieldRule = INTERVIEW_SESSION_VALIDATION_SCHEMA.get(field_name, {})
+
+            cls._validate_expected_type(
+                field_name=field_name,
+                value=value,
+                expected_type=rules.get("type"),
+            )
+
+            if rules.get("non_empty", False):
+                cls._validate_non_empty_string(
+                    field_name=field_name,
+                    value=value,
+                )
+
+            if "item_type" in rules:
+                cls._validate_collection_items(
+                    field_name=field_name,
+                    value=value,
+                    item_type=rules["item_type"],
+                    rules=rules,
+                )
+
+            if rules.get("timezone_aware", False):
+                cls._validate_timezone_aware_datetime(
+                    field_name=field_name,
+                    value=value,
+                )
 
     @staticmethod
-    def _validate_session_id(session_id: str) -> None:
-        if not isinstance(session_id, str) or not session_id.strip():
-            raise ValueError("session_id cannot be empty")
+    def _validate_model_type(session: "InterviewSession") -> None:
+        from src.domain.interview.interview_session import InterviewSession
+
+        if not isinstance(session, InterviewSession):
+            raise TypeError(ERR_SESSION_TYPE)
+
+        
+    @staticmethod    
+    def _validate_expected_type(
+        *,
+        field_name: str,
+        value: object,
+        expected_type: type | tuple[type, ...] | None,
+    ) -> None:
+        if expected_type is None:
+            return
+
+        if expected_type is not bool and isinstance(value, bool):
+            raise TypeError(ERR_BOOL_FIELD.format(field_name=field_name))
+
+        if not isinstance(value, expected_type):
+            raise TypeError(
+                ERR_FIELD_TYPE.format(
+                    field_name=field_name,
+                    expected_type=expected_type,
+                )
+            )
+
 
     @staticmethod
-    def _validate_level(level: Level) -> None:
-        if not isinstance(level, Level):
-            raise TypeError("current_level must be a Level instance")
+    def _validate_non_empty_string(
+        *,
+        field_name: str,
+        value: str,
+    ) -> None:
+        if not value.strip():
+            raise ValueError(ERR_EMPTY.format(field_name=field_name))
+
+
+    @classmethod
+    def _validate_collection_items(
+        cls,
+        *,
+        field_name: str,
+        value: tuple[object, ...],
+        item_type: type | tuple[type, ...],
+        rules: FieldRule,
+    ) -> None:
+        for item in value:
+            cls._validate_item_type(
+                field_name=field_name,
+                item=item,
+                item_type=item_type,
+            )
+
+            if item_type is str:
+                cls._validate_non_empty_string(
+                    field_name=field_name,
+                    value=item,  # type: ignore[arg-type]
+                )
+
+            if rules.get("finite", False) or "min_value" in rules or "max_value" in rules:
+                cls._validate_numeric_item(
+                    field_name=field_name,
+                    item=item,
+                    rules=rules,
+                )
+
 
     @staticmethod
-    def _validate_question_ids(asked_question_ids: tuple[str, ...]) -> None:
-        if not isinstance(asked_question_ids, tuple):
-            raise TypeError("asked_question_ids must be a tuple")
-        for question_id in asked_question_ids:
-            if not isinstance(question_id, str) or not question_id.strip():
-                raise ValueError("asked_question_ids cannot include empty values")
+    def _validate_item_type(
+        *,
+        field_name: str,
+        item: object,
+        item_type: type | tuple[type, ...],
+    ) -> None:
+        if item_type is not bool and isinstance(item, bool):
+            raise TypeError(ERR_BOOL_ITEM.format(field_name=field_name))
+
+        if not isinstance(item, item_type):
+            raise TypeError(
+                ERR_ITEM_TYPE.format(
+                    field_name=field_name,
+                    item_type=item_type,
+                )
+            )
+                
 
     @staticmethod
-    def _validate_results(completed_results: tuple[EvaluationResult, ...]) -> None:
-        if not isinstance(completed_results, tuple):
-            raise TypeError("completed_results must be a tuple")
-        for result in completed_results:
-            if not isinstance(result, EvaluationResult):
-                raise TypeError("completed_results items must be EvaluationResult")
+    def _validate_numeric_item(
+        *,
+        field_name: str,
+        item: object,
+        rules: FieldRule,
+    ) -> None:
+        if not isinstance(item, (int, float)) or isinstance(item, bool):
+            raise TypeError(ERR_ITEM_NUMERIC.format(field_name=field_name))
+
+        numeric_value = float(item)
+
+        if rules.get("finite", False) and not math.isfinite(numeric_value):
+            raise ValueError(ERR_ITEM_FINITE.format(field_name=field_name))
+
+        min_value = rules.get("min_value")
+        if min_value is not None and numeric_value < min_value:
+            raise ValueError(
+                ERR_ITEM_MIN.format(
+                    field_name=field_name,
+                    min_value=min_value,
+                )
+            )
+
+        max_value = rules.get("max_value")
+        if max_value is not None and numeric_value > max_value:
+            raise ValueError(
+                ERR_ITEM_MAX.format(
+                    field_name=field_name,
+                    max_value=max_value,
+                )
+            )
 
     @staticmethod
-    def _validate_scores(recent_scores: tuple[float, ...]) -> None:
-        if not isinstance(recent_scores, tuple):
-            raise TypeError("recent_scores must be a tuple")
-        for score in recent_scores:
-            if not isinstance(score, (int, float)):
-                raise TypeError("recent_scores items must be numeric")
-            if score < 0.0 or score > 10.0:
-                raise ValueError("recent_scores values must be between 0.0 and 10.0")
+    def _validate_timezone_aware_datetime(
+        *,
+        field_name: str,
+        value: datetime,
+    ) -> None:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError(ERR_TZ_AWARE.format(field_name=field_name))
