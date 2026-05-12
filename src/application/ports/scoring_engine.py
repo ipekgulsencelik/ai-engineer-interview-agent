@@ -4,8 +4,8 @@ from abc import ABC
 from abc import abstractmethod
 
 from src.domain.entities.question import Question
-from src.domain.scoring.scoring_breakdown import (
-    ScoringBreakdown,
+from src.domain.results.selection_breakdown import (
+    SelectionBreakdown,
 )
 from src.domain.scoring.scoring_context import (
     ScoringContext,
@@ -22,7 +22,7 @@ class ScoringEngine(ABC):
         *,
         question: Question,
         context: ScoringContext,
-    ) -> ScoringBreakdown:
+    ) -> SelectionBreakdown:
         """
         Verilen question için explainable scoring sonucu üretir.
         """
