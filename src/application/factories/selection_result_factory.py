@@ -4,9 +4,10 @@ from src.application.ports.clock import Clock
 from src.application.validators.selection_result_factory_validator import (
     SelectionResultFactoryValidator,
 )
-from src.domain.policies.selection_policy import SelectionPolicy
+from src.application.policies.selection_policy import SelectionPolicy
 from src.domain.results.ranked_candidate import RankedCandidate
 from src.domain.results.selection_result import SelectionResult
+from src.domain.scoring.scoring_context import ScoringContext
 
 
 class SelectionResultFactory:
@@ -38,15 +39,7 @@ class SelectionResultFactory:
             ranked_candidates,
         )
 
-        selected_candidate = self._selection_policy.select(
+        return self._selection_policy.select(
             ranked_candidates=ranked_candidates,
-        )
-
-        return SelectionResult(
-            question=selected_candidate.question,
-            final_score=selected_candidate.final_score,
-            breakdown=selected_candidate.breakdown,
-            selected_at=self._clock.now(),
-            rank=selected_candidate.rank,
-            candidate_count=len(ranked_candidates),
+            context=ScoringContext(),
         )
