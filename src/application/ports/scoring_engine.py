@@ -4,17 +4,12 @@ from abc import ABC
 from abc import abstractmethod
 
 from src.domain.entities.question import Question
-from __future__ import annotations
-
-from abc import ABC
-from abc import abstractmethod
-
-from src.domain.entities.question import Question
 from src.domain.scoring.scoring_breakdown import (
     ScoringBreakdown,
 )
-from src.domain.scoring.scoring_context import ScoringContext
-
+from src.domain.scoring.scoring_context import (
+    ScoringContext,
+)
 
 class ScoringEngine(ABC):
     """

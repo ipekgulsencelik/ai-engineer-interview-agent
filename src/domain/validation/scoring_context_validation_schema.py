@@ -14,22 +14,22 @@ SCORING_CONTEXT_VALIDATION_SCHEMA: dict[str, dict[str, Any]] = {
         "type": Level,
     },
     "cv_skills": {
-        "type": list,
+        "type": tuple,
         "item_type": str,
     },
     "asked_question_ids": {
-        "type": list,
+        "type": frozenset,
         "item_type": str,
     },
     "recent_scores": {
-        "type": list,
+        "type": tuple,
         "item_type": NUMBER_TYPES,
         "finite_items": True,
         "min_item_value": 0.0,
         "max_item_value": 10.0,
     },
     "weak_areas": {
-        "type": list,
+        "type": tuple,
         "item_type": str,
     },
     "signals": {

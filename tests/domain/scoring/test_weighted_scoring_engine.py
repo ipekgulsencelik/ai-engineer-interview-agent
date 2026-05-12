@@ -14,32 +14,18 @@ from src.domain.enums.question_type import (
 from src.domain.scoring.final_score_calculator import (
     FinalScoreCalculator,
 )
-from src.domain.policies.cv_gap_score_policy import (
-    CvGapScorePolicy,
-)
-from src.domain.policies.difficulty_score_policy import (
-    DifficultyScorePolicy,
-)
-from src.domain.policies.diversity_score_policy import (
-    DiversityScorePolicy,
-)
-from src.domain.policies.fatigue_score_policy import (
-    FatigueScorePolicy,
-)
-from src.domain.policies.level_score_policy import (
-    LevelScorePolicy,
-)
-from src.domain.policies.market_score_policy import (
-    MarketScorePolicy,
-)
+from src.domain.policies.cv_gap_score_policy import CvGapScorePolicy
+from src.domain.policies.difficulty_score_policy import DifficultyScorePolicy
+from src.domain.policies.diversity_score_policy import DiversityScorePolicy
+from src.domain.policies.fatigue_score_policy import FatigueScorePolicy
+from src.domain.policies.level_score_policy import LevelScorePolicy
+from src.domain.policies.market_score_policy import MarketScorePolicy
+from src.domain.policies.weighted_scoring_policy import WeightedScoringPolicy
 from src.domain.scoring.scoring_context import (
     ScoringContext,
 )
 from src.domain.scoring.weighted_scoring_engine import (
     WeightedScoringEngine,
-)
-from src.domain.policies.weighted_scoring_policy import (
-    WeightedScoringPolicy,
 )
 
 
@@ -82,11 +68,14 @@ def build_question() -> Question:
 def build_context() -> ScoringContext:
     return ScoringContext(
         current_level=Level.MID,
-        cv_skills=[
+        cv_skills=(
             "python",
-        ],
-        asked_question_ids=set(),
-        recent_scores=[7.5, 8.0],
+        ),
+        asked_question_ids=frozenset(),
+        recent_scores=(
+            7.5,
+            8.0,
+        ),
     )
 
 
