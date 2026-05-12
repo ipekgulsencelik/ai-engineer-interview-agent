@@ -5,7 +5,7 @@ import pytest
 from src.application.exceptions.answer_evaluation_error import (
     AnswerEvaluationError,
 )
-from src.application.ports.evaluator import Evaluator
+from src.domain.evaluation.evaluator import Evaluator
 from src.application.services.answer_evaluation_service import (
     AnswerEvaluationService,
 )

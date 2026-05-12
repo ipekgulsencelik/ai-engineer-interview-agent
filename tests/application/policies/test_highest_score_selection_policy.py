@@ -14,14 +14,12 @@ from src.domain.enums.question_type import (
     QuestionType,
 )
 from src.domain.results.ranked_candidate import RankedCandidate
-from src.domain.scoring.selection_breakdown import (
+from src.domain.results.selection_breakdown import (
     SelectionBreakdown,
 )
 
 
-def build_question(
-    question_id: str,
-) -> Question:
+def build_question(question_id: str) -> Question:
     return Question(
         id=question_id,
         text=f"Question {question_id}",
@@ -34,9 +32,7 @@ def build_question(
     )
 
 
-def build_breakdown(
-    final_score: float,
-) -> SelectionBreakdown:
+def build_breakdown(final_score: float) -> SelectionBreakdown:
     return SelectionBreakdown(
         level_score=1.0,
         market_score=1.0,
@@ -68,13 +64,13 @@ def test_select_returns_highest_ranked_candidate() -> None:
     first_candidate = build_candidate(
         question_id="q1",
         rank=1,
-        final_score=9.5,
+        final_score=0.95,
     )
 
     second_candidate = build_candidate(
         question_id="q2",
         rank=2,
-        final_score=8.4,
+        final_score=0.84,
     )
 
     result = policy.select(
@@ -94,12 +90,12 @@ def test_select_is_deterministic() -> None:
         build_candidate(
             question_id="q1",
             rank=1,
-            final_score=9.5,
+            final_score=0.95,
         ),
         build_candidate(
             question_id="q2",
             rank=2,
-            final_score=8.2,
+            final_score=0.82,
         ),
     ]
 

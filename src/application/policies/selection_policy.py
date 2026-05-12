@@ -7,10 +7,7 @@ from src.domain.results.ranked_candidate import RankedCandidate
 
 
 class SelectionPolicy(ABC):
-    """
-    Ranked candidate listesi içerisinden final candidate seçimini yapan
-    domain policy abstraction'ı.
-    """
+    """Ranked candidate listesinden final adayı seçer."""
 
     @abstractmethod
     def select(
@@ -18,7 +15,4 @@ class SelectionPolicy(ABC):
         *,
         ranked_candidates: list[RankedCandidate],
     ) -> RankedCandidate:
-        """
-        Ranked candidate listesi içerisinden final candidate'i seçer.
-        """
         pass

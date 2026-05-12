@@ -1,42 +1,90 @@
-from src.domain.question.question import Question
-from src.infrastructure.evaluator.mock_evaluator import MockEvaluator
-from src.services.answer_evaluation_service import AnswerEvaluationService
+from __future__ import annotations
+
+import pytest
+
+from src.application.exceptions.answer_evaluation_error import (
+    AnswerEvaluationError,
+)
+from src.domain.evaluation.evaluator import Evaluator
+from src.application.services.answer_evaluation_service import (
+    AnswerEvaluationService,
+)
+from src.domain.entities.question import Question
+from src.domain.enums.level import Level
+from src.domain.enums.question_category import QuestionCategory
+from src.domain.enums.question_type import QuestionType
+from src.domain.results.evaluation_result import EvaluationResult
 
 
-def make_question() -> Question:
+class StubEvaluator(Evaluator):
+    def __init__(self, result: EvaluationResult) -> None:
+        self._result = result
+
+    def evaluate(self, *, question: Question, answer: str) -> EvaluationResult:
+        return self._result
+
+
+class ExplodingEvaluator(Evaluator):
+    def evaluate(self, *, question: Question, answer: str) -> EvaluationResult:
+        raise RuntimeError("boom")
+
+
+def build_question() -> Question:
     return Question(
         id="q1",
         text="What is RAG?",
-        category="RAG",
-        level="JR",
+        category=QuestionCategory.RAG,
+        level=Level.JR,
         difficulty=1,
-        question_type="conceptual",
+        question_type=QuestionType.CONCEPTUAL,
         expected_points=[],
         keywords=[],
     )
 
 
-def test_answer_evaluation_service_returns_evaluation_result() -> None:
-    service = AnswerEvaluationService(evaluator=MockEvaluator())
+def build_result() -> EvaluationResult:
+    return EvaluationResult(
+        score=7.0,
+        feedback="Good fundamentals.",
+        technical_accuracy=7.0,
+        depth=7.0,
+        communication=7.0,
+    )
 
-    result = service.evaluate_answer(
-        question=make_question(),
+
+def test_evaluate_returns_successful_result() -> None:
+    service = AnswerEvaluationService(
+        evaluator=StubEvaluator(build_result()),
+    )
+
+    result = service.evaluate(
+        question=build_question(),
         answer="RAG combines retrieval and generation.",
     )
 
-    assert result.success is True
-    assert result.data is not None
-    assert result.data.score == 7
-    assert result.data.feedback == "Mock evaluation completed successfully."
+    assert result.score == 7.0
+    assert result.feedback == "Good fundamentals."
 
 
-def test_answer_evaluation_service_empty_answer_returns_failure() -> None:
-    service = AnswerEvaluationService(evaluator=MockEvaluator())
-
-    result = service.evaluate_answer(
-        question=make_question(),
-        answer="",
+def test_evaluate_rejects_empty_answer() -> None:
+    service = AnswerEvaluationService(
+        evaluator=StubEvaluator(build_result()),
     )
 
-    assert result.success is False
-    assert result.error == "Answer cannot be empty."
+    with pytest.raises(ValueError):
+        service.evaluate(
+            question=build_question(),
+            answer="   ",
+        )
+
+
+def test_evaluate_wraps_provider_failures() -> None:
+    service = AnswerEvaluationService(
+        evaluator=ExplodingEvaluator(),
+    )
+
+    with pytest.raises(AnswerEvaluationError):
+        service.evaluate(
+            question=build_question(),
+            answer="Valid answer",
+        )

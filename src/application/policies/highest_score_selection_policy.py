@@ -8,9 +8,7 @@ from src.domain.validators.ranked_candidate_list_validator import (
 
 
 class HighestScoreSelectionPolicy(SelectionPolicy):
-    """
-    Highest scored ranked candidate selection policy.
-    """
+    """En yüksek skorlu adayı seçen deterministic selection policy."""
 
     def select(
         self,

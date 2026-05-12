@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+from src.application.policies.selection_policy import SelectionPolicy
 from src.application.ports.clock import Clock
 from src.application.validators.selection_result_factory_validator import (
     SelectionResultFactoryValidator,
 )
-from src.domain.policies.selection_policy import SelectionPolicy
 from src.domain.results.ranked_candidate import RankedCandidate
 from src.domain.results.selection_result import SelectionResult
 
