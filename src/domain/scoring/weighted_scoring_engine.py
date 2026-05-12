@@ -13,7 +13,7 @@ from src.domain.scoring.scoring_context import (
 from src.domain.validators.weighted_scoring_engine_validator import (
     WeightedScoringEngineValidator,
 )
-from src.domain.scoring.weighted_scoring_policy import (
+from src.domain.policies.weighted_scoring_policy import (
     WeightedScoringPolicy,
 )
 

@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 
 from src.domain.enums.level import Level
 from src.domain.parsers.scoring_context_field_parser import (
     ScoringContextFieldParser,
 )
-from src.domain.scoring.scoring_signals import ScoringSignals
+from src.domain.scoring.scoring_signals import (
+    ScoringSignals,
+)
 from src.domain.validators.scoring_context_validator import (
     ScoringContextValidator,
 )
@@ -31,11 +34,26 @@ class ScoringContext:
     """
 
     current_level: Level | str = Level.JR
-    cv_skills: list[str] = field(default_factory=list)
-    asked_question_ids: list[str] = field(default_factory=list)
-    recent_scores: list[float] = field(default_factory=list)
-    weak_areas: list[str] = field(default_factory=list)
-    signals: ScoringSignals = field(default_factory=ScoringSignals)
+
+    cv_skills: tuple[str, ...] = field(
+        default_factory=tuple,
+    )
+
+    asked_question_ids: frozenset[str] = field(
+        default_factory=frozenset,
+    )
+
+    recent_scores: tuple[float, ...] = field(
+        default_factory=tuple,
+    )
+
+    weak_areas: tuple[str, ...] = field(
+        default_factory=tuple,
+    )
+
+    signals: ScoringSignals = field(
+        default_factory=ScoringSignals,
+    )
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -46,4 +64,6 @@ class ScoringContext:
             ),
         )
 
-        ScoringContextValidator.validate(self)
+        ScoringContextValidator.validate(
+            self,
+        )

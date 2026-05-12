@@ -4,12 +4,6 @@ from src.domain.entities.question import Question
 from src.domain.policies.cv_gap_score_policy import (
     CvGapScorePolicy,
 )
-from src.domain.policies.level_score_policy import (
-    LevelScorePolicy,
-)
-from src.domain.policies.market_score_policy import (
-    MarketScorePolicy,
-)
 from src.domain.policies.difficulty_score_policy import (
     DifficultyScorePolicy,
 )
@@ -19,12 +13,26 @@ from src.domain.policies.diversity_score_policy import (
 from src.domain.policies.fatigue_score_policy import (
     FatigueScorePolicy,
 )
-from src.domain.scoring.scoring_context import ScoringContext
+from src.domain.policies.level_score_policy import (
+    LevelScorePolicy,
+)
+from src.domain.policies.market_score_policy import (
+    MarketScorePolicy,
+)
+from src.domain.scoring.final_score_calculator import (
+    FinalScoreCalculator,
+)
+from src.domain.scoring.scoring_context import (
+    ScoringContext,
+)
+from src.domain.validators.weighted_scoring_policy_validator import (
+    WeightedScoringPolicyValidator,
+)
 
 
 class WeightedScoringPolicy:
     """
-    Composite scoring policy.
+    Composite weighted scoring orchestration policy.
     """
 
     def __init__(
@@ -36,13 +44,25 @@ class WeightedScoringPolicy:
         difficulty_score_policy: DifficultyScorePolicy,
         diversity_score_policy: DiversityScorePolicy,
         fatigue_score_policy: FatigueScorePolicy,
+        final_score_calculator: FinalScoreCalculator,
     ) -> None:
+        WeightedScoringPolicyValidator.validate_dependencies(
+            level_score_policy=level_score_policy,
+            market_score_policy=market_score_policy,
+            cv_gap_score_policy=cv_gap_score_policy,
+            difficulty_score_policy=difficulty_score_policy,
+            diversity_score_policy=diversity_score_policy,
+            fatigue_score_policy=fatigue_score_policy,
+            final_score_calculator=final_score_calculator,
+        )
+
         self._level_score_policy = level_score_policy
         self._market_score_policy = market_score_policy
         self._cv_gap_score_policy = cv_gap_score_policy
         self._difficulty_score_policy = difficulty_score_policy
         self._diversity_score_policy = diversity_score_policy
         self._fatigue_score_policy = fatigue_score_policy
+        self._final_score_calculator = final_score_calculator
 
     def compute_level_score(
         self,
@@ -108,4 +128,23 @@ class WeightedScoringPolicy:
         return self._fatigue_score_policy.compute(
             question=question,
             context=context,
+        )
+
+    def compute_final_score(
+        self,
+        *,
+        level_score: float,
+        market_score: float,
+        cv_gap_score: float,
+        difficulty_score: float,
+        diversity_score: float,
+        fatigue_score: float,
+    ) -> float:
+        return self._final_score_calculator.compute(
+            level_score=level_score,
+            market_score=market_score,
+            cv_gap_score=cv_gap_score,
+            difficulty_score=difficulty_score,
+            diversity_score=diversity_score,
+            fatigue_score=fatigue_score,
         )
