@@ -1,361 +1,462 @@
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
-from src.domain.question.question import Question
-from src.interfaces.question_repository import (
-    QuestionRepository,
+from src.domain.entities.question import Question
+from src.domain.repositories.question_repository import QuestionRepository
+from src.infrastructure.mappers.question_mapper import QuestionMapper
+from src.domain.validators.question_record_validator import (
+    QuestionRecordValidator,
 )
 
 
 class JsonQuestionRepository(QuestionRepository):
     """
-    JSON tabanlı question repository implementation'ı.
+    JSON tabanlı QuestionRepository implementasyonudur.
 
-    Bu repository'nin amacı:
-        Question verilerini JSON dosyasından okuyarak domain modeli haline
-        dönüştürmek ve application katmanına sağlamaktır.
+    Bu sınıfın temel amacı, JSON dosyasında tutulan question bank verisini
+    okuyup domain-safe Question entity listesine dönüştürmektir.
 
-    Repository pattern neden kullanılıyor?
-        Çünkü application/business logic:
-            verinin nerede tutulduğunu bilmemelidir.
+    Mimari rolü:
+        JsonQuestionRepository bir infrastructure adapter'dır.
 
-        Verinin:
-            - JSON dosyasında
-            - PostgreSQL'de
-            - MongoDB'de
-            - REST API'de
-            - vector database'te
+        Domain/application katmanı QuestionRepository abstraction'ına
+        bağımlıdır.
 
-        tutulması business logic açısından önemsiz olmalıdır.
+        Bu concrete sınıf ise:
+            - JSON dosyası okur
+            - raw kayıtları doğrular
+            - raw kayıtları Question entity'sine map eder
+            - repository contract'ını uygular
 
-    Bu yaklaşım sayesinde:
-        ✔ loose coupling sağlanır
-        ✔ persistence abstraction oluşur
-        ✔ test edilebilirlik artar
-        ✔ storage backend kolay değiştirilebilir
-        ✔ domain layer izole kalır
+    Bu yapı Clean Architecture / Hexagonal Architecture açısından önemlidir.
 
-    JsonQuestionRepository ne yapar?
-        ✔ JSON dosyasını okur
-        ✔ raw JSON verisini parse eder
-        ✔ Question domain modeli üretir
-        ✔ repository contract'ını uygular
+    Çünkü application layer:
+        - JSON dosyasının path'ini
+        - dosya okuma detaylarını
+        - json.load kullanımını
+        - raw dict formatını
 
-    JsonQuestionRepository ne yapmaz?
-        ✘ question selection
-        ✘ scoring
-        ✘ evaluation
-        ✘ semantic retrieval
-        ✘ vector search
-        ✘ caching logic
-        ✘ interview orchestration
+    bilmek zorunda kalmaz.
 
-    Böylece Single Responsibility Principle korunur.
+    Application layer yalnızca şunu bilir:
+        QuestionRepository üzerinden Question entity'leri alınabilir.
 
-    Mimari konum:
-        Application Layer
-                ↓
-        QuestionRepository interface
-                ↓
-        JsonQuestionRepository
-                ↓
-        JSON file storage
+    Bu sınıfın sorumlulukları:
+        - JSON question bank dosyasını okumak
+        - JSON root yapısını doğrulamak
+        - her raw question record'unu validator'a göndermek
+        - her raw record'u mapper ile Question entity'sine çevirmek
+        - duplicate question id kontrolü yapmak
+        - list_all contract'ını sağlamak
+        - get_by_id contract'ını sağlamak
 
-    Neden JSON repository ile başlıyoruz?
-        Çünkü Faz-1 için:
-            - hızlı geliştirme
-            - düşük complexity
-            - kolay debugging
-            - kolay inspection
+    Bu sınıfın sorumluluğu değildir:
+        - Question domain validation yapmak
+        - enum parsing yapmak
+        - scoring yapmak
+        - question selection yapmak
+        - evaluator çalıştırmak
+        - vector store indexing yapmak
+        - API response üretmek
 
-        avantajları sağlar.
+    Validation pipeline:
+        JSON file
+            ↓
+        _load_raw_items()
+            ↓
+        QuestionRecordValidator
+            ↓
+        QuestionMapper
+            ↓
+        Question entity
+            ↓
+        QuestionFieldParser + QuestionValidator
 
-    JSON yaklaşımının avantajları:
-        ✔ human-readable
-        ✔ git-friendly
-        ✔ hızlı prototyping
-        ✔ kolay backup/versioning
-        ✔ dependency gerektirmez
+    Bu pipeline neden önemli?
+        Çünkü:
+            - raw structure validation
+            - mapping
+            - domain parsing
+            - domain validation
 
-    Dezavantajları:
-        ✘ büyük veri setlerinde yavaş olabilir
-        ✘ concurrency desteği zayıftır
-        ✘ query capability sınırlıdır
-        ✘ indexing yoktur
+        farklı sorumluluklardır.
 
-    Bu tradeoff Faz-1 için bilinçli olarak kabul edilmiştir.
+    Duplicate id kontrolü neden repository'de?
+        Çünkü duplicate id kontrolü tek bir Question entity üzerinden yapılamaz.
 
-    Gelecekte eklenebilecek repository implementasyonları:
-        - PostgresQuestionRepository
+        Bunun için tüm question collection'ını görmek gerekir.
+
+        Bu nedenle duplicate kontrolü collection-level responsibility olarak
+        repository loading sürecinde yapılır.
+
+    Bu implementation ne zaman yeterli?
+        - MVP
+        - local development
+        - static question bank
+        - seed data
+        - offline test
+        - CLI demo
+
+    İleride aynı QuestionRepository contract'ı korunarak:
+        - SqlQuestionRepository
         - MongoQuestionRepository
-        - ChromaQuestionRepository
-        - PineconeQuestionRepository
-        - HybridQuestionRepository
+        - ApiQuestionRepository
         - CachedQuestionRepository
 
-    Önemli tasarım notu:
-        Repository:
-            raw dict döndürmez.
-
-        Bunun yerine:
-            Question domain modeli döndürür.
-
-        Çünkü domain layer:
-            persistence formatı değil,
-            domain object'leri ile çalışmalıdır.
-
-    JSON örnek formatı:
-        [
-            {
-                "id": "rag_jr_001",
-                "text": "What is RAG?",
-                "category": "RAG",
-                "level": "JR",
-                "difficulty": 1,
-                "question_type": "conceptual",
-                "expected_points": [...],
-                "keywords": [...],
-                "market_weight": 0.8
-            }
-        ]
+    gibi farklı implementasyonlar eklenebilir.
     """
 
-    def __init__(self, json_path: str) -> None:
+    def __init__(
+        self,
+        file_path: str | Path,
+    ) -> None:
         """
-        JsonQuestionRepository instance'ı oluşturur.
+        JsonQuestionRepository instance'ını oluşturur.
 
         Args:
-            json_path:
-                Question JSON dosyasının filesystem path'i.
+            file_path:
+                Question bank JSON dosyasının path'i.
 
-                Örnek:
-                    "data/questions.json"
+                str veya Path kabul edilir.
 
-        Design Note:
-            Path abstraction kullanılması bilinçlidir.
+        Neden Path'e çevriliyor?
+            Çünkü pathlib.Path:
+                - platform bağımsız path yönetimi sağlar
+                - okunabilir dosya işlemleri sunar
+                - exists/open gibi methodlarla çalışmayı kolaylaştırır
 
-            pathlib.Path:
-                - platform bağımsızdır
-                - daha güvenlidir
-                - daha okunabilirdir
-                - modern Python yaklaşımıdır
-
-            os.path yerine tercih edilir.
+        Örnek:
+            repository = JsonQuestionRepository(
+                file_path="data/questions.json",
+            )
         """
-
-        # ---------------------------------------------------------
-        # PATH NORMALIZATION
-        # ---------------------------------------------------------
-        # String path pathlib.Path nesnesine dönüştürülür.
-        #
-        # Böylece:
-        #   - filesystem operasyonları daha güvenli olur
-        #   - platform compatibility artar
-        #   - path manipulation kolaylaşır
-        self.json_path = Path(json_path)
+        self.file_path = Path(file_path)
 
     def list_all(self) -> list[Question]:
         """
-        JSON dosyasındaki tüm question kayıtlarını yükler.
+        JSON question bank içindeki tüm kayıtları Question entity listesine
+        dönüştürerek döndürür.
+
+        Bu metod QuestionRepository contract'ını uygular.
 
         Akış:
-            1. JSON dosyasının varlığı kontrol edilir.
-            2. Dosya okunur.
-            3. JSON parse edilir.
-            4. Raw dict verileri Question domain modeline dönüştürülür.
-            5. Question listesi döndürülür.
+            1. JSON dosyasından raw item listesi okunur.
+            2. Her raw item QuestionRecordValidator ile doğrulanır.
+            3. Her raw item QuestionMapper ile Question entity'sine çevrilir.
+            4. Tüm question id'lerinin unique olduğu kontrol edilir.
+            5. Domain-safe Question listesi döndürülür.
+
+        Neden her çağrıda dosya tekrar okunuyor?
+            Bu implementation basit ve deterministic MVP yaklaşımıdır.
+
+            Avantaj:
+                - cache invalidation problemi yoktur
+                - dosya değişiklikleri hemen yansır
+                - testlerde davranış nettir
+
+            Dezavantaj:
+                - büyük dataset'lerde performans maliyeti olabilir
+
+        İleride gerekirse:
+            - lazy cache
+            - explicit reload
+            - file watcher
+            - in-memory index
+
+        eklenebilir.
 
         Returns:
             list[Question]:
-                JSON içerisindeki tüm question kayıtlarının domain model
-                listesi.
+                JSON dosyasından üretilmiş domain-safe Question listesi.
 
         Raises:
             FileNotFoundError:
-                JSON dosyası mevcut değilse fırlatılır.
-
-            json.JSONDecodeError:
-                JSON malformed ise fırlatılabilir.
-
-            KeyError:
-                Zorunlu field'lar eksikse oluşabilir.
+                JSON dosyası bulunamazsa fırlatılır.
 
             ValueError:
-                Question domain validation başarısız olursa oluşabilir.
-
-        Design Note:
-            Repository:
-                raw dict döndürmez.
-
-            Bunun yerine Question domain modeli üretir.
-
-            Böylece:
-                - domain validation otomatik çalışır
-                - invalid state erken yakalanır
-                - application layer type-safe çalışır
-
-        Example:
-            repository = JsonQuestionRepository(
-                "data/questions.json"
-            )
-
-            questions = repository.list_all()
-
-            print(len(questions))
+                JSON root list değilse, record bozuksa veya duplicate id
+                varsa fırlatılır.
         """
+        raw_items = self._load_raw_items()
 
-        # ---------------------------------------------------------
-        # FILE EXISTENCE CHECK
-        # ---------------------------------------------------------
-        # JSON dosyasının gerçekten mevcut olup olmadığı doğrulanır.
-        #
-        # Bu kontrol:
-        #   - invalid path problemlerini
-        #   - deployment issue'larını
-        #   - config hatalarını
-        #
-        # erken aşamada yakalar.
-        if not self.json_path.exists():
-            raise FileNotFoundError(f"Question file not found: {self.json_path}")
-
-        # ---------------------------------------------------------
-        # FILE READING
-        # ---------------------------------------------------------
-        # JSON dosyası UTF-8 encoding ile okunur.
-        #
-        # UTF-8 seçilmesinin nedeni:
-        #   - Türkçe karakter desteği
-        #   - Unicode compatibility
-        #   - modern standart olması
-        #
-        # json.load():
-        #   raw JSON verisini Python list/dict yapısına dönüştürür.
-        with self.json_path.open(
-            "r",
-            encoding="utf-8",
-        ) as file:
-            raw_questions = json.load(file)
-
-        # ---------------------------------------------------------
-        # DOMAIN MODEL MAPPING
-        # ---------------------------------------------------------
-        # Raw JSON dict verileri Question domain modeline dönüştürülür.
-        #
-        # Bu aşama kritik öneme sahiptir çünkü:
-        #   - domain validation burada çalışır
-        #   - invalid question state burada yakalanır
-        #   - application layer artık typed object ile çalışır
-        #
-        # item.get(...):
-        #   Optional field'lar için güvenli fallback sağlar.
-        #
-        # market_weight:
-        #   belirtilmemişse 0.5
-        #
-        # followup_allowed:
-        #   belirtilmemişse True
-        return [
-            Question(
-                id=item["id"],
-                text=item["text"],
-                category=item["category"],
-                level=item["level"],
-                difficulty=item["difficulty"],
-                question_type=item["question_type"],
-                expected_points=item["expected_points"],
-                keywords=item["keywords"],
-                market_weight=item.get(
-                    "market_weight",
-                    0.5,
-                ),
-                followup_allowed=item.get(
-                    "followup_allowed",
-                    True,
-                ),
+        questions = [
+            self._build_question(
+                item=item,
+                index=index,
             )
-            for item in raw_questions
+            for index, item in enumerate(raw_items)
         ]
+
+        self._validate_unique_ids(questions)
+
+        return questions
 
     def get_by_id(
         self,
         question_id: str,
     ) -> Question | None:
         """
-        Verilen ID'ye sahip tek bir Question döndürür.
+        Verilen question_id değerine sahip Question entity'sini döndürür.
+
+        Bu metod QuestionRepository contract'ını uygular.
 
         Akış:
-            1. Tüm question'lar yüklenir.
-            2. ID eşleşmesi aranır.
-            3. Eşleşen Question döndürülür.
-            4. Bulunamazsa None döner.
+            1. question_id validate edilir.
+            2. list_all() ile tüm Question entity'leri yüklenir.
+            3. id eşleşmesi aranır.
+            4. Bulunursa Question döner.
+            5. Bulunamazsa None döner.
+
+        Neden None döner?
+            Çünkü question bulunamaması normal bir lookup sonucudur.
+
+            Bu durumda exception fırlatmak yerine None dönmek service layer'da
+            daha sade kontrol sağlar.
+
+        Not:
+            Bu implementation her lookup için list_all() çağırır.
+
+            MVP ve küçük JSON dosyaları için yeterlidir.
+
+            Büyük question bank'lerde performans için:
+                - id index cache
+                - dictionary lookup
+                - preloaded repository
+
+            gibi optimizasyonlar eklenebilir.
 
         Args:
             question_id:
-                Aranacak unique question identifier.
-
-                Örnek:
-                    "rag_jr_001"
+                Aranacak Question id değeri.
 
         Returns:
             Question | None:
-                Eşleşen Question domain modeli.
+                Eşleşen Question entity'si.
 
-                Eğer question bulunamazsa:
-                    None
+                Bulunamazsa None.
 
-                döndürülür.
-
-        Design Note:
-            Bu implementasyon Faz-1 için intentionally basittir.
-
-            Şu an:
-                O(n) linear search
-
-            kullanılmaktadır.
-
-            Küçük dataset'ler için yeterlidir.
-
-        Production-scale geliştirmeler:
-            - in-memory indexing
-            - hashmap lookup
-            - database indexing
-            - caching
-            - lazy loading
-
-        Example:
-            question = repository.get_by_id(
-                "rag_jr_001"
-            )
-
-            if question:
-                print(question.text)
+        Raises:
+            ValueError:
+                question_id string değilse veya boşsa fırlatılır.
         """
+        self._validate_question_id(question_id)
 
-        # ---------------------------------------------------------
-        # FULL QUESTION LOAD
-        # ---------------------------------------------------------
-        # Tüm question'lar repository'den yüklenir.
-        #
-        # Faz-1 için kabul edilebilir basit yaklaşım.
-        questions = self.list_all()
-
-        # ---------------------------------------------------------
-        # LINEAR SEARCH
-        # ---------------------------------------------------------
-        # Question listesi içerisinde ID eşleşmesi aranır.
-        #
-        # İlk eşleşme bulunduğunda hemen return edilir.
-        #
-        # Çünkü:
-        #   question.id unique kabul edilir.
-        for question in questions:
+        for question in self.list_all():
             if question.id == question_id:
                 return question
 
-        # ---------------------------------------------------------
-        # NOT FOUND
-        # ---------------------------------------------------------
-        # Hiçbir eşleşme bulunamazsa None döndürülür.
-        #
-        # Bu explicit "not found" davranışıdır.
         return None
+
+    def exists(self) -> bool:
+        """
+        Repository'nin bağlı olduğu JSON question bank dosyasının var olup
+        olmadığını döndürür.
+
+        Bu helper özellikle:
+            - startup health check
+            - CLI diagnostics
+            - test setup
+            - repository readiness control
+
+        için kullanılabilir.
+
+        Returns:
+            bool:
+                True:
+                    dosya mevcut
+
+                False:
+                    dosya mevcut değil
+        """
+        return self.file_path.exists()
+
+    def _load_raw_items(self) -> list[dict]:
+        """
+        JSON dosyasını okuyarak raw question item listesini döndürür.
+
+        Bu metod file system ve JSON parsing sorumluluğunu izole eder.
+
+        Akış:
+            1. Dosyanın var olup olmadığı kontrol edilir.
+            2. Dosya UTF-8 encoding ile açılır.
+            3. json.load ile parse edilir.
+            4. JSON root'un list olup olmadığı kontrol edilir.
+            5. Raw item listesi döndürülür.
+
+        JSON root neden list olmalı?
+            Çünkü question bank birden fazla question record içerir.
+
+            Beklenen format:
+                [
+                    {
+                        "id": "...",
+                        "text": "...",
+                        ...
+                    }
+                ]
+
+        Eğer root dict olursa:
+            repository collection mantığı bozulur.
+
+        Returns:
+            list[dict]:
+                Raw question record listesi.
+
+        Raises:
+            FileNotFoundError:
+                JSON dosyası bulunamazsa fırlatılır.
+
+            ValueError:
+                JSON root list değilse fırlatılır.
+
+            json.JSONDecodeError:
+                JSON parse edilemezse fırlatılabilir.
+        """
+        if not self.exists():
+            raise FileNotFoundError(
+                f"Question bank file not found: {self.file_path}"
+            )
+
+        with self.file_path.open("r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        if not isinstance(data, list):
+            raise ValueError("Question bank JSON root must be a list.")
+
+        return data
+
+    def _build_question(
+        self,
+        item: dict,
+        index: int,
+    ) -> Question:
+        """
+        Tek bir raw question record'unu validate edip Question entity'sine
+        dönüştürür.
+
+        Bu metod record-level pipeline'ı temsil eder.
+
+        Akış:
+            1. Raw record structural validation'dan geçer.
+            2. Mapper ile Question entity oluşturulur.
+            3. Question entity kendi __post_init__ sürecinde parsing ve domain
+               validation çalıştırır.
+
+        Neden validator ve mapper ayrı?
+            Çünkü:
+                - validator raw record güvenli mi kontrol eder
+                - mapper raw record'u domain entity'ye dönüştürür
+
+            Bu iki sorumluluğun ayrılması kodu daha test edilebilir ve
+            sürdürülebilir yapar.
+
+        Args:
+            item:
+                Raw question dictionary.
+
+            index:
+                Dataset içindeki kayıt index değeri.
+
+        Returns:
+            Question:
+                Domain-safe Question entity.
+
+        Raises:
+            ValueError:
+                Record validation veya mapping başarısız olursa fırlatılır.
+        """
+        QuestionRecordValidator.validate(
+            item=item,
+            index=index,
+        )
+
+        return QuestionMapper.from_mapping(
+            payload=item,
+            index=index,
+        )
+
+    @staticmethod
+    def _validate_question_id(
+        question_id: str,
+    ) -> None:
+        """
+        get_by_id için gelen question_id parametresini doğrular.
+
+        Kurallar:
+            - string olmalıdır
+            - boş string olamaz
+            - whitespace-only olamaz
+
+        Neden gerekli?
+            Repository lookup işlemlerinde invalid id ile arama yapmak
+            anlamsızdır.
+
+            Bu validation erken hata yakalamayı sağlar.
+
+        Args:
+            question_id:
+                Doğrulanacak Question id değeri.
+
+        Raises:
+            ValueError:
+                question_id string değilse veya boşsa fırlatılır.
+        """
+        if not isinstance(question_id, str):
+            raise ValueError("question_id must be a string.")
+
+        if not question_id.strip():
+            raise ValueError("question_id cannot be empty.")
+
+    @staticmethod
+    def _validate_unique_ids(
+        questions: list[Question],
+    ) -> None:
+        """
+        Yüklenen Question listesi içinde duplicate id olup olmadığını kontrol
+        eder.
+
+        Bu validation collection-level bir validation'dır.
+
+        Neden QuestionValidator içinde değil?
+            Çünkü tek bir Question entity kendi id'sinin collection içinde
+            unique olup olmadığını bilemez.
+
+            Duplicate id kontrolü tüm question listesine ihtiyaç duyar.
+
+        Duplicate id neden kritik?
+            Çünkü duplicate id:
+                - get_by_id sonucunu belirsizleştirir
+                - asked_question_ids tracking'i bozar
+                - vector store metadata eşleşmesini bozar
+                - interview history'yi güvenilmez hale getirir
+                - analytics sonuçlarını kirletir
+
+        Akış:
+            1. seen_ids set'i oluşturulur.
+            2. Her question id kontrol edilir.
+            3. Daha önce görülen id tekrar gelirse duplicate_ids'e eklenir.
+            4. Duplicate varsa ValueError fırlatılır.
+
+        Args:
+            questions:
+                Kontrol edilecek Question entity listesi.
+
+        Raises:
+            ValueError:
+                Duplicate question id bulunursa fırlatılır.
+        """
+        seen_ids: set[str] = set()
+        duplicate_ids: set[str] = set()
+
+        for question in questions:
+            if question.id in seen_ids:
+                duplicate_ids.add(question.id)
+
+            seen_ids.add(question.id)
+
+        if duplicate_ids:
+            raise ValueError(
+                f"Duplicate question ids found: {sorted(duplicate_ids)}"
+            )

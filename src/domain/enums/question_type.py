@@ -239,3 +239,35 @@ class QuestionType(StrEnum):
     Dezavantaj:
         Evaluation daha subjektif olabilir.
     """
+
+    DEBUGGING = "debugging"
+    """
+    Hata ayıklama ve problem çözme odaklı soru tipi.
+
+    Amaç:
+        Adayın:
+            - debugging approach
+            - problem diagnosis
+            - root cause analysis
+            - solution proposal
+        becerilerini ölçmek.
+
+    Ölçülen yetkinlikler:
+        - debugging skill
+        - problem-solving approach
+        - root cause analysis
+        - solution proposal quality
+
+    Örnek:
+        - Verilen kod neden beklenen sonucu üretmiyor?
+        - RAG sisteminde neden yüksek latency var?
+        - Retrieval sonuçları neden tutarsız?
+        - API hatası nasıl çözülür?
+        - Memory leak problemi nasıl tespit edilir ve çözülür?
+
+    Avantaj:
+        Gerçek engineering problem çözme becerisini iyi ölçer.
+        
+    Dezavantaj:
+        Evaluation daha teknik detaylara girebilir ve subjektif olabilir.
+    """

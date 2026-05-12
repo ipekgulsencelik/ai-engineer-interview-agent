@@ -1,0 +1,38 @@
+[
+  {
+    "id": "rag_jr_001",
+    "text": "What is RAG?",
+    "category": "rag",
+    "level": "JR",
+    "difficulty": 1,
+    "question_type": "conceptual",
+    "expected_points": [
+      "retrieval",
+      "generation"
+    ],
+    "keywords": [
+      "rag",
+      "retrieval"
+    ],
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "agents_mid_001",
+    "text": "What is tool calling in AI agents?",
+    "category": "agents",
+    "level": "MID",
+    "difficulty": 2,
+    "question_type": "conceptual",
+    "expected_points": [
+      "external tools",
+      "reasoning loop"
+    ],
+    "keywords": [
+      "agents",
+      "tool calling"
+    ],
+    "market_weight": 0.8,
+    "followup_allowed": true
+  }
+]
