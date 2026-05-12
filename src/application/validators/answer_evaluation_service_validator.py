@@ -1,21 +1,11 @@
 from __future__ import annotations
 
-from src.application.ports.evaluator import Evaluator
+from src.domain.evaluation.evaluator import Evaluator
 from src.domain.entities.question import Question
 from src.domain.results.evaluation_result import EvaluationResult
 
 
 class AnswerEvaluationServiceValidator:
-    """
-    AnswerEvaluationService validation kurallarını yönetir.
-
-    Bu validator:
-        - evaluator contract doğrular
-        - evaluation input validate eder
-        - answer normalize eder
-        - evaluator output contract doğrular
-    """
-
     @staticmethod
     def validate_evaluator(
         evaluator: Evaluator,
