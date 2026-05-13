@@ -1,0 +1,10 @@
+from src.domain.constants.scoring.aliases import Score
+
+DEFAULT_DIFFICULTY_SCORE: Score = 0.7
+DEFAULT_FATIGUE_SCORE: Score = 1.0
+
+KNOWN_SKILL_GAP_SCORE: Score = 0.2
+UNKNOWN_SKILL_GAP_SCORE: Score = 1.0
+
+ASKED_QUESTION_DIVERSITY_SCORE: Score = 0.0
+UNASKED_QUESTION_DIVERSITY_SCORE: Score = 1.0
