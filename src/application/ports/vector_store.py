@@ -1,13 +1,27 @@
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from abc import abstractmethod
+from typing import Any, Protocol, runtime_checkable
 
+from src.domain.entities.question import Question
 from src.domain.search.search_result import SearchResult
 
 
 @runtime_checkable
 class VectorStore(Protocol):
-    
+    """Generic vector store port used by application services."""
+
+    @abstractmethod
+    def add_question(
+        self,
+        *,
+        question: Question,
+        embedding: list[float],
+    ) -> None:
+        """Persist a question and its embedding."""
+        ...
+
+
     @abstractmethod
     def add(
         self,
@@ -15,8 +29,9 @@ class VectorStore(Protocol):
         id: str,
         text: str,
         embedding: list[float],
-        metadata: dict[str, str],
-     ) -> None:
+        metadata: dict[str, Any],
+    ) -> None:
+        """Persist a generic vector record."""
         ...
 
 
@@ -27,7 +42,7 @@ class VectorStore(Protocol):
         ids: list[str],
         texts: list[str],
         embeddings: list[list[float]],
-        metadatas: list[dict[str, str]],
+        metadatas: list[dict[str, Any]],
     ) -> None:
         ...
 
@@ -38,7 +53,7 @@ class VectorStore(Protocol):
         *,
         query_embedding: list[float],
         limit: int = 5,
-        where: dict | None = None,
+        where: dict[str, Any] | None = None,
     ) -> list[SearchResult]:
         ...
 

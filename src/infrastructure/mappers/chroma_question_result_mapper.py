@@ -31,14 +31,17 @@ class ChromaQuestionResultMapper:
     @staticmethod
     def _to_question(metadata: QuestionMetadata) -> Question:
         ChromaQuestionMetadataValidator.validate(metadata)
+        difficulty = Difficulty(int(metadata["difficulty"]))
+
         return Question(
             id=str(metadata["id"]),
             text=str(metadata["text"]),
-            category=QuestionCategory(metadata["category"]),
-            level=Level(metadata["level"]),
-            difficulty=Difficulty(metadata["difficulty"]),
-            question_type=QuestionType(metadata["question_type"]),
-            expected_points=metadata.get("expected_points", []),
-            keywords=metadata.get("keywords", []),
+            category=QuestionCategory(str(metadata["category"])),
+            level=Level(str(metadata["level"])),
+            difficulty=int(difficulty.value),
+            question_type=QuestionType(str(metadata["question_type"])),
+            expected_points=list(metadata.get("expected_points", [])),
+            keywords=list(metadata.get("keywords", [])),
             market_weight=float(metadata.get("market_weight", 1.0)),
+            followup_allowed=bool(metadata.get("followup_allowed", True)),
         )

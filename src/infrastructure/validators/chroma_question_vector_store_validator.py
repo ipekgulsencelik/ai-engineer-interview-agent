@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 
+from src.domain.entities.question import Question
 from src.domain.enums.level import Level
 
 
@@ -32,3 +33,18 @@ class ChromaQuestionVectorStoreValidator:
 
         if not isinstance(level, Level):
             raise TypeError("level must be an instance of Level")
+
+
+    @staticmethod
+    def validate_add_question(*, question: Question, embedding: list[float]) -> None:
+        if not isinstance(question, Question):
+            raise TypeError("question must be an instance of Question")
+
+        if not isinstance(embedding, list) or not embedding:
+            raise ValueError("embedding must be a non-empty list[float]")
+
+        if not all(isinstance(value, (int, float)) for value in embedding):
+            raise ValueError("embedding must contain only numeric values")
+
+        if not all(math.isfinite(float(value)) for value in embedding):
+            raise ValueError("embedding must contain only finite numeric values")

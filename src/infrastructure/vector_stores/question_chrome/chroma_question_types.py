@@ -14,6 +14,7 @@ class QuestionMetadata(TypedDict):
     expected_points: NotRequired[list[str]]
     keywords: NotRequired[list[str]]
     market_weight: NotRequired[float | int | str]
+    followup_allowed: NotRequired[bool | str]
 
 
 class ChromaQueryPayload(TypedDict):
