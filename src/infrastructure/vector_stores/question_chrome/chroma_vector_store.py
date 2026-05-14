@@ -4,10 +4,14 @@ from typing import Any
 
 import chromadb
 
+from src.domain.entities.question import Question
 from src.domain.retrieval.search_result import SearchResult
 from src.domain.retrieval.vector_store import VectorStore
 from src.infrastructure.vector_stores.chroma.chroma_embedding_validator import (
     ChromaEmbeddingValidator,
+)
+from src.infrastructure.vector_stores.chroma.chroma_metadata_mapper import (
+    ChromaMetadataMapper,
 )
 from src.infrastructure.vector_stores.chroma.chroma_search_result_mapper import (
     ChromaSearchResultMapper,
@@ -151,6 +155,21 @@ class ChromaVectorStore(VectorStore):
 
         self.collection = self.client.get_or_create_collection(
             name=self.collection_name,
+        )
+
+    def add_question(
+        self,
+        *,
+        question: Question,
+        embedding: list[float],
+    ) -> None:
+        metadata = ChromaMetadataMapper.from_question(question)
+
+        self.add(
+            id=question.id,
+            text=question.text,
+            embedding=embedding,
+            metadata=metadata,
         )
 
     def add(

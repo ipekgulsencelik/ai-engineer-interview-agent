@@ -17,5 +17,6 @@ CHROMA_QUESTION_METADATA_SCHEMA.update(
         "expected_points": {"required": False, "type": list},
         "keywords": {"required": False, "type": list},
         "market_weight": {"required": False, "type": (int, float, str)},
+        "followup_allowed": {"required": False, "type": (bool, str)},
     }
 )

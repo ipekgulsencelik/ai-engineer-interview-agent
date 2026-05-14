@@ -40,6 +40,39 @@ class ChromaQuestionVectorStore(QuestionVectorStore):
         )
         self._collection = self._client.get_or_create_collection(name=collection_name)
 
+
+    def add_question(
+        self,
+        *,
+        question: Question,
+        embedding: list[float],
+    ) -> None:
+        ChromaQuestionVectorStoreValidator.validate_add_question(
+            question=question,
+            embedding=embedding,
+        )
+
+        self._collection.upsert(
+            ids=[question.id],
+            embeddings=[embedding],
+            documents=[question.text],
+            metadatas=[
+                {
+                    "question_id": question.id,
+                    "text": question.text,
+                    "category": question.category.value,
+                    "level": question.level.value,
+                    "difficulty": question.difficulty,
+                    "question_type": question.question_type.value,
+                    "expected_points": question.expected_points,
+                    "keywords": question.keywords,
+                    "market_weight": question.market_weight,
+                    "followup_allowed": question.followup_allowed,
+                }
+            ],
+        )
+
+
     def search_questions(
         self,
         *,
