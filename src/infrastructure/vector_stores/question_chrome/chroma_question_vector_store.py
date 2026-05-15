@@ -62,7 +62,7 @@ class ChromaQuestionVectorStore(QuestionVectorStore):
                     "text": question.text,
                     "category": question.category.value,
                     "level": question.level.value,
-                    "difficulty": question.difficulty,
+                    "difficulty": question.difficulty.value,
                     "question_type": question.question_type.value,
                     "expected_points": question.expected_points,
                     "keywords": question.keywords,

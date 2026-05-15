@@ -1,4 +1,4 @@
-from src.domain.question.question import Question
+from src.domain.entities.question import Question
 from src.infrastructure.evaluator.groq_rubric_evaluator import (
     GroqRubricEvaluator,
 )

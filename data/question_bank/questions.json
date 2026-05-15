@@ -34,5 +34,25 @@
     ],
     "market_weight": 0.8,
     "followup_allowed": true
+  },
+  {
+    "id": "mlops_sr_001",
+    "text": "How would you design model monitoring in production?",
+    "category": "mlops",
+    "level": "SENIOR",
+    "difficulty": 3,
+    "question_type": "scenario",
+    "expected_points": [
+      "data drift",
+      "latency",
+      "alerting"
+    ],
+    "keywords": [
+      "monitoring",
+      "mlops",
+      "drift"
+    ],
+    "market_weight": 0.85,
+    "followup_allowed": true
   }
 ]

@@ -1,5 +1,5 @@
 from src.container import Container
-from src.domain.question.question import Question
+from src.domain.entities.question import Question
 
 
 def run() -> None:

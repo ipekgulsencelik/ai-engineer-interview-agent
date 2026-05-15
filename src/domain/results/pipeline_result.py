@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from src.domain.enums.level import Level
-from src.domain.question.question import Question
+from src.domain.entities.question import Question
 from src.domain.results.evaluation_result import (
     EvaluationResult,
 )

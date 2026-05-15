@@ -46,7 +46,7 @@ class RubricEvaluationPromptBuilder(
         {question.text}
 
         CATEGORY:
-        {question.category}
+        {self._enum_value(question.category)}
 
         LEVEL:
         {self._enum_value(question.level)}

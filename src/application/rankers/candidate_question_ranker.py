@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from src.application.ports.scoring_engine import ScoringEngine
-from src.application.services.ranking.candidate_question_ranker_validator import (
+from src.application.validators.candidate_question_ranker_validator import (
     CandidateQuestionRankerValidator,
 )
 from src.domain.entities.question import Question
 from src.domain.scoring.scoring_context import ScoringContext
-from src.domain.selection.ranked_candidate import RankedCandidate
-from src.domain.selection.scored_candidate import ScoredCandidate
+from src.domain.results.ranked_candidate import RankedCandidate
+from src.application.rankers.scored_candidate import ScoredCandidate
 
 
 class CandidateQuestionRanker:

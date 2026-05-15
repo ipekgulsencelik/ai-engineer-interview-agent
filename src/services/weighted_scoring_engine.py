@@ -1,4 +1,4 @@
-from src.domain.question.question import Question
+from src.domain.entities.question import Question
 from src.domain.scoring.scoring_context import ScoringContext
 from src.domain.scoring.semantic_diversity import (
     compute_semantic_diversity_score,

@@ -3,7 +3,7 @@ import json
 from groq import Groq
 
 from src.config.settings import settings
-from src.domain.question.question import Question
+from src.domain.entities.question import Question
 from src.domain.results.follow_up_result import (
     FollowUpResult,
 )

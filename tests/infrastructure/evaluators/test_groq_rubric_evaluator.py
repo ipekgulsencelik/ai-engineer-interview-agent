@@ -5,11 +5,11 @@ from dataclasses import dataclass
 import pytest
 
 from src.application.models.llm_request import LLMRequest
-from src.application.models.llm_response import LLMResponse
 from src.application.models.llm_response_metadata import (
     LLMResponseMetadata,
 )
 from src.domain.entities.question import Question
+from src.domain.enums.difficulty import Difficulty
 from src.domain.enums.level import Level
 from src.domain.enums.question_category import QuestionCategory
 from src.domain.enums.question_type import QuestionType
