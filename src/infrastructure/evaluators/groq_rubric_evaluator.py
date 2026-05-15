@@ -12,6 +12,9 @@ from src.application.ports.llm_client import (
 from src.application.validators.answer_validator import (
     AnswerValidator,
 )
+from src.infrastructure.validators.groq_rubric_evaluator_validator import (
+    GroqRubricEvaluatorValidator,
+)
 from src.domain.entities.question import Question
 from src.domain.evaluation.evaluator import Evaluator
 from src.domain.results.evaluation_result import EvaluationResult
@@ -30,6 +33,13 @@ class GroqRubricEvaluator(Evaluator):
         response_parser: EvaluatorResponseParser,
         answer_validator: AnswerValidator,
     ) -> None:
+        GroqRubricEvaluatorValidator.validate_dependencies(
+            llm_client=llm_client,
+            prompt_builder=prompt_builder,
+            response_parser=response_parser,
+            answer_validator=answer_validator,
+        )
+
         self._llm_client = llm_client
         self._prompt_builder = prompt_builder
         self._response_parser = response_parser
@@ -40,6 +50,11 @@ class GroqRubricEvaluator(Evaluator):
         question: Question,
         answer: str,
     ) -> EvaluationResult:
+        GroqRubricEvaluatorValidator.validate_input(
+            question=question,
+            answer=answer,
+        )
+
         self._answer_validator.validate(answer)
 
         logger.info(
@@ -58,6 +73,9 @@ class GroqRubricEvaluator(Evaluator):
 
             llm_response = self._llm_client.generate(
                 prompt=prompt,
+                system_prompt=(
+                    self._prompt_builder.SYSTEM_PROMPT
+                ),
             )
 
             result = self._response_parser.parse(

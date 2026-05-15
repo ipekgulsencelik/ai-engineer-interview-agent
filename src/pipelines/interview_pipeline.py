@@ -1,4 +1,4 @@
-from src.domain.question.question import Question
+from src.domain.entities.question import Question
 from src.domain.results.pipeline_result import (
     PipelineResult,
 )

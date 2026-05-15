@@ -1,4 +1,4 @@
-from src.domain.question.question import Question
+from src.domain.entities.question import Question
 from src.domain.scoring.scoring_context import ScoringContext
 from src.infrastructure.evaluator.mock_evaluator import (
     MockEvaluator,
