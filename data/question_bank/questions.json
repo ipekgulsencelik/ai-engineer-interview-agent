@@ -1,58 +1,44 @@
 [
   {
     "id": "rag_jr_001",
-    "text": "What is RAG?",
-    "category": "rag",
+    "text": "What is Retrieval-Augmented Generation?",
+    "category": "RAG",
     "level": "JR",
-    "difficulty": 1,
     "question_type": "conceptual",
+    "difficulty": 3,
     "expected_points": [
       "retrieval",
-      "generation"
+      "generation",
+      "embedding"
     ],
     "keywords": [
-      "rag",
-      "retrieval"
+      "retrieval",
+      "generation",
+      "embedding"
     ],
-    "market_weight": 0.9,
-    "followup_allowed": true
-  },
-  {
-    "id": "agents_mid_001",
-    "text": "What is tool calling in AI agents?",
-    "category": "agents",
-    "level": "MID",
-    "difficulty": 2,
-    "question_type": "conceptual",
-    "expected_points": [
-      "external tools",
-      "reasoning loop"
-    ],
-    "keywords": [
-      "agents",
-      "tool calling"
-    ],
+    "followup": "How would you improve retrieval quality?",
+    "ideal_answer_hint": "RAG combines retrieval with generation.",
     "market_weight": 0.8,
     "followup_allowed": true
   },
   {
-    "id": "mlops_sr_001",
-    "text": "How would you design model monitoring in production?",
-    "category": "mlops",
-    "level": "SENIOR",
+    "id": "vector_mid_001",
+    "text": "How do vector databases support semantic search?",
+    "category": "Vector DB",
+    "level": "MID",
+    "question_type": "conceptual",
     "difficulty": 3,
-    "question_type": "scenario",
     "expected_points": [
-      "data drift",
-      "latency",
-      "alerting"
+      "embedding",
+      "similarity",
+      "vector"
     ],
     "keywords": [
-      "monitoring",
-      "mlops",
-      "drift"
+      "embedding",
+      "similarity",
+      "vector"
     ],
-    "market_weight": 0.85,
+    "market_weight": 0.9,
     "followup_allowed": true
   }
 ]

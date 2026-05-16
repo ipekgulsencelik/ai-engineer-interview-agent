@@ -4,6 +4,9 @@ import math
 from dataclasses import fields
 from typing import TYPE_CHECKING, Any
 
+from src.domain.errors.question_validation_error import (
+    QuestionValidationError,
+)
 from src.domain.validation.question_validation_schema import (
     QUESTION_VALIDATION_SCHEMA,
 )
@@ -101,7 +104,9 @@ class QuestionValidator:
         from src.domain.entities.question import Question
 
         if not isinstance(question, Question):
-            raise TypeError("question must be a Question instance.")
+            raise QuestionValidationError(
+                "question must be a Question instance."
+            )
 
     @staticmethod
     def _validate_expected_type(
@@ -114,44 +119,67 @@ class QuestionValidator:
             return
 
         if expected_type is not bool and isinstance(value, bool):
-            raise TypeError(f"{field_name} cannot be bool.")
+            raise QuestionValidationError(
+                f"{field_name} cannot be bool."
+            )
 
         if not isinstance(value, expected_type):
-            raise TypeError(f"{field_name} must be {expected_type}.")
+            raise QuestionValidationError(
+                f"{field_name} must be {expected_type}."
+            )
 
     @staticmethod
     def _validate_finite(
         *,
         field_name: str,
-        value: float,
+        value: object,
     ) -> None:
-        if not math.isfinite(value):
-            raise ValueError(f"{field_name} must be finite.")
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise QuestionValidationError(
+                f"{field_name} must be a finite number."
+            )
+
+        if not math.isfinite(float(value)):
+            raise QuestionValidationError(
+                f"{field_name} must be finite."
+            )
 
     @staticmethod
     def _validate_non_empty(
         *,
         field_name: str,
-        value: str,
+        value: object,
     ) -> None:
+        if not isinstance(value, str):
+            raise QuestionValidationError(
+                f"{field_name} must be a string."
+            )
+
         if not value.strip():
-            raise ValueError(f"{field_name} cannot be empty.")
+            raise QuestionValidationError(
+                f"{field_name} cannot be empty."
+            )
 
     @staticmethod
     def _validate_list_items(
         *,
         field_name: str,
-        value: list,
+        value: object,
         item_type: type,
     ) -> None:
+        if not isinstance(value, list):
+            raise QuestionValidationError(
+                f"{field_name} must be a list."
+            )
+
         for item in value:
             if not isinstance(item, item_type):
-                raise TypeError(
+                raise QuestionValidationError(
                     f"All items in {field_name} must be {item_type}."
                 )
 
             if item_type is str and not item.strip():
-                raise ValueError(
+                raise QuestionValidationError(
                     f"Items in {field_name} cannot be empty."
                 )
 
@@ -159,11 +187,16 @@ class QuestionValidator:
     def _validate_min_value(
         *,
         field_name: str,
-        value: float,
+        value: object,
         min_value: float,
     ) -> None:
-        if value < min_value:
-            raise ValueError(
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            raise QuestionValidationError(
+                f"{field_name} must be numeric."
+            )
+
+        if float(value) < min_value:
+            raise QuestionValidationError(
                 f"{field_name} must be greater than or equal to "
                 f"{min_value}."
             )
@@ -172,11 +205,16 @@ class QuestionValidator:
     def _validate_max_value(
         *,
         field_name: str,
-        value: float,
+        value: object,
         max_value: float,
     ) -> None:
-        if value > max_value:
-            raise ValueError(
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            raise QuestionValidationError(
+                f"{field_name} must be numeric."
+            )
+
+        if float(value) > max_value:
+            raise QuestionValidationError(
                 f"{field_name} must be less than or equal to "
                 f"{max_value}."
             )
