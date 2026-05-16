@@ -9,13 +9,13 @@ from src.domain.constants.chroma_question import (
 from src.infrastructure.validations.chroma_question_metadata_schema import (
     CHROMA_QUESTION_METADATA_SCHEMA,
 )
-from src.infrastructure.vector_stores.question_chroma.chroma_question_query_builder import (
+from src.infrastructure.vector_stores.chroma.chroma_question_query_builder import (
     ChromaQuestionQueryBuilder,
 )
-from src.infrastructure.vector_stores.question_chroma.chroma_question_result_mapper import (
+from src.infrastructure.vector_stores.chroma.chroma_question_result_mapper import (
     ChromaQuestionResultMapper,
 )
-from src.infrastructure.vector_stores.question_chroma.chroma_question_vector_store import (
+from src.infrastructure.vector_stores.chroma.chroma_question_vector_store import (
     ChromaQuestionVectorStore,
 )
 from src.infrastructure.validators.chroma_question_vector_store_validator import (

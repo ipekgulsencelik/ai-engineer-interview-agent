@@ -5,10 +5,10 @@ from src.domain.enums.difficulty import Difficulty
 from src.domain.enums.level import Level
 from src.domain.enums.question_category import QuestionCategory
 from src.domain.enums.question_type import QuestionType
-from src.infrastructure.validations.question_chroma.chroma_question_metadata_validator import (
+from src.infrastructure.validations.chroma.chroma_question_metadata_validator import (
     ChromaQuestionMetadataValidator,
 )
-from src.infrastructure.vector_stores.question_chroma.chroma_question_types import (
+from src.infrastructure.vector_stores.chroma.chroma_question_types import (
     ChromaQueryResults,
     QuestionMetadata,
 )

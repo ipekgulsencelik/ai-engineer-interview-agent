@@ -12,31 +12,23 @@ from src.domain.enums.question_type import QuestionType
 from src.domain.validators.question_validator import QuestionValidator
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Question:
     """
     Interview sisteminde adaya sorulabilecek tek bir soruyu temsil eden
     immutable domain entity.
 
-    Bu entity yalnızca domain state taşır.
-
-    Sorumlulukları:
-        - question bilgisini immutable şekilde temsil etmek
-        - oluşturulduktan sonra domain invariant validation tetiklemek
-
-    Bu entity şunları yapmaz:
-        - raw string parse etmez
+    Bu entity:
+        - yalnızca domain state taşır
+        - raw input parse etmez
         - normalization yapmaz
-        - JSON okumaz
+        - JSON/payload okumaz
         - repository işlemi yapmaz
         - scoring hesaplamaz
         - selection kararı vermez
 
-    Raw input conversion ve normalization:
-        QuestionFactory + QuestionFieldParser tarafından yapılır.
-
-    Validation:
-        QuestionValidator tarafından yapılır.
+    Validation kuralları:
+        QUESTION_VALIDATION_SCHEMA üzerinden QuestionValidator tarafından uygulanır.
     """
 
     id: str
@@ -47,12 +39,14 @@ class Question:
     question_type: QuestionType
     expected_points: list[str] = field(default_factory=list)
     keywords: list[str] = field(default_factory=list)
+    followup: str | None = None
+    ideal_answer_hint: str | None = None
     market_weight: float = DEFAULT_MARKET_WEIGHT
     followup_allowed: bool = DEFAULT_FOLLOWUP_ALLOWED
 
     def __post_init__(self) -> None:
         """
-        Entity oluşturulduktan sonra invariant validation çalıştırılır.
+        Entity oluşturulduktan sonra domain invariant validation çalıştırılır.
         """
 
         QuestionValidator.validate(self)

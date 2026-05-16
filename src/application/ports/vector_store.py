@@ -1,26 +1,15 @@
 from __future__ import annotations
 
-from abc import abstractmethod
 from typing import Any, Protocol, runtime_checkable
 
-from src.domain.entities.question import Question
 from src.domain.search.search_result import SearchResult
 
 
 @runtime_checkable
 class VectorStore(Protocol):
-    """Generic vector store port used by application services."""
-
-    @abstractmethod
-    def add_question(
-        self,
-        *,
-        question: Question,
-        embedding: list[float],
-    ) -> None:
-        """Persist a question and its embedding."""
-        ...
-
+    """
+    Generic vector store port.
+    """
 
     @abstractmethod
     def add(

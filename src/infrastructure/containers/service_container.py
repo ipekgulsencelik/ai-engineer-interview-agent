@@ -33,7 +33,7 @@ from src.infrastructure.evaluators.mock_evaluator import MockEvaluator
 from src.application.policies.highest_score_selection_policy import (
     HighestScoreSelectionPolicy,
 )
-from src.infrastructure.vector_stores.question_chrome.chroma_question_vector_store import (
+from src.infrastructure.vector_stores.chroma.chroma_question_vector_store import (
     ChromaQuestionVectorStore,
 )
 

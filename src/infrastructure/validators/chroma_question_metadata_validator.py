@@ -4,10 +4,10 @@ from src.domain.constants.chroma_question import (
     CURRENT_QUESTION_METADATA_VERSION,
     SUPPORTED_QUESTION_METADATA_VERSIONS,
 )
-from src.infrastructure.validations.question_chroma.chroma_question_metadata_schema import (
+from src.infrastructure.validations.chroma.chroma_question_metadata_schema import (
     CHROMA_QUESTION_METADATA_SCHEMA,
 )
-from src.infrastructure.vector_stores.question_chroma.chroma_question_types import (
+from src.infrastructure.vector_stores.chroma.chroma_question_types import (
     QuestionMetadata,
 )
 

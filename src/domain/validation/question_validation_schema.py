@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any, Final
+
 from src.domain.constants.question import (
     MAX_DIFFICULTY,
     MAX_MARKET_WEIGHT,
@@ -10,9 +12,12 @@ from src.domain.enums.level import Level
 from src.domain.enums.question_category import QuestionCategory
 from src.domain.enums.question_type import QuestionType
 
-NUMBER_TYPES = (int, float)
+NUMBER_TYPES: Final[tuple[type[int], type[float]]] = (
+    int,
+    float,
+)
 
-QUESTION_VALIDATION_SCHEMA = {
+QUESTION_VALIDATION_SCHEMA: Final[dict[str, dict[str, Any]]] = {
     "id": {
         "type": str,
         "non_empty": True,
@@ -42,6 +47,16 @@ QUESTION_VALIDATION_SCHEMA = {
     "keywords": {
         "type": list,
         "item_type": str,
+    },
+    "followup": {
+        "type": str,
+        "non_empty": True,
+        "nullable": True,
+    },
+    "ideal_answer_hint": {
+        "type": str,
+        "non_empty": True,
+        "nullable": True,
     },
     "market_weight": {
         "type": NUMBER_TYPES,

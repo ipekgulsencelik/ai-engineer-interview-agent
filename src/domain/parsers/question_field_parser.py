@@ -1,124 +1,49 @@
 from __future__ import annotations
 
-from enum import Enum
-from typing import Callable, TypeVar
-
 from src.domain.enums.level import Level
 from src.domain.enums.question_category import QuestionCategory
 from src.domain.enums.question_type import QuestionType
-
-EnumT = TypeVar(
-    "EnumT",
-    bound=Enum,
+from src.domain.parsers.contracts.level_parser import LevelParser
+from src.domain.parsers.contracts.question_category_parser import (
+    QuestionCategoryParser,
+)
+from src.domain.parsers.contracts.question_type_parser import (
+    QuestionTypeParser,
 )
 
 
 class QuestionFieldParser:
     """
-    Raw external input değerlerini domain-safe enum değerlerine dönüştürür.
+    Question field parser facade.
 
-    Bu parser:
-        - JSON
-        - test fixture
-        - seed data
-        - API payload
-        - repository output
-
-    gibi kaynaklardan gelen string değerleri normalize eder.
+    Raw enum alanlarını domain-safe enum instance'lara dönüştürür.
     """
 
-    @classmethod
+    def __init__(
+        self,
+        *,
+        level_parser: LevelParser,
+        category_parser: QuestionCategoryParser,
+        question_type_parser: QuestionTypeParser,
+    ) -> None:
+        self._level_parser = level_parser
+        self._category_parser = category_parser
+        self._question_type_parser = question_type_parser
+
     def parse_level(
-        cls,
+        self,
         value: Level | str,
     ) -> Level:
-        return cls._parse_enum(
-            value=value,
-            enum_class=Level,
-            field_name="level",
-            normalize=lambda item: item.strip().upper(),
-        )
+        return self._level_parser.parse(value)
 
-    @classmethod
-    def parse_question_type(
-        cls,
-        value: QuestionType | str,
-    ) -> QuestionType:
-        return cls._parse_enum(
-            value=value,
-            enum_class=QuestionType,
-            field_name="question_type",
-            normalize=lambda item: item.strip().lower(),
-        )
-
-    @classmethod
     def parse_category(
-        cls,
+        self,
         value: QuestionCategory | str,
     ) -> QuestionCategory:
-        return cls._parse_enum(
-            value=value,
-            enum_class=QuestionCategory,
-            field_name="category",
-            normalize=cls._normalize_category,
-        )
+        return self._category_parser.parse(value)
 
-    @staticmethod
-    def _normalize_category(
-        value: str,
-    ) -> str:
-        normalized = " ".join(
-            value.strip().split()
-        )
-
-        normalized = normalized.lower()
-
-        normalized = normalized.replace(
-            " & ",
-            "_and_",
-        )
-
-        normalized = normalized.replace(
-            "-",
-            "_",
-        )
-
-        normalized = normalized.replace(
-            " ",
-            "_",
-        )
-
-        return normalized
-
-    @staticmethod
-    def _parse_enum(
-        *,
-        value: EnumT | str,
-        enum_class: type[EnumT],
-        field_name: str,
-        normalize: Callable[[str], str],
-    ) -> EnumT:
-        if isinstance(value, enum_class):
-            return value
-
-        if not isinstance(value, str):
-            raise TypeError(
-                f"{field_name} must be a string or "
-                f"{enum_class.__name__}."
-            )
-
-        normalized_value = normalize(value)
-
-        try:
-            return enum_class(normalized_value)
-
-        except ValueError as error:
-            allowed_values = [
-                item.value
-                for item in enum_class
-            ]
-
-            raise ValueError(
-                f"Invalid {field_name}: {value}. "
-                f"Expected one of: {allowed_values}"
-            ) from error
+    def parse_question_type(
+        self,
+        value: QuestionType | str,
+    ) -> QuestionType:
+        return self._question_type_parser.parse(value)
