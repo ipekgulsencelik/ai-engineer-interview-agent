@@ -14,6 +14,7 @@ class EmbeddingProvider(Protocol):
 
     def embed_text(
         self,
+        *,
         text: str,
     ) -> list[float]:
         """
@@ -23,6 +24,7 @@ class EmbeddingProvider(Protocol):
 
     def embed_many(
         self,
+        *,
         texts: list[str],
     ) -> list[list[float]]:
         """

@@ -1,45 +1,79 @@
 from __future__ import annotations
 
-from src.application.ports.question_vector_store import QuestionVectorStore
+from src.application.ports.question_vector_store import (
+    QuestionVectorStore,
+)
 from src.domain.entities.question import Question
-from src.domain.enums.level import Level
-from src.infrastructure.vector_stores.chroma.chroma_client_factory import (
-    create_chroma_client,
+from src.domain.retrieval.question_search_result import (
+    QuestionSearchResult,
 )
-from src.infrastructure.vector_stores.chroma.chroma_protocols import (
-    ChromaClientProtocol,
+from src.domain.retrieval.search_filters import (
+    SearchFilters,
 )
-from src.infrastructure.vector_stores.chroma.chroma_question_query_builder import (
-    ChromaQuestionQueryBuilder,
+from src.infrastructure.errors.vector_store_error import (
+    VectorStoreError,
 )
-from src.infrastructure.mappers.chroma_question_result_mapper import (
-    ChromaQuestionResultMapper,
+from src.infrastructure.mappers.chroma_metadata_mapper import (
+    ChromaMetadataMapper,
+)
+from src.infrastructure.mappers.chroma_question_search_result_mapper import (
+    ChromaQuestionSearchResultMapper,
 )
 from src.infrastructure.validators.chroma_question_vector_store_validator import (
     ChromaQuestionVectorStoreValidator,
 )
+from src.infrastructure.vector_stores.chroma.chroma_protocols import (
+    ChromaCollectionProtocol,
+)
+from src.infrastructure.vector_stores.chroma.chroma_question_query_builder import (
+    ChromaQuestionQueryBuilder,
+)
 
 
 class ChromaQuestionVectorStore(QuestionVectorStore):
-    """ChromaDB-backed semantic question vector store."""
+    """
+    ChromaDB-backed semantic question vector store.
+    """
 
     def __init__(
         self,
         *,
-        persist_directory: str,
-        collection_name: str = "questions",
-        client: ChromaClientProtocol | None = None,
+        collection: ChromaCollectionProtocol,
+        result_mapper: ChromaQuestionSearchResultMapper | None = None,
     ) -> None:
-        ChromaQuestionVectorStoreValidator.validate_init(
-            persist_directory=persist_directory,
-            collection_name=collection_name,
+        self._collection = collection
+        self._result_mapper = (
+            result_mapper
+            or ChromaQuestionSearchResultMapper()
         )
 
-        self._client = client or create_chroma_client(
-            persist_directory=persist_directory,
+    def index_questions(
+        self,
+        *,
+        questions: list[Question],
+        embeddings: list[list[float]],
+    ) -> None:
+        ChromaQuestionVectorStoreValidator.validate_index_inputs(
+            questions=questions,
+            embeddings=embeddings,
         )
-        self._collection = self._client.get_or_create_collection(name=collection_name)
 
+        try:
+            self._collection.upsert(
+                ids=[question.id for question in questions],
+                embeddings=embeddings,
+                documents=[question.text for question in questions],
+                metadatas=[
+                    ChromaMetadataMapper.from_question(
+                        question=question,
+                    )
+                    for question in questions
+                ],
+            )
+        except Exception as exc:
+            raise VectorStoreError(
+                "Failed to index questions into Chroma."
+            ) from exc
 
     def add_question(
         self,
@@ -47,49 +81,37 @@ class ChromaQuestionVectorStore(QuestionVectorStore):
         question: Question,
         embedding: list[float],
     ) -> None:
-        ChromaQuestionVectorStoreValidator.validate_add_question(
-            question=question,
-            embedding=embedding,
-        )
-
-        self._collection.upsert(
-            ids=[question.id],
+        self.index_questions(
+            questions=[question],
             embeddings=[embedding],
-            documents=[question.text],
-            metadatas=[
-                {
-                    "question_id": question.id,
-                    "text": question.text,
-                    "category": question.category.value,
-                    "level": question.level.value,
-                    "difficulty": question.difficulty.value,
-                    "question_type": question.question_type.value,
-                    "expected_points": question.expected_points,
-                    "keywords": question.keywords,
-                    "market_weight": question.market_weight,
-                    "followup_allowed": question.followup_allowed,
-                }
-            ],
         )
-
 
     def search_questions(
         self,
         *,
-        embedding: list[float],
+        query_embedding: list[float],
         top_k: int,
-        level: Level,
-    ) -> list[Question]:
-        ChromaQuestionVectorStoreValidator.validate_search(
-            embedding=embedding,
+        filters: SearchFilters | None = None,
+    ) -> list[QuestionSearchResult]:
+        ChromaQuestionVectorStoreValidator.validate_search_inputs(
+            query_embedding=query_embedding,
             top_k=top_k,
-            level=level,
+            filters=filters,
         )
 
         payload = ChromaQuestionQueryBuilder.build(
-            embedding=embedding,
+            query_embedding=query_embedding,
             top_k=top_k,
-            level=level,
+            filters=filters,
         )
-        results = self._collection.query(**payload)
-        return ChromaQuestionResultMapper.to_questions(results)
+
+        try:
+            results = self._collection.query(**payload)
+        except Exception as exc:
+            raise VectorStoreError(
+                "Failed to search questions in Chroma."
+            ) from exc
+
+        return self._result_mapper.to_results(
+            results=results,
+        )

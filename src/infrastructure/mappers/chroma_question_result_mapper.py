@@ -1,47 +1,65 @@
 from __future__ import annotations
 
 from src.domain.entities.question import Question
-from src.domain.enums.difficulty import Difficulty
-from src.domain.enums.level import Level
-from src.domain.enums.question_category import QuestionCategory
-from src.domain.enums.question_type import QuestionType
-from src.infrastructure.validations.chroma.chroma_question_metadata_validator import (
+from src.infrastructure.constants.vector_metadata_keys import (
+    QUESTION_ID_METADATA_KEY,
+)
+from src.infrastructure.rehydrators.question_rehydrator import (
+    QuestionRehydrator,
+)
+from src.infrastructure.validators.chroma_question_metadata_validator import (
     ChromaQuestionMetadataValidator,
 )
 from src.infrastructure.vector_stores.chroma.chroma_question_types import (
-    ChromaQueryResults,
-    QuestionMetadata,
+    ChromaQuestionMetadata,
 )
 
 
 class ChromaQuestionResultMapper:
-    """Maps raw Chroma query payloads into domain `Question` entities."""
+    """
+    Chroma metadata -> Question entity mapper.
+    """
 
-    @staticmethod
-    def to_questions(results: ChromaQueryResults) -> list[Question]:
-        metadata_batches = results.get("metadatas") or []
-        if not metadata_batches:
-            return []
-
-        return [
-            ChromaQuestionResultMapper._to_question(metadata)
-            for metadata in metadata_batches[0]
-        ]
-
-    @staticmethod
-    def _to_question(metadata: QuestionMetadata) -> Question:
-        ChromaQuestionMetadataValidator.validate(metadata)
-        difficulty = Difficulty(int(metadata["difficulty"]))
-
-        return Question(
-            id=str(metadata["id"]),
-            text=str(metadata["text"]),
-            category=QuestionCategory(str(metadata["category"])),
-            level=Level(str(metadata["level"])),
-            difficulty=int(difficulty.value),
-            question_type=QuestionType(str(metadata["question_type"])),
-            expected_points=list(metadata.get("expected_points", [])),
-            keywords=list(metadata.get("keywords", [])),
-            market_weight=float(metadata.get("market_weight", 1.0)),
-            followup_allowed=bool(metadata.get("followup_allowed", True)),
+    def __init__(
+        self,
+        *,
+        question_rehydrator: QuestionRehydrator | None = None,
+    ) -> None:
+        self._question_rehydrator = (
+            question_rehydrator
+            or QuestionRehydrator()
         )
+
+    def to_question(
+        self,
+        *,
+        metadata: ChromaQuestionMetadata,
+        fallback_question_id: str | None = None,
+    ) -> Question:
+        ChromaQuestionMetadataValidator.validate(
+            metadata=metadata,
+        )
+
+        return self._question_rehydrator.rehydrate(
+            question_id=self._resolve_question_id(
+                metadata=metadata,
+                fallback_question_id=fallback_question_id,
+            ),
+            metadata=dict(metadata),
+        )
+
+    @staticmethod
+    def _resolve_question_id(
+        *,
+        metadata: ChromaQuestionMetadata,
+        fallback_question_id: str | None,
+    ) -> str:
+        question_id = metadata.get(
+            QUESTION_ID_METADATA_KEY,
+            fallback_question_id,
+        )
+
+        if question_id is None:
+            return ""
+
+        return str(question_id)

@@ -4,11 +4,8 @@ import logging
 import time
 from typing import Any
 
-from src.infrastructure.errors.embedding_provider_error import (
-    EmbeddingProviderError,
-)
-from src.infrastructure.validators.sentence_transformer_embedding_provider_validator import (
-    SentenceTransformerEmbeddingProviderValidator,
+from src.infrastructure.errors.embedding_retry_error import (
+    EmbeddingRetryError,
 )
 
 logger = logging.getLogger(__name__)
@@ -25,13 +22,6 @@ class EmbeddingRetryExecutor:
         retry_count: int,
         retry_backoff_seconds: float,
     ) -> None:
-        SentenceTransformerEmbeddingProviderValidator.validate_retry_count(
-            retry_count,
-        )
-        SentenceTransformerEmbeddingProviderValidator.validate_retry_backoff_seconds(
-            retry_backoff_seconds,
-        )
-
         self._retry_count = retry_count
         self._retry_backoff_seconds = retry_backoff_seconds
 
@@ -43,13 +33,6 @@ class EmbeddingRetryExecutor:
         normalize_embeddings: bool,
         batch_size: int,
     ) -> Any:
-        SentenceTransformerEmbeddingProviderValidator.validate_normalize_embeddings(
-            normalize_embeddings,
-        )
-        SentenceTransformerEmbeddingProviderValidator.validate_batch_size(
-            batch_size,
-        )
-
         last_error: Exception | None = None
 
         for attempt in range(1, self._retry_count + 2):
@@ -77,6 +60,6 @@ class EmbeddingRetryExecutor:
                         self._retry_backoff_seconds * attempt
                     )
 
-        raise EmbeddingProviderError(
+        raise EmbeddingRetryError(
             "Failed to generate embeddings after retries."
         ) from last_error

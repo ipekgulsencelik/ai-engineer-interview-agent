@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 from src.config.settings import settings
+from src.infrastructure.constants.embedding_defaults import (
+    DEFAULT_BATCH_SIZE,
+    DEFAULT_NORMALIZE_EMBEDDINGS,
+    DEFAULT_RETRY_BACKOFF_SECONDS,
+    DEFAULT_RETRY_COUNT,
+)
 from src.infrastructure.embedding.embedding_retry_executor import (
     EmbeddingRetryExecutor,
 )
 from src.infrastructure.embedding.sentence_transformer_embedding_provider import (
     SentenceTransformerEmbeddingProvider,
 )
-from src.infrastructure.loaders.sentence_transformer_model_loader import (
+from src.infrastructure.embedding.sentence_transformer_model_loader import (
     SentenceTransformerModelLoader,
 )
 from src.infrastructure.validators.sentence_transformer_embedding_provider_validator import (
@@ -24,18 +30,26 @@ class SentenceTransformerEmbeddingProviderBuilder:
     def build_default(
         *,
         model_name: str | None = None,
-        normalize_embeddings: bool = True,
-        retry_count: int = 2,
-        retry_backoff_seconds: float = 0.25,
-        batch_size: int = 32,
+        normalize_embeddings: bool = DEFAULT_NORMALIZE_EMBEDDINGS,
+        retry_count: int = DEFAULT_RETRY_COUNT,
+        retry_backoff_seconds: float = DEFAULT_RETRY_BACKOFF_SECONDS,
+        batch_size: int = DEFAULT_BATCH_SIZE,
     ) -> SentenceTransformerEmbeddingProvider:
-        SentenceTransformerEmbeddingProviderValidator.validate_model_name(
-            model_name,
+        SentenceTransformerEmbeddingProviderBuilder._validate_config(
+            model_name=model_name,
+            normalize_embeddings=normalize_embeddings,
+            retry_count=retry_count,
+            retry_backoff_seconds=retry_backoff_seconds,
+            batch_size=batch_size,
         )
 
         resolved_model_name = (
             model_name
             or settings.EMBEDDING_MODEL_NAME
+        )
+
+        SentenceTransformerEmbeddingProviderValidator.validate_model_name(
+            resolved_model_name,
         )
 
         model = SentenceTransformerModelLoader.load(
@@ -52,4 +66,29 @@ class SentenceTransformerEmbeddingProviderBuilder:
             retry_executor=retry_executor,
             normalize_embeddings=normalize_embeddings,
             batch_size=batch_size,
+        )
+
+    @staticmethod
+    def _validate_config(
+        *,
+        model_name: str | None,
+        normalize_embeddings: bool,
+        retry_count: int,
+        retry_backoff_seconds: float,
+        batch_size: int,
+    ) -> None:
+        SentenceTransformerEmbeddingProviderValidator.validate_model_name(
+            model_name,
+        )
+        SentenceTransformerEmbeddingProviderValidator.validate_normalize_embeddings(
+            normalize_embeddings,
+        )
+        SentenceTransformerEmbeddingProviderValidator.validate_retry_count(
+            retry_count,
+        )
+        SentenceTransformerEmbeddingProviderValidator.validate_retry_backoff_seconds(
+            retry_backoff_seconds,
+        )
+        SentenceTransformerEmbeddingProviderValidator.validate_batch_size(
+            batch_size,
         )

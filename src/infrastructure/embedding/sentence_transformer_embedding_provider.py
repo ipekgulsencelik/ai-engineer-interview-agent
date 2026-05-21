@@ -40,6 +40,7 @@ class SentenceTransformerEmbeddingProvider(EmbeddingProvider):
 
     def embed_text(
         self,
+        *,
         text: str,
     ) -> list[float]:
         normalized_text = (
@@ -59,6 +60,7 @@ class SentenceTransformerEmbeddingProvider(EmbeddingProvider):
 
     def embed_many(
         self,
+        *,
         texts: list[str],
     ) -> list[list[float]]:
         normalized_texts = (
