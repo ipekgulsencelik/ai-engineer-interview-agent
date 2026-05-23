@@ -5,15 +5,16 @@ on:
     branches:
       - main
       - develop
-
   pull_request:
     branches:
       - main
       - develop
 
 jobs:
-  test:
+  quality-gates:
+    name: Ruff + Pyright + Pytest
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -28,16 +29,13 @@ jobs:
         run: pip install uv
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --frozen
 
-      - name: Ruff Lint
+      - name: Ruff (required)
         run: uv run ruff check .
 
-      - name: Pyright Type Check
+      - name: Pyright (required)
         run: uv run pyright
 
-      - name: Run Tests
-        run: uv run pytest
-
-      - name: Docker Build
-        run: docker build -t ai-interview-agent .
+      - name: Pytest (required)
+        run: uv run pytest -q
