@@ -1,3 +1,11 @@
+from __future__ import annotations
+
+from typing import Final
+
+
+MIN_REQUIRED_RECENT_SCORES: Final[int] = 1
+
+
 RECENT_SCORES_MUST_BE_LIST_ERROR = (
     "recent_scores must be a list."
 )

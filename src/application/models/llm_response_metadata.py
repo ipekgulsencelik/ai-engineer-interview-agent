@@ -1,19 +1,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from src.application.validators.llm_response_metadata_validator import (
     LLMResponseMetadataValidator,
 )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class LLMResponseMetadata:
     """
     Provider-independent LLM response metadata modelidir.
     """
 
-    model: str | None = None
+    model_name: str | None = None
 
     prompt_tokens: int | None = None
 
@@ -25,7 +26,9 @@ class LLMResponseMetadata:
 
     finish_reason: str | None = None
 
-    raw_response: dict | None = field(
+    provider_name: str | None = None
+
+    raw_response: dict[str, Any] | None = field(
         default=None,
         repr=False,
         compare=False,

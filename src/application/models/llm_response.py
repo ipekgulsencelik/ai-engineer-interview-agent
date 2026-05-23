@@ -10,15 +10,16 @@ from src.application.validators.llm_response_validator import (
 )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class LLMResponse:
     """
-    Provider-independent normalized text generation response modelidir.
+    Provider-independent normalized text generation response model.
 
     Bu model:
         - raw SDK response değildir
         - provider-independent response abstraction sağlar
         - evaluator/parser pipeline için standart input oluşturur
+        - generation text ve runtime metadata taşır
     """
 
     text: str

@@ -3,77 +3,110 @@ from __future__ import annotations
 from src.application.parsers.evaluator_response_parser import (
     EvaluatorResponseParser,
 )
+from src.application.ports.evaluation_prompt_builder import (
+    EvaluationPromptBuilder,
+)
 from src.application.ports.llm_client import (
     LLMClient,
-)
-from src.domain.entities.question import Question
-from src.infrastructure.prompting.rubric_prompt_builder import (
-    RubricPromptBuilder,
 )
 from src.application.validators.answer_validator import (
     AnswerValidator,
 )
+from src.domain.entities.question import Question
+from src.domain.validation.base_schema_validator import (
+    BaseSchemaValidator,
+)
 
 
-class GroqRubricEvaluatorValidator:
+class GroqRubricEvaluatorValidator(
+    BaseSchemaValidator,
+):
     """
-    GroqRubricEvaluator validation rules.
+    GroqRubricEvaluator validation helper.
     """
 
-    @staticmethod
+    @classmethod
     def validate_dependencies(
+        cls,
         *,
         llm_client: LLMClient,
-        prompt_builder: RubricPromptBuilder,
+        prompt_builder: EvaluationPromptBuilder,
         response_parser: EvaluatorResponseParser,
         answer_validator: AnswerValidator,
     ) -> None:
-        if not isinstance(
-            llm_client,
-            LLMClient,
-        ):
-            raise TypeError(
-                "llm_client must be LLMClient."
-            )
+        cls._validate_has_callable(
+            value=llm_client,
+            method_name="generate",
+            field_name="llm_client",
+        )
 
-        if not isinstance(
-            prompt_builder,
-            RubricPromptBuilder,
-        ):
-            raise TypeError(
-                "prompt_builder must be "
-                "RubricPromptBuilder."
-            )
+        cls._validate_has_callable(
+            value=prompt_builder,
+            method_name="build",
+            field_name="prompt_builder",
+        )
 
-        if not isinstance(
-            response_parser,
-            EvaluatorResponseParser,
-        ):
-            raise TypeError(
-                "response_parser must be "
-                "EvaluatorResponseParser."
-            )
+        cls.validate_model_type(
+            value=response_parser,
+            expected_type=EvaluatorResponseParser,
+            field_name="response_parser",
+        )
 
-        if not isinstance(
-            answer_validator,
-            AnswerValidator,
-        ):
-            raise TypeError(
-                "answer_validator must be "
-                "AnswerValidator."
-            )
+        cls.validate_model_type(
+            value=answer_validator,
+            expected_type=AnswerValidator,
+            field_name="answer_validator",
+        )
 
-    @staticmethod
+    @classmethod
     def validate_input(
+        cls,
         *,
         question: Question,
         answer: str,
     ) -> None:
-        if not isinstance(question, Question,):
-            raise TypeError("question must be Question.")
+        cls.validate_model_type(
+            value=question,
+            expected_type=Question,
+            field_name="question",
+        )
 
-        if not isinstance(answer, str,):
-            raise TypeError("answer must be string.")
+        cls._validate_required_string(
+            field_name="answer",
+            value=answer,
+        )
 
-        if not answer.strip():
-            raise ValueError("answer cannot be empty.")
+    @staticmethod
+    def _validate_required_string(
+        *,
+        field_name: str,
+        value: str,
+    ) -> None:
+        if not isinstance(value, str):
+            raise TypeError(
+                f"{field_name} must be a string."
+            )
+
+        if not value.strip():
+            raise ValueError(
+                f"{field_name} cannot be empty."
+            )
+
+    @staticmethod
+    def _validate_has_callable(
+        *,
+        value: object,
+        method_name: str,
+        field_name: str,
+    ) -> None:
+        method = getattr(
+            value,
+            method_name,
+            None,
+        )
+
+        if not callable(method):
+            raise TypeError(
+                f"{field_name} must implement callable "
+                f"{method_name}()."
+            )

@@ -8,6 +8,7 @@ from pydantic import StringConstraints
 from src.api.constants.evaluation import (
     MAX_EVALUATION_SCORE,
     MIN_EVALUATION_SCORE,
+    MIN_POSITIVE_FLOAT,
 )
 
 
@@ -32,6 +33,6 @@ Score = Annotated[
 PositiveFloat = Annotated[
     float,
     Field(
-        gt=0.0,
+        gt=MIN_POSITIVE_FLOAT,
     ),
 ]

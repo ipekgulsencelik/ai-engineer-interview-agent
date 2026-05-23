@@ -1,28 +1,33 @@
 from __future__ import annotations
 
-from src.domain.evaluation.evaluator import Evaluator
 from src.domain.entities.question import Question
-from src.domain.results.evaluation_result import EvaluationResult
+from src.domain.evaluation.evaluator import (
+    Evaluator,
+)
+from src.domain.results.evaluation_result import (
+    EvaluationResult,
+)
+from src.domain.validation.base_schema_validator import (
+    BaseSchemaValidator,
+)
 
 
-class AnswerEvaluationServiceValidator:
+class AnswerEvaluationServiceValidator(
+    BaseSchemaValidator,
+):
     """
-    AnswerEvaluationService validation kurallarını yönetir.
-
-    Bu validator:
-        - evaluator contract doğrular
-        - evaluation input validate eder
-        - answer normalize eder
-        - evaluator output contract doğrular
+    AnswerEvaluationService input/output validation helper.
     """
 
-    @staticmethod
+    @classmethod
     def validate_evaluator(
+        cls,
+        *,
         evaluator: Evaluator,
     ) -> None:
-        if not isinstance(evaluator, Evaluator):
+        if not hasattr(evaluator, "evaluate"):
             raise TypeError(
-                "evaluator must implement Evaluator interface."
+                "evaluator must implement evaluate()."
             )
 
     @classmethod
@@ -32,47 +37,34 @@ class AnswerEvaluationServiceValidator:
         question: Question,
         answer: str,
     ) -> str:
-        cls.validate_question(
-            question,
+        cls.validate_model_type(
+            value=question,
+            expected_type=Question,
+            field_name="question",
         )
 
-        return cls.validate_answer(
-            answer,
-        )
-
-    @staticmethod
-    def validate_question(
-        question: Question,
-    ) -> None:
-        if not isinstance(question, Question):
-            raise TypeError(
-                "question must be a Question instance."
-            )
-
-    @staticmethod
-    def validate_answer(
-        answer: str,
-    ) -> str:
         if not isinstance(answer, str):
             raise TypeError(
                 "answer must be a string."
             )
 
-        normalized = answer.strip()
+        normalized_answer = answer.strip()
 
-        if not normalized:
+        if not normalized_answer:
             raise ValueError(
                 "answer cannot be empty."
             )
 
-        return normalized
+        return normalized_answer
 
-    @staticmethod
+    @classmethod
     def validate_result(
+        cls,
+        *,
         result: EvaluationResult,
     ) -> None:
-        if not isinstance(result, EvaluationResult):
-            raise RuntimeError(
-                "evaluator must return an "
-                "EvaluationResult instance."
-            )
+        cls.validate_model_type(
+            value=result,
+            expected_type=EvaluationResult,
+            field_name="result",
+        )

@@ -4,27 +4,36 @@ import time
 
 from groq import Groq
 
-from src.application.models.llm_request import LLMRequest
-from src.application.models.llm_response import LLMResponse
-from src.application.models.llm_response_metadata import (
-    LLMResponseMetadata,
+from src.application.constants.llm import (
+    DEFAULT_TEMPERATURE,
 )
-from src.application.ports.llm_client import LLMClient
+from src.application.models.llm_request import (
+    LLMRequest,
+)
+from src.application.models.llm_response import (
+    LLMResponse,
+)
+from src.application.ports.llm_client import (
+    LLMClient,
+)
 from src.application.validators.groq_llm_client_validator import (
     GroqLLMClientValidator,
 )
-from src.domain.constants.evaluation import DEFAULT_LLM_TEMPERATURE
+from src.infrastructure.builders.groq_message_builder import (
+    GroqMessageBuilder,
+)
+from src.infrastructure.extractors.groq_response_extractor import (
+    GroqResponseExtractor,
+)
+from src.infrastructure.mappers.groq_response_metadata_mapper import (
+    GroqResponseMetadataMapper,
+)
 from src.shared.logging.logger import logger
 
 
 class GroqLLMClient(LLMClient):
     """
     Groq SDK adapter implementation.
-
-    Bu sınıf:
-        - LLMRequest alır
-        - Groq API çağrısı yapar
-        - provider-specific response'u LLMResponse modeline normalize eder
     """
 
     def __init__(
@@ -60,7 +69,7 @@ class GroqLLMClient(LLMClient):
         temperature = (
             request.temperature
             if request.temperature is not None
-            else DEFAULT_LLM_TEMPERATURE
+            else DEFAULT_TEMPERATURE
         )
 
         logger.info(
@@ -75,24 +84,27 @@ class GroqLLMClient(LLMClient):
         try:
             response = self._client.chat.completions.create(
                 model=self._model_name,
-                messages=self._build_messages(request),
+                messages=GroqMessageBuilder.build(
+                    request=request,
+                ),
                 temperature=temperature,
                 max_tokens=request.max_tokens,
                 stop=request.stop or None,
             )
 
-            latency_seconds = time.perf_counter() - started_at
+            latency_seconds = (
+                time.perf_counter()
+                - started_at
+            )
 
-            text = self._extract_text(response)
+            text = GroqResponseExtractor.extract_text(
+                response=response,
+            )
 
-            metadata = LLMResponseMetadata(
-                model=self._model_name,
-                prompt_tokens=self._extract_prompt_tokens(response),
-                completion_tokens=self._extract_completion_tokens(response),
-                total_tokens=self._extract_total_tokens(response),
+            metadata = GroqResponseMetadataMapper.to_metadata(
+                response=response,
+                model_name=self._model_name,
                 latency_seconds=latency_seconds,
-                finish_reason=self._extract_finish_reason(response),
-                raw_response=None,
             )
 
             logger.info(
@@ -116,128 +128,3 @@ class GroqLLMClient(LLMClient):
                 model_name=self._model_name,
             )
             raise
-
-    @staticmethod
-    def _build_messages(
-        request: LLMRequest,
-    ) -> list[dict[str, str]]:
-        messages: list[dict[str, str]] = []
-
-        if request.system_prompt is not None:
-            messages.append(
-                {
-                    "role": "system",
-                    "content": request.system_prompt,
-                }
-            )
-
-        messages.append(
-            {
-                "role": "user",
-                "content": request.prompt,
-            }
-        )
-
-        return messages
-
-    @staticmethod
-    def _extract_text(
-        response: object,
-    ) -> str:
-        choices = getattr(response, "choices", None)
-
-        if not choices:
-            raise ValueError(
-                "Groq response choices cannot be empty."
-            )
-
-        message = getattr(choices[0], "message", None)
-
-        if message is None:
-            raise ValueError(
-                "Groq response message cannot be None."
-            )
-
-        content = getattr(message, "content", None)
-
-        if content is None:
-            raise ValueError(
-                "Groq response content cannot be None."
-            )
-
-        if not isinstance(content, str):
-            raise TypeError(
-                "Groq response content must be a string."
-            )
-
-        if not content.strip():
-            raise ValueError(
-                "Groq response content cannot be empty."
-            )
-
-        return content
-
-    @staticmethod
-    def _extract_prompt_tokens(
-        response: object,
-    ) -> int | None:
-        return GroqLLMClient._extract_usage_int(
-            response=response,
-            field_name="prompt_tokens",
-        )
-
-    @staticmethod
-    def _extract_completion_tokens(
-        response: object,
-    ) -> int | None:
-        return GroqLLMClient._extract_usage_int(
-            response=response,
-            field_name="completion_tokens",
-        )
-
-    @staticmethod
-    def _extract_total_tokens(
-        response: object,
-    ) -> int | None:
-        return GroqLLMClient._extract_usage_int(
-            response=response,
-            field_name="total_tokens",
-        )
-
-    @staticmethod
-    def _extract_usage_int(
-        *,
-        response: object,
-        field_name: str,
-    ) -> int | None:
-        usage = getattr(response, "usage", None)
-
-        if usage is None:
-            return None
-
-        value = getattr(usage, field_name, None)
-
-        if value is None:
-            return None
-
-        return int(value)
-
-    @staticmethod
-    def _extract_finish_reason(
-        response: object,
-    ) -> str | None:
-        choices = getattr(response, "choices", None)
-
-        if not choices:
-            return None
-
-        finish_reason = getattr(
-            choices[0],
-            "finish_reason",
-            None,
-        )
-
-        if finish_reason is None:
-            return None
-
-        return str(finish_reason)

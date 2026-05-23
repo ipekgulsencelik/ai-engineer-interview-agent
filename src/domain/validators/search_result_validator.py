@@ -1,88 +1,95 @@
 from __future__ import annotations
 
 import math
-from dataclasses import fields, is_dataclass
-from typing import TYPE_CHECKING, Any
+from dataclasses import fields
+from datetime import datetime
 
-from src.domain.validation.search_result_validation_schema import (
-    SEARCH_RESULT_VALIDATION_SCHEMA,
+from src.domain.results.selection_result import (
+    SelectionResult,
+)
+from src.domain.validation.schema_types import (
+    ValidationRule,
+)
+from src.domain.validation.selection_result_validation_schema import (
+    SELECTION_RESULT_VALIDATION_SCHEMA,
 )
 
-if TYPE_CHECKING:
-    from src.domain.retrieval.search_result import SearchResult
 
-
-class SearchResultValidator:
+class SelectionResultValidator:
     """
-    SearchResult domain snapshot invariant validator.
+    SelectionResult invariant validator.
     """
 
     @classmethod
     def validate(
         cls,
-        result: "SearchResult",
+        result: SelectionResult,
     ) -> None:
-        cls._validate_model_type(result)
+        cls._validate_model_type(
+            result,
+        )
 
         for model_field in fields(result):
             field_name = model_field.name
-            value = getattr(result, field_name)
-
-            rules = SEARCH_RESULT_VALIDATION_SCHEMA.get(
+            value = getattr(
+                result,
                 field_name,
-                {},
             )
+
+            rules = SELECTION_RESULT_VALIDATION_SCHEMA[
+                field_name
+            ]
 
             cls._validate_nullable(
                 field_name=field_name,
                 value=value,
-                nullable=rules.get("nullable", False),
+                nullable=rules.get(
+                    "nullable",
+                    False,
+                ),
             )
 
-            if value is None and rules.get("nullable", False):
+            if value is None:
                 continue
 
-            cls._validate_expected_type(
+            cls._validate_type(
                 field_name=field_name,
                 value=value,
-                expected_type=rules.get("type"),
-                reject_bool=rules.get("reject_bool", False),
+                rules=rules,
             )
 
-            if rules.get("finite", False):
-                cls._validate_finite(
-                    field_name=field_name,
-                    value=value,
-                )
+            cls._validate_finite(
+                field_name=field_name,
+                value=value,
+                rules=rules,
+            )
 
-            if "min_value" in rules:
-                cls._validate_min_value(
-                    field_name=field_name,
-                    value=value,
-                    min_value=rules["min_value"],
-                )
+            cls._validate_min_value(
+                field_name=field_name,
+                value=value,
+                rules=rules,
+            )
 
-            if "max_value" in rules:
-                cls._validate_max_value(
-                    field_name=field_name,
-                    value=value,
-                    max_value=rules["max_value"],
-                )
+            cls._validate_timezone_aware(
+                field_name=field_name,
+                value=value,
+                rules=rules,
+            )
+
+        cls._validate_rank_candidate_consistency(
+            result,
+        )
 
     @staticmethod
     def _validate_model_type(
-        result: "SearchResult",
+        result: object,
     ) -> None:
-        from src.domain.retrieval.search_result import SearchResult
-
-        if not isinstance(result, SearchResult):
+        if not isinstance(
+            result,
+            SelectionResult,
+        ):
             raise TypeError(
-                "result must be a SearchResult instance."
-            )
-
-        if not is_dataclass(result):
-            raise TypeError(
-                "result must be a dataclass instance."
+                "result must be SelectionResult."
             )
 
     @staticmethod
@@ -98,24 +105,31 @@ class SearchResultValidator:
             )
 
     @staticmethod
-    def _validate_expected_type(
+    def _validate_type(
         *,
         field_name: str,
         value: object,
-        expected_type: Any,
-        reject_bool: bool,
+        rules: ValidationRule,
     ) -> None:
-        if expected_type is None:
-            return
-
-        if reject_bool and isinstance(value, bool):
+        if (
+            rules.get("reject_bool") is True
+            and isinstance(value, bool)
+        ):
             raise TypeError(
                 f"{field_name} cannot be bool."
             )
 
-        if not isinstance(value, expected_type):
+        expected_type = rules.get("type")
+
+        if (
+            expected_type is not None
+            and not isinstance(
+                value,
+                expected_type,
+            )
+        ):
             raise TypeError(
-                f"{field_name} must be {expected_type}."
+                f"{field_name} has invalid type."
             )
 
     @staticmethod
@@ -123,13 +137,14 @@ class SearchResultValidator:
         *,
         field_name: str,
         value: object,
+        rules: ValidationRule,
     ) -> None:
-        if not isinstance(value, (int, float)):
-            raise TypeError(
-                f"{field_name} must be numeric."
-            )
+        if rules.get("finite") is not True:
+            return
 
-        if not math.isfinite(float(value)):
+        if not math.isfinite(
+            float(value),
+        ):
             raise ValueError(
                 f"{field_name} must be finite."
             )
@@ -139,23 +154,54 @@ class SearchResultValidator:
         *,
         field_name: str,
         value: object,
-        min_value: float,
+        rules: ValidationRule,
     ) -> None:
-        if float(value) < min_value:
+        min_value = rules.get("min_value")
+
+        if min_value is None:
+            return
+
+        if float(value) < float(min_value):
             raise ValueError(
                 f"{field_name} must be greater than or equal to "
                 f"{min_value}."
             )
 
     @staticmethod
-    def _validate_max_value(
+    def _validate_timezone_aware(
         *,
         field_name: str,
         value: object,
-        max_value: float,
+        rules: ValidationRule,
     ) -> None:
-        if float(value) > max_value:
+        if rules.get("timezone_aware") is not True:
+            return
+
+        if not isinstance(
+            value,
+            datetime,
+        ):
+            raise TypeError(
+                f"{field_name} must be datetime."
+            )
+
+        if (
+            value.tzinfo is None
+            or value.utcoffset() is None
+        ):
             raise ValueError(
-                f"{field_name} must be less than or equal to "
-                f"{max_value}."
+                f"{field_name} must be timezone-aware."
+            )
+
+    @staticmethod
+    def _validate_rank_candidate_consistency(
+        result: SelectionResult,
+    ) -> None:
+        if (
+            result.rank is not None
+            and result.candidate_count is not None
+            and result.rank > result.candidate_count
+        ):
+            raise ValueError(
+                "rank cannot be greater than candidate_count."
             )

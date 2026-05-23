@@ -28,6 +28,7 @@ class ScoreCalculator:
     """
 
     level_weight: Score = LEVEL_SCORE_WEIGHT
+    semantic_weight: Score = SEMANTIC_SCORE_WEIGHT
     market_weight: Score = MARKET_SCORE_WEIGHT
     cv_gap_weight: Score = CV_GAP_SCORE_WEIGHT
     difficulty_weight: Score = DIFFICULTY_SCORE_WEIGHT
@@ -41,6 +42,7 @@ class ScoreCalculator:
         self,
         *,
         level_score: Score,
+        semantic_score: Score,
         market_score: Score,
         cv_gap_score: Score,
         difficulty_score: Score,
@@ -53,6 +55,7 @@ class ScoreCalculator:
 
         ScoreCalculatorValidator.validate_input_scores(
             level_score=level_score,
+            semantic_score=semantic_score,
             market_score=market_score,
             cv_gap_score=cv_gap_score,
             difficulty_score=difficulty_score,
@@ -62,6 +65,7 @@ class ScoreCalculator:
 
         weighted_score = (
             level_score * self.level_weight
+            + semantic_score * self.semantic_weight
             + market_score * self.market_weight
             + cv_gap_score * self.cv_gap_weight
             + difficulty_score * self.difficulty_weight

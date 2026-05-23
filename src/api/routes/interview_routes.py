@@ -6,10 +6,18 @@ from fastapi import Depends
 from src.api.dependencies.interview_dependencies import (
     get_run_interview_step_use_case,
 )
-from src.api.mappers.interview_request_mapper import InterviewRequestMapper
-from src.api.mappers.interview_response_mapper import InterviewResponseMapper
-from src.api.schemas.interview.requests import InterviewStepRequest
-from src.api.schemas.interview.responses import InterviewStepResponse
+from src.api.mappers.interview_request_mapper import (
+    InterviewRequestMapper,
+)
+from src.api.mappers.interview_step_response_mapper import (
+    InterviewStepResponseMapper,
+)
+from src.api.schemas.interview.requests import (
+    InterviewStepRequest,
+)
+from src.api.schemas.interview.responses import (
+    InterviewStepResponse,
+)
 from src.application.use_cases.run_interview_step_use_case import (
     RunInterviewStepUseCase,
 )
@@ -36,13 +44,13 @@ def run_interview_step(
     """
 
     payload = InterviewRequestMapper.to_payload(
-        request,
+        request=request,
     )
 
     result = use_case.execute(
         payload=payload,
     )
 
-    return InterviewResponseMapper.from_result(
-        result,
+    return InterviewStepResponseMapper.from_result(
+        result=result,
     )

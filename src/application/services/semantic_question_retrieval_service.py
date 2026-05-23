@@ -6,11 +6,11 @@ from src.application.ports.embedding_provider import (
 from src.application.ports.question_vector_store import (
     QuestionVectorStore,
 )
+from src.application.builders.search_filters_builder import (
+    SearchFiltersBuilder,
+)
 from src.domain.retrieval.question_search_result import (
     QuestionSearchResult,
-)
-from src.domain.value_objects.search_filters import (
-    SearchFilters,
 )
 from src.domain.scoring.scoring_context import (
     ScoringContext,
@@ -19,15 +19,18 @@ from src.domain.scoring.scoring_context import (
 
 class SemanticQuestionRetrievalService:
     """
-    Interview-aware semantic question retrieval application service.
+    Interview-aware semantic question retrieval
+    application service.
 
     Bu servis:
         - query text'ini embedding'e çevirir
         - ScoringContext'ten retrieval filter üretir
-        - QuestionVectorStore üzerinden semantic search çalıştırır
+        - QuestionVectorStore üzerinden semantic
+          search çalıştırır
         - QuestionSearchResult listesi döndürür
 
-    Business ranking, final selection veya scoring yapmaz.
+    Business ranking, final selection veya
+    scoring yapmaz.
     """
 
     def __init__(
@@ -36,7 +39,10 @@ class SemanticQuestionRetrievalService:
         embedding_provider: EmbeddingProvider,
         vector_store: QuestionVectorStore,
     ) -> None:
-        self._embedding_provider = embedding_provider
+        self._embedding_provider = (
+            embedding_provider
+        )
+
         self._vector_store = vector_store
 
     def retrieve(
@@ -46,11 +52,13 @@ class SemanticQuestionRetrievalService:
         context: ScoringContext,
         top_k: int = 5,
     ) -> list[QuestionSearchResult]:
-        query_embedding = self._embedding_provider.embed_text(
-            text=query,
+        query_embedding = (
+            self._embedding_provider.embed_text(
+                text=query,
+            )
         )
 
-        filters = self._build_filters(
+        filters = SearchFiltersBuilder.build(
             context=context,
         )
 
@@ -58,17 +66,4 @@ class SemanticQuestionRetrievalService:
             query_embedding=query_embedding,
             top_k=top_k,
             filters=filters,
-        )
-
-    @staticmethod
-    def _build_filters(
-        *,
-        context: ScoringContext,
-    ) -> SearchFilters:
-        return SearchFilters(
-            level=getattr(
-                context,
-                "current_level",
-                None,
-            ),
         )

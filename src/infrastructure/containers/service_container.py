@@ -2,127 +2,108 @@ from __future__ import annotations
 
 from functools import cached_property
 
-from src.application.services.answer_evaluation_service import (
-    AnswerEvaluationService,
+from src.application.ports.llm_client import (
+    LLMClient,
 )
-from src.application.services.level_transition_service import (
-    LevelTransitionService,
+from src.infrastructure.clients.groq_llm_client import (
+    GroqLLMClient,
 )
-from src.application.services.question_retrieval_service import (
-    QuestionRetrievalService,
+from src.infrastructure.containers.cv_container import (
+    CVContainer,
 )
-from src.application.services.question_selection_service import (
-    QuestionSelectionService,
+from src.infrastructure.containers.evaluation_container import (
+    EvaluationContainer,
 )
-from src.application.use_cases.run_interview_step_use_case import (
-    RunInterviewStepUseCase,
+from src.infrastructure.containers.interview_container import (
+    InterviewContainer,
 )
-from src.domain.policies.cv_gap_score_policy import CvGapScorePolicy
-from src.domain.policies.difficulty_score_policy import DifficultyScorePolicy
-from src.domain.policies.diversity_score_policy import DiversityScorePolicy
-from src.domain.policies.fatigue_score_policy import FatigueScorePolicy
-from src.domain.policies.level_score_policy import LevelScorePolicy
-from src.domain.policies.market_score_policy import MarketScorePolicy
-from src.domain.policies.weighted_scoring_policy import WeightedScoringPolicy
-from src.domain.scoring.final_score_calculator import FinalScoreCalculator
-from src.domain.scoring.weighted_scoring_engine import WeightedScoringEngine
-from src.infrastructure.embedding.sentence_transformer_embedding_provider import (
-    SentenceTransformerEmbeddingProvider,
+from src.infrastructure.containers.retrieval_container import (
+    RetrievalContainer,
 )
-from src.infrastructure.evaluators.mock_evaluator import MockEvaluator
-from src.application.policies.highest_score_selection_policy import (
-    HighestScoreSelectionPolicy,
-)
-from src.infrastructure.vector_stores.chroma.chroma_question_vector_store import (
-    ChromaQuestionVectorStore,
+from src.infrastructure.containers.scoring_container import (
+    ScoringContainer,
 )
 
 
 class ServiceContainer:
     """
-    Application dependency composition root.
-
-    Bu sınıf:
-        - concrete dependency wiring yapar
-        - singleton lifecycle sağlar
-        - route katmanını infrastructure detaylarından izole eder
+    Application composition root facade.
     """
 
     @cached_property
-    def embedding_provider(
+    def retrieval(
         self,
-    ) -> SentenceTransformerEmbeddingProvider:
-        return SentenceTransformerEmbeddingProvider()
+    ) -> RetrievalContainer:
+        return RetrievalContainer()
 
     @cached_property
-    def vector_store(
+    def scoring(
         self,
-    ) -> ChromaQuestionVectorStore:
-        return ChromaQuestionVectorStore(
-            persist_directory="data/chroma",
+    ) -> ScoringContainer:
+        return ScoringContainer()
+
+    @cached_property
+    def evaluation(
+        self,
+    ) -> EvaluationContainer:
+        return EvaluationContainer()
+
+    @cached_property
+    def llm_client(
+        self,
+    ) -> LLMClient:
+        return GroqLLMClient()
+
+    @cached_property
+    def interview(
+        self,
+    ) -> InterviewContainer:
+        return InterviewContainer(
+            retrieval_container=self.retrieval,
+            scoring_container=self.scoring,
+            evaluation_container=self.evaluation,
         )
 
     @cached_property
-    def question_retrieval_service(
+    def cv(
         self,
-    ) -> QuestionRetrievalService:
-        return QuestionRetrievalService(
-            embedding_provider=self.embedding_provider,
-            vector_store=self.vector_store,
+    ) -> CVContainer:
+        return CVContainer(
+            llm_client=self.llm_client,
         )
 
-    @cached_property
-    def scoring_policy(
-        self,
-    ) -> WeightedScoringPolicy:
-        return WeightedScoringPolicy(
-            level_score_policy=LevelScorePolicy(),
-            market_score_policy=MarketScorePolicy(),
-            cv_gap_score_policy=CvGapScorePolicy(),
-            difficulty_score_policy=DifficultyScorePolicy(),
-            diversity_score_policy=DiversityScorePolicy(),
-            fatigue_score_policy=FatigueScorePolicy(),
-            final_score_calculator=FinalScoreCalculator(),
-        )
-
-    @cached_property
-    def scoring_engine(
-        self,
-    ) -> WeightedScoringEngine:
-        return WeightedScoringEngine(
-            policy=self.scoring_policy,
-        )
-
-    @cached_property
-    def question_selection_service(
-        self,
-    ) -> QuestionSelectionService:
-        return QuestionSelectionService(
-            scoring_engine=self.scoring_engine,
-            selection_policy=HighestScoreSelectionPolicy(),
-        )
-
-    @cached_property
+    @property
     def answer_evaluation_service(
         self,
-    ) -> AnswerEvaluationService:
-        return AnswerEvaluationService(
-            evaluator=MockEvaluator(),
+    ):
+        return (
+            self.evaluation
+            .answer_evaluation_service
         )
 
-    @cached_property
-    def level_transition_service(
-        self,
-    ) -> LevelTransitionService:
-        return LevelTransitionService()
-
-    @cached_property
+    @property
     def run_interview_step_use_case(
         self,
-    ) -> RunInterviewStepUseCase:
-        return RunInterviewStepUseCase(
-            question_retrieval_service=self.question_retrieval_service,
-            question_selection_service=self.question_selection_service,
-            answer_evaluation_service=self.answer_evaluation_service,
-            level_transition_service=self.level_transition_service,
+    ):
+        return (
+            self.interview
+            .run_interview_step_use_case
+        )
+
+    @property
+    def question_retrieval_service(
+        self,
+    ):
+        return (
+            self.retrieval
+            .question_retrieval_service
+        )
+
+    @property
+    def cv_analysis_orchestration_service(
+        self,
+    ):
+        return (
+            self.cv
+            .cv_analysis_orchestration_service
         )

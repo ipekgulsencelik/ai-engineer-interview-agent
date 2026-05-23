@@ -1,21 +1,31 @@
 from __future__ import annotations
 
-from typing import Any
-
-from src.api.normalizers.level_normalizer import (
-    LevelNormalizer,
+from src.api.schemas.evaluation.enums import (
+    QuestionLevel,
 )
 
 
 class InterviewStepRequestValidator:
     """
-    InterviewStepRequest API validation facade.
+    InterviewStepRequest schema normalization helper.
     """
 
     @staticmethod
     def normalize_current_level(
-        value: Any,
-    ) -> Any:
-        return LevelNormalizer.normalize(
-            value,
+        value: object,
+    ) -> object:
+        if isinstance(value, QuestionLevel):
+            return value
+
+        if not isinstance(value, str):
+            return value
+
+        normalized_value = (
+            value.strip()
+            .upper()
         )
+
+        if not normalized_value:
+            return value
+
+        return normalized_value

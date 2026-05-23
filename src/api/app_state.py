@@ -2,14 +2,17 @@ from __future__ import annotations
 
 from fastapi import Request
 
-from src.infrastructure.containers.service_container import ServiceContainer
+from src.infrastructure.containers.service_container import (
+    ServiceContainer,
+)
 
 
 def get_service_container(
     request: Request,
 ) -> ServiceContainer:
     """
-    FastAPI app.state üzerinden ServiceContainer döner.
+    Resolve application ServiceContainer
+    from FastAPI app state.
     """
 
     container = getattr(
@@ -18,7 +21,12 @@ def get_service_container(
         None,
     )
 
-    if not isinstance(container, ServiceContainer):
-        raise RuntimeError("ServiceContainer is not initialized.")
+    if not isinstance(
+        container,
+        ServiceContainer,
+    ):
+        raise RuntimeError(
+            "ServiceContainer is not initialized."
+        )
 
     return container

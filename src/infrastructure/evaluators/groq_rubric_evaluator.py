@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from src.application.factories.llm_request_factory import (
+    LLMRequestFactory,
+)
 from src.application.parsers.evaluator_response_parser import (
     EvaluatorResponseParser,
 )
@@ -12,22 +15,35 @@ from src.application.ports.llm_client import (
 from src.application.validators.answer_validator import (
     AnswerValidator,
 )
+from src.domain.entities.question import Question
+from src.domain.evaluation.evaluator import Evaluator
+from src.domain.results.evaluation_result import (
+    EvaluationResult,
+)
 from src.infrastructure.validators.groq_rubric_evaluator_validator import (
     GroqRubricEvaluatorValidator,
 )
-from src.domain.entities.question import Question
-from src.domain.evaluation.evaluator import Evaluator
-from src.domain.results.evaluation_result import EvaluationResult
+from src.shared.logging.log_value_normalizer import (
+    LogValueNormalizer,
+)
 from src.shared.logging.logger import logger
 
 
 class GroqRubricEvaluator(Evaluator):
     """
     Groq tabanlı rubric-driven evaluator implementasyonudur.
+
+    Bu evaluator:
+        - candidate answer validation yapar
+        - evaluation prompt üretir
+        - provider-independent LLM generation çalıştırır
+        - structured evaluator response parse eder
+        - rubric evaluation logging işlemlerini yönetir
     """
 
     def __init__(
         self,
+        *,
         llm_client: LLMClient,
         prompt_builder: EvaluationPromptBuilder,
         response_parser: EvaluatorResponseParser,
@@ -47,46 +63,73 @@ class GroqRubricEvaluator(Evaluator):
 
     def evaluate(
         self,
+        *,
         question: Question,
         answer: str,
     ) -> EvaluationResult:
+        """
+        Candidate answer için rubric-based evaluation çalıştırır.
+        """
+
         GroqRubricEvaluatorValidator.validate_input(
             question=question,
             answer=answer,
         )
 
-        self._answer_validator.validate(answer)
+        normalized_answer = (
+            self._answer_validator.validate(
+                answer,
+            )
+        )
 
         logger.info(
             "Rubric evaluation started.",
             question_id=question.id,
-            category=question.category,
-            level=self._as_log_value(question.level),
-            question_type=self._as_log_value(question.question_type),
+            category=LogValueNormalizer.normalize(
+                question.category,
+            ),
+            level=LogValueNormalizer.normalize(
+                question.level,
+            ),
+            question_type=LogValueNormalizer.normalize(
+                question.question_type,
+            ),
         )
 
         try:
             prompt = self._prompt_builder.build(
                 question=question,
-                answer=answer,
+                answer=normalized_answer,
             )
 
-            llm_response = self._llm_client.generate(
-                prompt=prompt,
-                system_prompt=(
-                    self._prompt_builder.SYSTEM_PROMPT
-                ),
+            llm_request = (
+                LLMRequestFactory.create(
+                    prompt=prompt,
+                    system_prompt=(
+                        self._prompt_builder.SYSTEM_PROMPT
+                    ),
+                )
             )
 
-            result = self._response_parser.parse(
-                llm_response,
+            llm_response = (
+                self._llm_client.generate(
+                    request=llm_request,
+                )
+            )
+
+            result = (
+                self._response_parser.parse(
+                    llm_response,
+                )
             )
 
             logger.info(
                 "Rubric evaluation completed.",
                 question_id=question.id,
                 score=result.score,
-                confidence=result.metadata.confidence,
+                confidence=(
+                    result.metadata.confidence
+                ),
             )
 
             return result
@@ -97,7 +140,3 @@ class GroqRubricEvaluator(Evaluator):
                 question_id=question.id,
             )
             raise
-
-    @staticmethod
-    def _as_log_value(value: object) -> object:
-        return getattr(value, "value", value)

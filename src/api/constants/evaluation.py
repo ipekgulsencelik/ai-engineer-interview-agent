@@ -9,4 +9,8 @@ MAX_EVALUATION_SCORE: Final[float] = 10.0
 MIN_DIFFICULTY: Final[int] = 1
 MAX_DIFFICULTY: Final[int] = 3
 
+MIN_LATENCY_SECONDS: Final[float] = 0.0
+
+MIN_POSITIVE_FLOAT: Final[float] = 0.0
+
 DEFAULT_MARKET_WEIGHT: Final[float] = 1.0

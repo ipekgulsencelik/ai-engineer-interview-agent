@@ -45,7 +45,7 @@ def evaluate_answer(
     """
 
     question = EvaluationRequestMapper.to_question(
-        request,
+        request=request,
     )
 
     result = service.evaluate(
@@ -54,5 +54,5 @@ def evaluate_answer(
     )
 
     return EvaluationResponseMapper.from_result(
-        result,
+        result=result,
     )

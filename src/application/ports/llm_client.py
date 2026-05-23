@@ -2,18 +2,24 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from src.application.models.llm_request import LLMRequest
-from src.application.models.llm_response import LLMResponse
+from src.application.models.llm_request import (
+    LLMRequest,
+)
+from src.application.models.llm_response import (
+    LLMResponse,
+)
 
 
 class LLMClient(ABC):
     """
-    Text generation provider'ları için application port.
+    Provider-independent text generation application port.
 
-    Bu port application katmanını OpenAI, Groq, Anthropic veya local model
-    gibi concrete provider implementasyonlarından izole eder.
+    Bu port:
+        - application katmanını provider implementasyonlarından izole eder
+        - OpenAI, Groq, Anthropic veya local model adapter'larını soyutlar
+        - unified request/response contract sağlar
 
-    Implementasyonlar infrastructure katmanında yer almalıdır.
+    Concrete implementasyonlar infrastructure katmanında yer almalıdır.
     """
 
     @abstractmethod
@@ -22,11 +28,12 @@ class LLMClient(ABC):
         request: LLMRequest,
     ) -> LLMResponse:
         """
-        Provider-independent LLMRequest üzerinden text generation sonucu üretir.
+        Provider-independent text generation işlemi gerçekleştirir.
 
         Args:
             request:
-                Provider-independent text generation request modeli.
+                Generation configuration ve prompt bilgilerini taşıyan
+                provider-agnostic request modeli.
 
         Returns:
             LLMResponse:

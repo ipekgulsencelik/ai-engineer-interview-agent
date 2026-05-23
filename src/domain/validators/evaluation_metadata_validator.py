@@ -1,7 +1,14 @@
 from __future__ import annotations
 
-import math
+from dataclasses import fields
 from typing import TYPE_CHECKING
+
+from src.domain.validation.base_schema_validator import (
+    BaseSchemaValidator,
+)
+from src.domain.validation.evaluation_metadata_validation_schema import (
+    EVALUATION_METADATA_VALIDATION_SCHEMA,
+)
 
 if TYPE_CHECKING:
     from src.domain.metadata.evaluation_metadata import (
@@ -9,124 +16,71 @@ if TYPE_CHECKING:
     )
 
 
-class EvaluationMetadataValidator:
+class EvaluationMetadataValidator(
+    BaseSchemaValidator,
+):
     """
-    EvaluationMetadata invariant validation rules.
+    EvaluationMetadata invariant validation helper.
     """
 
     @classmethod
     def validate(
         cls,
-        metadata: EvaluationMetadata,
+        metadata: "EvaluationMetadata",
     ) -> None:
-        cls._validate_confidence(
-            metadata.confidence,
-        )
-        cls._validate_rubric_version(
-            metadata.rubric_version,
-        )
-        cls._validate_latency_seconds(
-            metadata.latency_seconds,
-        )
-        cls._validate_missing_keywords(
-            metadata.missing_keywords,
-        )
-        cls._validate_follow_up_question(
-            metadata.follow_up_question,
+        from src.domain.metadata.evaluation_metadata import (
+            EvaluationMetadata,
         )
 
-    @staticmethod
-    def _validate_confidence(
-        value: float,
-    ) -> None:
-        if isinstance(value, bool) or not isinstance(value, int | float):
-            raise TypeError(
-                "confidence must be numeric."
+        cls.validate_model_type(
+            value=metadata,
+            expected_type=EvaluationMetadata,
+            field_name="metadata",
+        )
+
+        for model_field in fields(metadata):
+            field_name = model_field.name
+
+            value = getattr(
+                metadata,
+                field_name,
             )
 
-        numeric_value = float(value)
-
-        if not math.isfinite(numeric_value):
-            raise ValueError(
-                "confidence must be finite."
+            rules = (
+                EVALUATION_METADATA_VALIDATION_SCHEMA[
+                    field_name
+                ]
             )
 
-        if not 0.0 <= numeric_value <= 1.0:
-            raise ValueError(
-                "confidence must be between 0.0 and 1.0."
+            cls.validate_nullable(
+                field_name=field_name,
+                value=value,
+                rules=rules,
             )
 
-    @staticmethod
-    def _validate_rubric_version(
-        value: str,
-    ) -> None:
-        if not isinstance(value, str):
-            raise TypeError(
-                "rubric_version must be a string."
+            if value is None:
+                continue
+
+            cls.validate_type(
+                field_name=field_name,
+                value=value,
+                rules=rules,
             )
 
-        if not value.strip():
-            raise ValueError(
-                "rubric_version cannot be empty."
+            cls.validate_non_empty_string(
+                field_name=field_name,
+                value=value,
+                rules=rules,
             )
 
-    @staticmethod
-    def _validate_latency_seconds(
-        value: float | None,
-    ) -> None:
-        if value is None:
-            return
-
-        if isinstance(value, bool) or not isinstance(value, int | float):
-            raise TypeError(
-                "latency_seconds must be numeric."
+            cls.validate_numeric_bounds(
+                field_name=field_name,
+                value=value,
+                rules=rules,
             )
 
-        numeric_value = float(value)
-
-        if not math.isfinite(numeric_value):
-            raise ValueError(
-                "latency_seconds must be finite."
-            )
-
-        if numeric_value < 0.0:
-            raise ValueError(
-                "latency_seconds cannot be negative."
-            )
-
-    @staticmethod
-    def _validate_missing_keywords(
-        value: tuple[str, ...],
-    ) -> None:
-        if not isinstance(value, tuple):
-            raise TypeError(
-                "missing_keywords must be a tuple."
-            )
-
-        for keyword in value:
-            if not isinstance(keyword, str):
-                raise TypeError(
-                    "missing_keywords items must be strings."
-                )
-
-            if not keyword.strip():
-                raise ValueError(
-                    "missing_keywords items cannot be empty."
-                )
-
-    @staticmethod
-    def _validate_follow_up_question(
-        value: str | None,
-    ) -> None:
-        if value is None:
-            return
-
-        if not isinstance(value, str):
-            raise TypeError(
-                "follow_up_question must be a string."
-            )
-
-        if not value.strip():
-            raise ValueError(
-                "follow_up_question cannot be empty."
+            cls.validate_tuple_items(
+                field_name=field_name,
+                value=value,
+                rules=rules,
             )

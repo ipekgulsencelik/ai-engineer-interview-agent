@@ -5,12 +5,17 @@ import time
 from src.application.exceptions.answer_evaluation_error import (
     AnswerEvaluationError,
 )
-from src.domain.evaluation.evaluator import Evaluator
+from src.application.factories.evaluation_result_mutation_factory import (
+    EvaluationResultMutationFactory,
+)
 from src.application.validators.answer_evaluation_service_validator import (
     AnswerEvaluationServiceValidator,
 )
 from src.domain.entities.question import Question
-from src.domain.results.evaluation_result import EvaluationResult
+from src.domain.evaluation.evaluator import Evaluator
+from src.domain.results.evaluation_result import (
+    EvaluationResult,
+)
 
 
 class AnswerEvaluationService:
@@ -20,10 +25,11 @@ class AnswerEvaluationService:
 
     def __init__(
         self,
+        *,
         evaluator: Evaluator,
     ) -> None:
         AnswerEvaluationServiceValidator.validate_evaluator(
-            evaluator,
+            evaluator=evaluator,
         )
 
         self._evaluator = evaluator
@@ -51,18 +57,24 @@ class AnswerEvaluationService:
 
         except Exception as exc:
             raise AnswerEvaluationError(
-                f"Failed to evaluate answer for question "
+                "Failed to evaluate answer for question "
                 f"'{question.id}'."
             ) from exc
 
         elapsed_seconds = (
-            time.perf_counter() - started_at
+            time.perf_counter()
+            - started_at
+        )
+
+        result_with_latency = (
+            EvaluationResultMutationFactory.with_latency_seconds(
+                result=result,
+                latency_seconds=elapsed_seconds,
+            )
         )
 
         AnswerEvaluationServiceValidator.validate_result(
-            result,
+            result=result_with_latency,
         )
 
-        return result.with_latency_seconds(
-            elapsed_seconds,
-        )
+        return result_with_latency

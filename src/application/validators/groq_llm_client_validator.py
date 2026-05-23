@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-from src.application.models.llm_request import LLMRequest
+from groq import Groq
+
+from src.application.models.llm_request import (
+    LLMRequest,
+)
+from src.domain.validation.base_schema_validator import (
+    BaseSchemaValidator,
+)
 
 
-class GroqLLMClientValidator:
+class GroqLLMClientValidator(
+    BaseSchemaValidator,
+):
     """
-    GroqLLMClient configuration ve request validation kurallarını yönetir.
+    GroqLLMClient validation helper.
     """
 
     @classmethod
@@ -25,14 +34,29 @@ class GroqLLMClientValidator:
             value=model_name,
         )
 
-    @staticmethod
+    @classmethod
+    def validate_client(
+        cls,
+        *,
+        client: Groq,
+    ) -> None:
+        cls.validate_model_type(
+            value=client,
+            expected_type=Groq,
+            field_name="client",
+        )
+
+    @classmethod
     def validate_request(
+        cls,
+        *,
         request: LLMRequest,
     ) -> None:
-        if not isinstance(request, LLMRequest):
-            raise TypeError(
-                "request must be an LLMRequest."
-            )
+        cls.validate_model_type(
+            value=request,
+            expected_type=LLMRequest,
+            field_name="request",
+        )
 
     @staticmethod
     def _validate_required_string(
