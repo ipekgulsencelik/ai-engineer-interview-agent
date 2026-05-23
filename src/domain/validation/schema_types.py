@@ -1,32 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
-from typing import TypeAlias
-
-
-ValidationRule: TypeAlias = dict[
-    str,
-    Any,
-]
-
-ValidationSchema: TypeAlias = dict[
-    str,
-    ValidationRule,
-]
-
-from __future__ import annotations
-
 from typing import Any, TypeAlias, TypedDict
 
 
 class ValidationRule(TypedDict, total=False):
     """
     Schema-driven validation rule contract.
-
-    Bu TypedDict:
-        - validation DSL alanlarını merkezi hale getirir
-        - typo riskini azaltır
-        - pyright/autocomplete desteğini artırır
     """
 
     type: type | tuple[type, ...]
@@ -57,7 +36,4 @@ class ValidationRule(TypedDict, total=False):
     default: Any
 
 
-ValidationSchema: TypeAlias = dict[
-    str,
-    ValidationRule,
-]
+ValidationSchema: TypeAlias = dict[str, ValidationRule]

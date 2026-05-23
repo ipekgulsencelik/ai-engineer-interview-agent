@@ -9,17 +9,11 @@ from src.application.services.question_retrieval_service import (
 from src.domain.policies.asked_question_filter_policy import (
     AskedQuestionFilterPolicy,
 )
-from src.domain.policies.difficulty_window_policy import (
-    DifficultyWindowPolicy,
-)
 from src.domain.policies.question_selection_policy import (
     QuestionSelectionPolicy,
 )
 from src.domain.results.selection_result import (
     SelectionResult,
-)
-from src.domain.value_objects.search_filters import (
-    SearchFilters,
 )
 from src.domain.value_objects.interview_state import (
     InterviewState,

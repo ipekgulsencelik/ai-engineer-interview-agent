@@ -1,16 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from functools import cached_property
 
-from src.application.ports.llm_client import (
-    LLMClient,
-)
-from src.infrastructure.clients.groq_llm_client import (
-    GroqLLMClient,
-)
-from src.infrastructure.containers.cv_container import (
-    CVContainer,
-)
+from src.application.ports.llm_client import LLMClient
+from src.infrastructure.containers.cv_container import CVContainer
 from src.infrastructure.containers.evaluation_container import (
     EvaluationContainer,
 )
@@ -20,15 +14,24 @@ from src.infrastructure.containers.interview_container import (
 from src.infrastructure.containers.retrieval_container import (
     RetrievalContainer,
 )
-from src.infrastructure.containers.scoring_container import (
-    ScoringContainer,
-)
+from src.infrastructure.containers.scoring_container import ScoringContainer
+from src.infrastructure.llm.groq_llm_client import GroqLLMClient
 
 
 class ServiceContainer:
     """
     Application composition root facade.
     """
+
+    def __init__(
+        self,
+        *,
+        llm_client_factory: Callable[[], LLMClient] | None = None,
+    ) -> None:
+        self._llm_client_factory = (
+            llm_client_factory
+            or GroqLLMClient
+        )
 
     @cached_property
     def retrieval(
@@ -52,7 +55,7 @@ class ServiceContainer:
     def llm_client(
         self,
     ) -> LLMClient:
-        return GroqLLMClient()
+        return self._llm_client_factory()
 
     @cached_property
     def interview(
@@ -76,34 +79,22 @@ class ServiceContainer:
     def answer_evaluation_service(
         self,
     ):
-        return (
-            self.evaluation
-            .answer_evaluation_service
-        )
+        return self.evaluation.answer_evaluation_service
 
     @property
     def run_interview_step_use_case(
         self,
     ):
-        return (
-            self.interview
-            .run_interview_step_use_case
-        )
+        return self.interview.run_interview_step_use_case
 
     @property
     def question_retrieval_service(
         self,
     ):
-        return (
-            self.retrieval
-            .question_retrieval_service
-        )
+        return self.retrieval.question_retrieval_service
 
     @property
     def cv_analysis_orchestration_service(
         self,
     ):
-        return (
-            self.cv
-            .cv_analysis_orchestration_service
-        )
+        return self.cv.cv_analysis_orchestration_service
