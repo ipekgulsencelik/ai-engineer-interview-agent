@@ -8,8 +8,8 @@ from src.application.services.answer_evaluation_service import (
 from src.application.services.level_transition_service import (
     LevelTransitionService,
 )
-from src.application.services.question_retrieval_service import (
-    QuestionRetrievalService,
+from src.application.services.semantic_question_retrieval_service import (
+    SemanticQuestionRetrievalService,
 )
 from src.application.services.question_selection_service import (
     QuestionSelectionService,
@@ -67,11 +67,11 @@ class RunInterviewStepUseCase:
         )
 
         evaluation_result = self._answer_evaluation_service.evaluate(
-            question=selection_result.selected_question,
+            question=selection_result.question,
             answer=payload.answer,
         )
 
-        next_level = self._level_transition_service.determine_next_level(
+        next_level = self._level_transition_service.transition(
             current_level=payload.context.current_level,
             recent_scores=[
                 *payload.context.recent_scores,

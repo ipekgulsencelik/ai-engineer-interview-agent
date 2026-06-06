@@ -11,10 +11,10 @@ from src.application.services.retrieval_benchmark_service import (
 from src.application.services.semantic_question_retrieval_service import (
     SemanticQuestionRetrievalService,
 )
-from src.infrastructure.embeddings.sentence_transformer_embedding_model import (
-    SentenceTransformerEmbeddingModel,
+from src.infrastructure.embedding.sentence_transformer_embedding_provider import (
+    SentenceTransformerEmbeddingProvider,
 )
-from src.infrastructure.vector_store.chroma_question_vector_store import (
+from src.infrastructure.vector_stores.chroma.chroma_question_vector_store import (
     ChromaQuestionVectorStore,
 )
 from src.ui.models.benchmark_dashboard_result import (

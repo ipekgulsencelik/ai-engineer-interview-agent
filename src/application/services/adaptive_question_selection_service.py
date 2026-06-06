@@ -3,8 +3,8 @@ from __future__ import annotations
 from src.application.services.question_ranking_service import (
     QuestionRankingService,
 )
-from src.application.services.question_retrieval_service import (
-    QuestionRetrievalService,
+from src.application.services.semantic_question_retrieval_service import (
+    SemanticQuestionRetrievalService,
 )
 from src.domain.policies.asked_question_filter_policy import (
     AskedQuestionFilterPolicy,
@@ -28,7 +28,7 @@ class AdaptiveQuestionSelectionService:
     def __init__(
         self,
         *,
-        retrieval_service: QuestionRetrievalService,
+        retrieval_service: SemanticQuestionRetrievalService,
         ranking_service: QuestionRankingService,
         selection_policy: QuestionSelectionPolicy | None = None,
     ) -> None:

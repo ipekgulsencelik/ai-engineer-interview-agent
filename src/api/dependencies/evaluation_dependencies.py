@@ -22,4 +22,4 @@ def get_answer_evaluation_service(
     AnswerEvaluationService dependency provider.
     """
 
-    return container.answer_evaluation_service()
+    return container.answer_evaluation_service

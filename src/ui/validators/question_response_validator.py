@@ -3,9 +3,12 @@ from __future__ import annotations
 from src.domain.validation.base_schema_validator import (
     BaseSchemaValidator,
 )
-from src.ui.schemas.question_response import (
-    QuestionResponse,
-)
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.ui.schemas.question_response import QuestionResponse
+
 from src.ui.schemas.question_response_schema import (
     QUESTION_RESPONSE_DIFFICULTY_RULE,
     QUESTION_RESPONSE_SCORE_RULE,
@@ -23,7 +26,7 @@ class QuestionResponseValidator(
     @classmethod
     def validate(
         cls,
-        response: QuestionResponse,
+        response: "QuestionResponse",
     ) -> None:
         cls._validate_string(
             field_name="id",

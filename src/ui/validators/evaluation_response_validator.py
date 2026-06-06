@@ -3,9 +3,12 @@ from __future__ import annotations
 from src.domain.validation.base_schema_validator import (
     BaseSchemaValidator,
 )
-from src.ui.schemas.evaluation_response import (
-    EvaluationResponse,
-)
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.ui.schemas.evaluation_response import EvaluationResponse
+
 from src.ui.schemas.evaluation_response_schema import (
     EVALUATION_RESPONSE_LATENCY_RULE,
     EVALUATION_RESPONSE_OPTIONAL_STRING_RULE,
@@ -25,7 +28,7 @@ class EvaluationResponseValidator(
     @classmethod
     def validate(
         cls,
-        response: EvaluationResponse,
+        response: "EvaluationResponse",
     ) -> None:
         cls._validate_score(
             field_name="score",

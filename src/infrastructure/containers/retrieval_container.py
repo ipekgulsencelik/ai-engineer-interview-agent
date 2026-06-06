@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from functools import cached_property
 
-from src.application.services.question_retrieval_service import (
-    QuestionRetrievalService,
+from src.application.services.semantic_question_retrieval_service import (
+    SemanticQuestionRetrievalService,
 )
-from src.infrastructure.constants.vector_store import (
-    CHROMA_PERSIST_DIRECTORY,
+from src.infrastructure.constants.chroma_defaults import (
+    DEFAULT_CHROMA_PERSIST_DIRECTORY,
 )
 from src.infrastructure.containers.base_container import (
     BaseContainer,
@@ -35,14 +35,14 @@ class RetrievalContainer(BaseContainer):
         self,
     ) -> ChromaQuestionVectorStore:
         return ChromaQuestionVectorStore(
-            persist_directory=CHROMA_PERSIST_DIRECTORY,
+            persist_directory=DEFAULT_CHROMA_PERSIST_DIRECTORY,
         )
 
     @cached_property
     def question_retrieval_service(
         self,
-    ) -> QuestionRetrievalService:
-        return QuestionRetrievalService(
+    ) -> SemanticQuestionRetrievalService:
+        return SemanticQuestionRetrievalService(
             embedding_provider=self.embedding_provider,
             vector_store=self.vector_store,
         )

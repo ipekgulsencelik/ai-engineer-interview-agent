@@ -4,7 +4,7 @@ from streamlit.runtime.uploaded_file_manager import (
     UploadedFile,
 )
 
-from src.ui.validators.constants.uploaded_file_errors import (
+from src.ui.constants.uploaded_file_errors import (
     INVALID_PDF_FILE_ERROR,
 )
 
