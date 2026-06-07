@@ -3,6 +3,9 @@ from __future__ import annotations
 from src.api.schemas.cv_analysis_response import (
     CVAnalysisResponse,
 )
+from src.api.schemas.evaluation.enums import (
+    QuestionLevel,
+)
 from src.domain.results.cv_gap_analysis_result import (
     CVGapAnalysisResult,
 )
@@ -27,7 +30,7 @@ class CVAnalysisResponseMapper:
         """
 
         return CVAnalysisResponse(
-            detected_level=profile.detected_level,
+            detected_level=QuestionLevel(profile.detected_level.value),
             years_of_experience=profile.years_of_experience,
             skills=list(profile.skills),
             weak_skills=list(profile.weak_skills),
@@ -37,4 +40,15 @@ class CVAnalysisResponseMapper:
             recommended_focus_areas=list(
                 gap_analysis.recommended_focus_areas,
             ),
+        )
+
+    @staticmethod
+    def from_profile_and_gap_analysis(
+        *,
+        profile: CandidateProfile,
+        gap_analysis: CVGapAnalysisResult,
+    ) -> CVAnalysisResponse:
+        return CVAnalysisResponseMapper.to_response(
+            profile=profile,
+            gap_analysis=gap_analysis,
         )

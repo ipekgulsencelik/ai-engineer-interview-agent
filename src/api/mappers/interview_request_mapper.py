@@ -38,3 +38,5 @@ class RunInterviewStepPayloadMapper:
                 ),
             ),
         )
+
+InterviewRequestMapper = RunInterviewStepPayloadMapper

@@ -9,8 +9,14 @@ from src.domain.entities.question import (
 from src.domain.enums.level import (
     Level,
 )
+from src.domain.enums.question_category import (
+    QuestionCategory,
+)
 from src.domain.enums.question_type import (
     QuestionType,
+)
+from src.domain.normalizers.implementations.question_category_normalizer import (
+    QuestionCategoryNormalizer,
 )
 
 
@@ -27,7 +33,11 @@ class EvaluationRequestMapper:
         return Question(
             id=request.question_id,
             text=request.question_text,
-            category=request.category,
+            category=QuestionCategory(
+                QuestionCategoryNormalizer().normalize(
+                    value=request.category,
+                ),
+            ),
             level=Level(
                 request.level.value,
             ),
@@ -35,10 +45,10 @@ class EvaluationRequestMapper:
             question_type=QuestionType(
                 request.question_type.value,
             ),
-            expected_points=tuple(
+            expected_points=list(
                 request.expected_points,
             ),
-            keywords=tuple(
+            keywords=list(
                 request.keywords,
             ),
             market_weight=request.market_weight,

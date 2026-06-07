@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.infrastructure.schemas.sentence_transformer_embedding_provider_schema import (
     SENTENCE_TRANSFORMER_EMBEDDING_PROVIDER_SCHEMA,
 )
-from src.infrastructure.validation.base_schema_validator import (
+from src.infrastructure.validators.base_schema_validator import (
     BaseSchemaValidator,
 )
 

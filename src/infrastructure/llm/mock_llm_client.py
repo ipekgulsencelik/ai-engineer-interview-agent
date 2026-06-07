@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from src.domain.config.provider_config import ProviderConfig
 from src.application.ports.llm_client import LLMClient
 from src.domain.llm.llm_response import LLMResponse
 

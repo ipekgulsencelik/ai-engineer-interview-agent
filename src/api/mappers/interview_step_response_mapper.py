@@ -3,6 +3,9 @@ from __future__ import annotations
 from src.api.constants.response import (
     FINAL_SCORE_PRECISION,
 )
+from src.api.schemas.evaluation.enums import (
+    QuestionLevel,
+)
 from src.api.schemas.interview.responses import (
     InterviewStepResponse,
 )
@@ -35,5 +38,17 @@ class InterviewStepResponseMapper:
                 FINAL_SCORE_PRECISION,
             ),
             feedback=result.feedback,
-            next_level=next_level,
+            next_level=QuestionLevel(next_level.value),
+        )
+
+    @staticmethod
+    def from_result(
+        *,
+        result: object,
+    ) -> InterviewStepResponse:
+        return InterviewStepResponseMapper.from_evaluation_result(
+            result=result.evaluation_result,
+            next_level=result.next_level,
+            question_id=result.selection_result.question.id,
+            question_text=result.selection_result.question.text,
         )

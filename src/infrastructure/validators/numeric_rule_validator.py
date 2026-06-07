@@ -6,7 +6,7 @@ from typing import Any
 from src.infrastructure.errors.validation_error import (
     ValidationError,
 )
-from src.infrastructure.validation.schema_types import (
+from src.infrastructure.validations.schema_types import (
     SchemaRule,
 )
 

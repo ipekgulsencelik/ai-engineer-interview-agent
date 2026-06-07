@@ -9,8 +9,8 @@ from fastapi import UploadFile
 from src.api.dependencies.cv_dependencies import (
     get_cv_analysis_orchestration_service,
 )
-from src.api.mappers.cv_gap_analysis_response_mapper import (
-    CVGapAnalysisResponseMapper,
+from src.api.mappers.cv_analysis_response_mapper import (
+    CVAnalysisResponseMapper,
 )
 from src.api.schemas.cv_analysis_response import (
     CVAnalysisResponse,
@@ -59,7 +59,7 @@ async def analyze_cv(
             detail=str(exc),
         ) from exc
 
-    return CVGapAnalysisResponseMapper.from_profile_and_gap_analysis(
+    return CVAnalysisResponseMapper.from_profile_and_gap_analysis(
         profile=profile,
         gap_analysis=gap_analysis,
     )

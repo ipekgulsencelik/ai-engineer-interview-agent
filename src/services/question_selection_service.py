@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from src.domain.entities.question import Question
-from src.application.ports.scoring_engine import ScoringEngine
+from src.domain.scoring.scoring_context import ScoringContext
 
 
 class ScoringEngineLike(Protocol):
@@ -40,7 +40,7 @@ class QuestionSelectionService:
 
         return max(
             available_questions,
-            key=lambda question: self.scoring_engine.score(
+            key=lambda question: self._scoring_engine.score(
                 question,
                 context,
             ),

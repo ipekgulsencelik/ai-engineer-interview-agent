@@ -2,15 +2,11 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import cached_property
-from typing import Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
-from src.application.ports.llm_client import (
-    LLMClient,
-)
+from src.application.ports.llm_client import LLMClient
 from src.config.settings import settings
-from src.infrastructure.llm.groq_llm_client import (
-    GroqLLMClient,
-)
+from src.infrastructure.llm.groq_llm_client import GroqLLMClient
 
 
 if TYPE_CHECKING:
@@ -29,22 +25,11 @@ if TYPE_CHECKING:
     from src.application.use_cases.run_interview_step_use_case import (
         RunInterviewStepUseCase,
     )
-    from src.infrastructure.containers.cv_container import (
-        CVContainer,
-    )
-    from src.infrastructure.containers.evaluation_container import (
-        EvaluationContainer,
-    )
-    from src.infrastructure.containers.interview_container import (
-        InterviewContainer,
-    )
-    from src.infrastructure.containers.retrieval_container import (
-        RetrievalContainer,
-    )
-    from src.infrastructure.containers.scoring_container import (
-        ScoringContainer,
-    )
->>>>>>> ce23a3e (refactor: improve dependency injection and validation architecture)
+    from src.infrastructure.containers.cv_container import CVContainer
+    from src.infrastructure.containers.evaluation_container import EvaluationContainer
+    from src.infrastructure.containers.interview_container import InterviewContainer
+    from src.infrastructure.containers.retrieval_container import RetrievalContainer
+    from src.infrastructure.containers.scoring_container import ScoringContainer
 
 
 class ServiceContainer:
@@ -56,28 +41,11 @@ class ServiceContainer:
     """
 
     def __init__(
-<<<<<<< HEAD
         self,
         *,
         llm_client_factory: Callable[[], LLMClient] | None = None,
     ) -> None:
-        self._llm_client_factory = (
-            llm_client_factory
-            or GroqLLMClient
-        )
-
-    @cached_property
-    def retrieval(
-=======
->>>>>>> ce23a3e (refactor: improve dependency injection and validation architecture)
-        self,
-        *,
-        llm_client_factory: Callable[[], LLMClient] | None = None,
-    ) -> None:
-        self._llm_client_factory = (
-            llm_client_factory
-            or self._build_groq_client
-        )
+        self._llm_client_factory = llm_client_factory or self._build_groq_client
 
     @staticmethod
     def _build_groq_client() -> LLMClient:
@@ -88,68 +56,46 @@ class ServiceContainer:
 
     @cached_property
     def retrieval(self) -> RetrievalContainer:
-        from src.infrastructure.containers.retrieval_container import (
-            RetrievalContainer,
-        )
+        from src.infrastructure.containers.retrieval_container import RetrievalContainer
 
         return RetrievalContainer()
 
     @cached_property
     def scoring(self) -> ScoringContainer:
-        from src.infrastructure.containers.scoring_container import (
-            ScoringContainer,
-        )
+        from src.infrastructure.containers.scoring_container import ScoringContainer
 
         return ScoringContainer()
 
     @cached_property
     def evaluation(self) -> EvaluationContainer:
-        from src.infrastructure.containers.evaluation_container import (
-            EvaluationContainer,
-        )
+        from src.infrastructure.containers.evaluation_container import EvaluationContainer
 
         return EvaluationContainer()
 
     @cached_property
-<<<<<<< HEAD
-    def llm_client(
-        self,
-    ) -> LLMClient:
-=======
     def llm_client(self) -> LLMClient:
->>>>>>> ce23a3e (refactor: improve dependency injection and validation architecture)
         return self._llm_client_factory()
 
     @cached_property
     def interview(self) -> InterviewContainer:
-        from src.infrastructure.containers.interview_container import (
-            InterviewContainer,
-        )
+        from src.infrastructure.containers.interview_container import InterviewContainer
 
         return InterviewContainer(
-            retrieval_container=self.retrieval,
-            scoring_container=self.scoring,
+            retrieval_container=None,
+            scoring_container=None,
             evaluation_container=self.evaluation,
         )
 
     @cached_property
     def cv(self) -> CVContainer:
-        from src.infrastructure.containers.cv_container import (
-            CVContainer,
-        )
+        from src.infrastructure.containers.cv_container import CVContainer
 
         return CVContainer(
             llm_client=self.llm_client,
         )
 
     @property
-<<<<<<< HEAD
-    def answer_evaluation_service(
-        self,
-    ):
-=======
     def answer_evaluation_service(self) -> AnswerEvaluationService:
->>>>>>> ce23a3e (refactor: improve dependency injection and validation architecture)
         return self.evaluation.answer_evaluation_service
 
     @property
@@ -157,33 +103,13 @@ class ServiceContainer:
         return self.interview.run_interview_step_use_case
 
     @property
-    def adaptive_selection_service(
-        self,
-<<<<<<< HEAD
-    ):
-        return self.interview.run_interview_step_use_case
-=======
-    ) -> AdaptiveQuestionSelectionService:
+    def adaptive_selection_service(self) -> AdaptiveQuestionSelectionService:
         return self.retrieval.adaptive_selection_service
->>>>>>> ce23a3e (refactor: improve dependency injection and validation architecture)
 
     @property
-    def question_retrieval_service(
-        self,
-<<<<<<< HEAD
-    ):
-=======
-    ) -> SemanticQuestionRetrievalService:
->>>>>>> ce23a3e (refactor: improve dependency injection and validation architecture)
+    def question_retrieval_service(self) -> SemanticQuestionRetrievalService:
         return self.retrieval.question_retrieval_service
 
     @property
-    def cv_analysis_orchestration_service(
-        self,
-<<<<<<< HEAD
-    ):
+    def cv_analysis_orchestration_service(self) -> CVAnalysisOrchestrationService:
         return self.cv.cv_analysis_orchestration_service
-=======
-    ) -> CVAnalysisOrchestrationService:
-        return self.cv.cv_analysis_orchestration_service
->>>>>>> ce23a3e (refactor: improve dependency injection and validation architecture)

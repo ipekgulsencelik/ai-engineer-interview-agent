@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from src.infrastructure.schemas.benchmark_case_schema import (
     BENCHMARK_CASE_STRING_RULE,
 )
-from src.domain.validation.base_schema_validator import (
+from src.domain.validators.base_schema_validator import (
     BaseSchemaValidator,
 )
 

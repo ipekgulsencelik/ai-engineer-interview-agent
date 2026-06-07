@@ -1,0 +1,44 @@
+[
+  {
+    "sample_id": "sample-001",
+    "question_id": "question-001",
+    "question": "What is Retrieval-Augmented Generation?",
+    "candidate_answer": "RAG combines retrieval and generation to improve factual grounding.",
+    "expected_answer": "Retrieval-Augmented Generation retrieves relevant context before generation.",
+    "category": "RAG",
+    "level": "JR",
+    "retrieved_contexts": [
+      "RAG improves factual accuracy.",
+      "Retriever fetches external knowledge."
+    ],
+    "metadata": {},
+    "human_score": {
+      "evaluator_id": "evaluator-001",
+      "overall_score": 88.0,
+      "technical_score": 90.0,
+      "communication_score": 85.0,
+      "feedback": "Good explanation with correct terminology."
+    }
+  },
+  {
+    "sample_id": "sample-002",
+    "question_id": "question-002",
+    "question": "Explain vector databases.",
+    "candidate_answer": "Vector databases store embeddings and enable similarity search.",
+    "expected_answer": "Vector databases index embeddings for semantic retrieval.",
+    "category": "VectorDB",
+    "level": "MID",
+    "retrieved_contexts": [
+      "Embeddings represent semantic meaning.",
+      "Similarity search uses vector distance."
+    ],
+    "metadata": {},
+    "human_score": {
+      "evaluator_id": "evaluator-001",
+      "overall_score": 92.0,
+      "technical_score": 95.0,
+      "communication_score": 89.0,
+      "feedback": "Strong technical answer."
+    }
+  }
+]

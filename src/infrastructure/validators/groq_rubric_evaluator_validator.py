@@ -13,7 +13,7 @@ from src.application.validators.answer_validator import (
     AnswerValidator,
 )
 from src.domain.entities.question import Question
-from src.domain.validation.base_schema_validator import (
+from src.domain.validators.base_schema_validator import (
     BaseSchemaValidator,
 )
 

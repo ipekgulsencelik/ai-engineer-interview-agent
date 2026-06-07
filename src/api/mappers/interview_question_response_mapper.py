@@ -3,6 +3,9 @@ from __future__ import annotations
 from src.api.constants.response import (
     FINAL_SCORE_PRECISION,
 )
+from src.api.schemas.evaluation.enums import (
+    QuestionLevel,
+)
 from src.api.schemas.interview.responses import (
     InterviewQuestionResponse,
 )
@@ -27,7 +30,7 @@ class InterviewQuestionResponseMapper:
             id=question.id,
             text=question.text,
             category=question.category.value,
-            level=question.level.value,
+            level=QuestionLevel(question.level.value),
             question_type=(
                 question.question_type.value
             ),

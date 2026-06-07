@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.domain.validators.selection_breakdown_validator import (
-    SelectionBreakdownValidator,
+from src.domain.validators.scoring_breakdown_validator import (
+    ScoringBreakdownValidator,
 )
+
 
 @dataclass(frozen=True)
 class ScoringBreakdown:

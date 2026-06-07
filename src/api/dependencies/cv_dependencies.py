@@ -17,12 +17,6 @@ ServiceContainerDependency: TypeAlias = Annotated[
 ]
 
 
-CVAnalysisOrchestrationServiceDependency: TypeAlias = Annotated[
-    CVAnalysisOrchestrationService,
-    Depends(get_cv_analysis_orchestration_service),
-]
-
-
 def get_cv_analysis_orchestration_service(
     container: ServiceContainerDependency,
 ) -> CVAnalysisOrchestrationService:
@@ -31,3 +25,9 @@ def get_cv_analysis_orchestration_service(
     """
 
     return container.cv_analysis_orchestration_service
+
+
+CVAnalysisOrchestrationServiceDependency: TypeAlias = Annotated[
+    CVAnalysisOrchestrationService,
+    Depends(get_cv_analysis_orchestration_service),
+]

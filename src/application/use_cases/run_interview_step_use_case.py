@@ -40,7 +40,7 @@ class RunInterviewStepUseCase:
     def __init__(
         self,
         *,
-        question_retrieval_service: QuestionRetrievalService,
+        question_retrieval_service: SemanticQuestionRetrievalService,
         question_selection_service: QuestionSelectionService,
         answer_evaluation_service: AnswerEvaluationService,
         level_transition_service: LevelTransitionService,

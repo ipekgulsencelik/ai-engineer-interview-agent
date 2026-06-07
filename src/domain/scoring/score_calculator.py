@@ -11,6 +11,7 @@ from src.constants.scoring import (
     MARKET_SCORE_WEIGHT,
     MAX_SCORE,
     MIN_SCORE,
+    SEMANTIC_SCORE_WEIGHT,
     Score,
 )
 from src.domain.scoring.calculators.score_calculator_validator import (

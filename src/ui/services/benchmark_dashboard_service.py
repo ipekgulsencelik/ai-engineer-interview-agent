@@ -36,7 +36,7 @@ class BenchmarkDashboardService:
         )
 
         retrieval_service = SemanticQuestionRetrievalService(
-            embedding_provider=SentenceTransformerEmbeddingModel(),
+            embedding_provider=SentenceTransformerEmbeddingProvider(),
             vector_store=ChromaQuestionVectorStore(),
         )
 

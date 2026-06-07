@@ -5,16 +5,16 @@ from typing import Any
 from src.infrastructure.errors.validation_error import (
     ValidationError,
 )
-from src.infrastructure.validation.numeric_rule_validator import (
+from src.infrastructure.validators.numeric_rule_validator import (
     NumericRuleValidator,
 )
-from src.infrastructure.validation.schema_types import (
+from src.infrastructure.validations.schema_types import (
     SchemaRule,
 )
-from src.infrastructure.validation.string_list_rule_validator import (
+from src.infrastructure.validators.string_list_rule_validator import (
     StringListRuleValidator,
 )
-from src.infrastructure.validation.string_rule_validator import (
+from src.infrastructure.validators.string_rule_validator import (
     StringRuleValidator,
 )
 

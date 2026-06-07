@@ -1,36 +1,21 @@
 from __future__ import annotations
 
-from typing import Protocol
-from typing import runtime_checkable
+from src.application.ports.cv_skill_extraction_prompt_builder import (
+    CVSkillExtractionPromptBuilder,
+)
 
 
-@runtime_checkable
-class CVSkillExtractionPromptBuilder(
-    Protocol,
-):
-    """
-    Candidate profile extraction prompt builder contract.
-
-    Bu contract:
-        - raw CV text üzerinden extraction prompt üretimini tanımlar
-        - application katmanını concrete prompt strategy
-          implementasyonlarından izole eder
-        - farklı extraction prompting stratejilerinin
-          interchangeable olmasını sağlar
-    """
+class DefaultCVSkillExtractionPromptBuilder(CVSkillExtractionPromptBuilder):
+    """Builds a compact JSON-only prompt for CV skill extraction."""
 
     def build(
         self,
         *,
         cv_text: str,
     ) -> str:
-        """
-        Candidate profile extraction prompt üretir.
-
-        Args:
-            cv_text:
-                Extract edilmiş raw CV text.
-
-        Returns:
-            LLM-compatible extraction prompt.
-        """
+        return (
+            "Extract the candidate profile from this CV. "
+            "Return only valid JSON with keys: detected_level, years_of_experience, "
+            "skills, weak_skills. detected_level must be JR, MID, or SENIOR.\n\n"
+            f"CV:\n{cv_text}"
+        )

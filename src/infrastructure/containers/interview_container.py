@@ -1,31 +1,20 @@
 from __future__ import annotations
 
 from functools import cached_property
+from typing import TYPE_CHECKING
 
-from src.application.policies.highest_score_selection_policy import (
-    HighestScoreSelectionPolicy,
-)
-from src.application.services.level_transition_service import (
-    LevelTransitionService,
-)
+from src.application.services.level_transition_service import LevelTransitionService
 from src.application.services.question_selection_service import (
     QuestionSelectionService,
+    HighestScoreSelectionPolicy,
 )
-from src.application.use_cases.run_interview_step_use_case import (
-    RunInterviewStepUseCase,
-)
-from src.infrastructure.containers.base_container import (
-    BaseContainer,
-)
-from src.infrastructure.containers.evaluation_container import (
-    EvaluationContainer,
-)
-from src.infrastructure.containers.retrieval_container import (
-    RetrievalContainer,
-)
-from src.infrastructure.containers.scoring_container import (
-    ScoringContainer,
-)
+from src.application.use_cases.run_interview_step_use_case import RunInterviewStepUseCase
+from src.infrastructure.containers.base_container import BaseContainer
+
+if TYPE_CHECKING:
+    from src.infrastructure.containers.evaluation_container import EvaluationContainer
+    from src.infrastructure.containers.retrieval_container import RetrievalContainer
+    from src.infrastructure.containers.scoring_container import ScoringContainer
 
 
 class InterviewContainer(BaseContainer):
