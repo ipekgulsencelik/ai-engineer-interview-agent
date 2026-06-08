@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from src.domain.enums.level import Level
@@ -30,8 +31,8 @@ class EvaluationSampleValidator:
         expected_answer: str,
         category: str,
         level: Level,
-        retrieved_contexts: list[str],
-        metadata: dict[str, Any],
+        retrieved_contexts: tuple[str, ...],
+        metadata: Mapping[str, Any],
     ) -> None:
         SchemaValidator.validate(
             values={

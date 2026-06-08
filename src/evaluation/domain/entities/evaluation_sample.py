@@ -23,9 +23,8 @@ class EvaluationSample:
     expected_answer: str
     category: str
     level: Level
-    retrieved_contexts: tuple[str, ...]
-    metadata: Mapping[str, Any]
-
+    retrieved_contexts: tuple[str, ...] = ()
+    metadata: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         EvaluationSampleValidator.validate(
@@ -37,5 +36,5 @@ class EvaluationSample:
             category=self.category,
             level=self.level,
             retrieved_contexts=self.retrieved_contexts,
-            metadata=self.metadata,
+            metadata={} if self.metadata is None else self.metadata,
         )

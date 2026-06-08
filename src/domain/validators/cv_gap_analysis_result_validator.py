@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.domain.schemas.cv_gap_analysis_result_schema import (
     CV_GAP_ANALYSIS_RESULT_SCHEMA,
 )
-from src.domain.validation.schema_validator import (
+from src.domain.validators.schema_validator import (
     SchemaValidator,
 )
 

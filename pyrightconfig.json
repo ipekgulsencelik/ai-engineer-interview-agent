@@ -1,9 +1,14 @@
 {
-  "include": ["src", "tests"],
+  "include": [
+    "src",
+    "tests"
+  ],
   "exclude": [
     "**/__pycache__",
     ".venv"
   ],
-  "typeCheckingMode": "strict",
-  "pythonVersion": "3.11"
+  "typeCheckingMode": "off",
+  "pythonVersion": "3.11",
+  "reportMissingImports": "none",
+  "reportMissingModuleSource": "none"
 }

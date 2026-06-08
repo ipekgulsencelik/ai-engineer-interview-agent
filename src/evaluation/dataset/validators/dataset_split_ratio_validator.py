@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 
-from src.evaluation.dataset.constants.dataset_split_constants import (
+from src.evaluation.dataset.constants.dataset_splits import (
     SPLIT_RATIO_SUM_TARGET,
     SPLIT_RATIO_TOLERANCE,
 )

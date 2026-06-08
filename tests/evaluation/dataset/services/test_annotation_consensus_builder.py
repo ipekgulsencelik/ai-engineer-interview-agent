@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.evaluation.domain.builders.sample_annotation_consensus_builder import (
+from src.evaluation.dataset.services.sample_annotation_consensus_builder import (
     SampleAnnotationConsensusBuilder,
 )
 from src.evaluation.domain.entities import (
