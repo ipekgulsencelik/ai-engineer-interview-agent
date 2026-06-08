@@ -12,7 +12,7 @@ from src.application.ports.llm_client import (
 from src.domain.schemas.cv_extraction_schema import (
     CV_TEXT_RULE,
 )
-from src.domain.validators.base_schema_validator import (
+from src.domain.validation.base_schema_validator import (
     BaseSchemaValidator,
 )
 

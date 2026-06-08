@@ -4,7 +4,7 @@ from src.domain.retrieval.search_filters import SearchFilters
 from src.domain.schemas.search_filters_schema import (
     SEARCH_FILTERS_SCHEMA,
 )
-from src.domain.validation.schema_validator import (
+from src.domain.validators.schema_validator import (
     SchemaValidator,
 )
 

@@ -5,10 +5,10 @@ from statistics import mean, pvariance
 from src.evaluation.domain.errors.evaluation_validation_error import (
     EvaluationValidationError,
 )
-from src.evaluation.domain.value_objects.annotation_consensus import (
+from src.evaluation.dataset.value_objects.annotation_consensus import (
     AnnotationConsensus,
 )
-from src.evaluation.domain.value_objects.sample_annotation_consensus import (
+from src.evaluation.dataset.value_objects.sample_annotation_consensus import (
     SampleAnnotationConsensus,
 )
 

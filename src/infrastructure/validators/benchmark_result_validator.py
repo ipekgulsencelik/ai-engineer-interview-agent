@@ -10,7 +10,7 @@ from src.infrastructure.validations.benchmark_result_schema import (
     BENCHMARK_RESULT_RETRIEVED_COUNT_RULE,
     BENCHMARK_RESULT_STRING_RULE,
 )
-from src.domain.validators.base_schema_validator import (
+from src.domain.validation.base_schema_validator import (
     BaseSchemaValidator,
 )
 

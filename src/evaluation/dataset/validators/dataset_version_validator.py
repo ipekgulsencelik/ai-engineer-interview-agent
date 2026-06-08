@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.domain.validation.schema_validator import (
+from src.domain.validators.schema_validator import (
     SchemaValidator,
 )
 from src.evaluation.dataset.enums.dataset_stage import (

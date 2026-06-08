@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from collections import Counter
 
-from src.evaluation.dataset.entities.dataset_distribution_snapshot import (
+from src.evaluation.dataset.value_objects.dataset_distribution_snapshot import (
     DatasetDistributionSnapshot,
 )
-from src.evaluation.dataset.entities.dataset_split import (
+from src.evaluation.dataset.value_objects.dataset_split import (
     DatasetSplit,
 )
 from src.evaluation.dataset.entities.evaluation_dataset import (

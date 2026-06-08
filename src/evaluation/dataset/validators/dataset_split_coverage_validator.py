@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.evaluation.dataset.entities.dataset_split import (
+from src.evaluation.dataset.value_objects.dataset_split import (
     DatasetSplit,
 )
 from src.evaluation.dataset.entities.evaluation_dataset import (

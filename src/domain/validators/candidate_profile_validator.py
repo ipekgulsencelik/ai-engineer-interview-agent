@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.domain.validation.candidate_profile_validation_schema import (
     CANDIDATE_PROFILE_SCHEMA,
 )
-from src.domain.validation.schema_validator import (
+from src.domain.validators.schema_validator import (
     SchemaValidator,
 )
 

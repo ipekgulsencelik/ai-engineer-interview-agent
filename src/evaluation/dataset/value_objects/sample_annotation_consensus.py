@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.evaluation.domain.validators.sample_annotation_consensus_validator import (
+from src.evaluation.dataset.validators.sample_annotation_consensus_validator import (
     SampleAnnotationConsensusValidator,
 )
 

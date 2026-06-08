@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.evaluation.dataset.entities.dataset_distribution_snapshot import (
+from src.evaluation.dataset.value_objects.dataset_distribution_snapshot import (
     DatasetDistributionSnapshot,
 )
 from src.evaluation.domain.errors.evaluation_validation_error import (

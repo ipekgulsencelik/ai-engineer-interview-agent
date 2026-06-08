@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from functools import cached_property
-
 from src.evaluation.dataset.enums.dataset_split_type import (
     DatasetSplitType,
 )
@@ -36,7 +34,7 @@ class DatasetSplit:
     def sample_count(self) -> int:
         return len(self.sample_ids)
 
-    @cached_property
+    @property
     def sample_id_set(self) -> frozenset[str]:
         return frozenset(self.sample_ids)
 

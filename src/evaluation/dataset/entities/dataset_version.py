@@ -25,6 +25,21 @@ class DatasetVersion:
     created_by: str
     description: str
 
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, str):
+            return self.version == other
+        if isinstance(other, DatasetVersion):
+            return (
+                self.version == other.version
+                and self.stage is other.stage
+                and self.created_by == other.created_by
+                and self.description == other.description
+            )
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash((self.version, self.stage, self.created_by, self.description))
+
     def __post_init__(self) -> None:
         DatasetVersionValidator.validate(
             version=self.version,

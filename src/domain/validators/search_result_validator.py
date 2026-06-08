@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from src.domain.validation.search_result_validation_schema import (
     SEARCH_RESULT_VALIDATION_SCHEMA,
 )
-from src.domain.validators.base_schema_validator import BaseSchemaValidator
+from src.domain.validation.base_schema_validator import BaseSchemaValidator
 
 if TYPE_CHECKING:
     from src.domain.retrieval.search_result import SearchResult

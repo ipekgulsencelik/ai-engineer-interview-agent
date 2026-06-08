@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from statistics import mean
 
-from src.evaluation.domain.constants.consensus import (
+from src.evaluation.dataset.constants.consensus import (
     MIN_ANNOTATOR_COUNT,
 )
 from src.evaluation.domain.entities import (
@@ -11,7 +11,7 @@ from src.evaluation.domain.entities import (
 from src.evaluation.domain.errors.evaluation_validation_error import (
     EvaluationValidationError,
 )
-from src.evaluation.domain.value_objects.sample_annotation_consensus import (
+from src.evaluation.dataset.value_objects.sample_annotation_consensus import (
     SampleAnnotationConsensus,
 )
 
