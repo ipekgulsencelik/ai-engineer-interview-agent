@@ -139,3 +139,19 @@ POSITIVE_INTEGER_RULE: Final[ValidationRule] = ValidationRule(
     finite=True,
     min_value=1,
 )
+
+RATIO_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=(int, float),
+    reject_bool=True,
+    finite=True,
+    min_value=0,
+    max_value=1,
+)
+
+R2_SCORE_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=(int, float),
+    reject_bool=True,
+    finite=True,
+    min_value=-1,
+    max_value=1,
+)
