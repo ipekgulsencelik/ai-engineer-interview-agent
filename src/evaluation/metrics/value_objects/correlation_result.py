@@ -26,7 +26,8 @@ class CorrelationResult:
 
     method: str
     is_significant: bool
-    interpretation: str
+    interpretation: str | None = None
+    notes: str | None = None
 
     def __post_init__(self) -> None:
         CorrelationResultValidator.validate(
@@ -38,4 +39,5 @@ class CorrelationResult:
             method=self.method,
             is_significant=self.is_significant,
             interpretation=self.interpretation,
+            notes=self.notes,
         )

@@ -8,12 +8,12 @@ from src.evaluation.domain.errors.evaluation_validation_error import (
 from src.evaluation.metrics.calculators.agreement_ratio_calculator import (
     AgreementRatioCalculator,
 )
-from src.evaluation.metrics.calculators.cohen_kappa_score_calculator import (
-    CohenKappaScoreCalculator,
+from src.evaluation.metrics.calculators.cohens_kappa_score_calculator import (
+    CohensKappaScoreCalculator,
 )
 
 
-def test_cohen_kappa_score_calculator_should_return_one_for_perfect_agreement() -> None:
+def test_cohens_kappa_score_calculator_should_return_one_for_perfect_agreement() -> None:
     evaluator_a_labels = (
         "pass",
         "fail",
@@ -32,7 +32,7 @@ def test_cohen_kappa_score_calculator_should_return_one_for_perfect_agreement() 
         evaluator_b_labels=evaluator_b_labels,
     )
 
-    kappa_score = CohenKappaScoreCalculator.calculate(
+    kappa_score = CohensKappaScoreCalculator.calculate(
         evaluator_a_labels=evaluator_a_labels,
         evaluator_b_labels=evaluator_b_labels,
         agreement_ratio=agreement_ratio,
@@ -41,7 +41,7 @@ def test_cohen_kappa_score_calculator_should_return_one_for_perfect_agreement() 
     assert kappa_score == pytest.approx(1.0)
 
 
-def test_cohen_kappa_score_calculator_should_return_zero_for_chance_agreement() -> None:
+def test_cohens_kappa_score_calculator_should_return_zero_for_chance_agreement() -> None:
     evaluator_a_labels = (
         "pass",
         "pass",
@@ -60,7 +60,7 @@ def test_cohen_kappa_score_calculator_should_return_zero_for_chance_agreement() 
         evaluator_b_labels=evaluator_b_labels,
     )
 
-    kappa_score = CohenKappaScoreCalculator.calculate(
+    kappa_score = CohensKappaScoreCalculator.calculate(
         evaluator_a_labels=evaluator_a_labels,
         evaluator_b_labels=evaluator_b_labels,
         agreement_ratio=agreement_ratio,
@@ -69,7 +69,7 @@ def test_cohen_kappa_score_calculator_should_return_zero_for_chance_agreement() 
     assert kappa_score == pytest.approx(0.0)
 
 
-def test_cohen_kappa_score_calculator_should_raise_for_degenerate_labels() -> None:
+def test_cohens_kappa_score_calculator_should_raise_for_degenerate_labels() -> None:
     evaluator_a_labels = (
         "pass",
         "pass",
@@ -88,7 +88,7 @@ def test_cohen_kappa_score_calculator_should_raise_for_degenerate_labels() -> No
         EvaluationValidationError,
         match="Cohen kappa is undefined",
     ):
-        CohenKappaScoreCalculator.calculate(
+        CohensKappaScoreCalculator.calculate(
             evaluator_a_labels=evaluator_a_labels,
             evaluator_b_labels=evaluator_b_labels,
             agreement_ratio=agreement_ratio,

@@ -11,7 +11,7 @@ from src.evaluation.metrics.constants.agreements import (
 )
 
 
-class CohenKappaScoreCalculator:
+class CohensKappaScoreCalculator:
     """
     Cohen's kappa score calculator.
     """

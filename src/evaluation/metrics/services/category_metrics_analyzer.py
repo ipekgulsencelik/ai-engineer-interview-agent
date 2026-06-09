@@ -5,8 +5,8 @@ from collections.abc import Sequence
 from src.evaluation.metrics.builders.category_metric_snapshot_builder import (
     CategoryMetricSnapshotBuilder,
 )
-from src.evaluation.metrics.calculators.cohen_kappa_calculator import (
-    CohenKappaCalculator,
+from src.evaluation.metrics.calculators.cohens_kappa_calculator import (
+    CohensKappaCalculator,
 )
 from src.evaluation.metrics.calculators.pearson_correlation_calculator import (
     PearsonCorrelationCalculator,
@@ -43,7 +43,7 @@ class CategoryMetricsAnalyzer:
         self,
         *,
         pearson_calculator: PearsonCorrelationCalculator,
-        agreement_calculator: CohenKappaCalculator,
+        agreement_calculator: CohensKappaCalculator,
         regression_calculator: RegressionMetricsCalculator,
     ) -> None:
         self._pearson_calculator = pearson_calculator

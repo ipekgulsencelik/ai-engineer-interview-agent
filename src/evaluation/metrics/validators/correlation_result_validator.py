@@ -26,6 +26,7 @@ class CorrelationResultValidator:
         sample_count: int,
         method: str,
         is_significant: bool,
+        interpretation: str | None = None,
         notes: str | None = None,
     ) -> None:
         SchemaValidator.validate(
@@ -37,6 +38,7 @@ class CorrelationResultValidator:
                 "sample_count": sample_count,
                 "method": method,
                 "is_significant": is_significant,
+                "interpretation": interpretation,
                 "notes": notes,
             },
             schema=CORRELATION_RESULT_SCHEMA,

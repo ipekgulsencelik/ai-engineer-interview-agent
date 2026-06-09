@@ -1,8 +1,8 @@
 from src.evaluation.metrics.calculators.agreement_ratio_calculator import (
     AgreementRatioCalculator,
 )
-from src.evaluation.metrics.calculators.cohen_kappa_score_calculator import (
-    CohenKappaScoreCalculator,
+from src.evaluation.metrics.calculators.cohens_kappa_score_calculator import (
+    CohensKappaScoreCalculator,
 )
 from src.evaluation.metrics.calculators.cohens_kappa_calculator import (
     CohensKappaCalculator,
@@ -25,7 +25,7 @@ from src.evaluation.metrics.calculators.mse_calculator import (
 from src.evaluation.metrics.calculators.overall_alignment_score_calculator import (
     OverallAlignmentScoreCalculator,
 )
-from src.evaluation.metrics.calculators.pearson_coefficent_calculator import (
+from src.evaluation.metrics.calculators.pearson_coefficient_calculator import (
     PearsonCoefficientCalculator,
 )
 from src.evaluation.metrics.calculators.pearson_correlation_calculator import (
@@ -37,14 +37,14 @@ from src.evaluation.metrics.calculators.r2_score_calculator import (
 from src.evaluation.metrics.calculators.regression_metrics_calculator import (
     RegressionMetricsCalculator,
 )
-from src.evaluation.metrics.services.rmse_calculator import (
+from src.evaluation.metrics.calculators.rmse_calculator import (
     RMSECalculator,
 )
 
 
 __all__ = [
     "AgreementRatioCalculator",
-    "CohenKappaScoreCalculator",
+    "CohensKappaScoreCalculator",
     "CohensKappaCalculator",
     "FleissAgreementRatioCalculator",
     "FleissKappaCalculator",
