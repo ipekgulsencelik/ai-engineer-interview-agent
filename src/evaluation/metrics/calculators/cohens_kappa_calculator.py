@@ -5,8 +5,8 @@ from collections.abc import Sequence
 from src.evaluation.metrics.calculators.agreement_ratio_calculator import (
     AgreementRatioCalculator,
 )
-from src.evaluation.metrics.calculators.cohen_kappa_score_calculator import (
-    CohenKappaScoreCalculator,
+from src.evaluation.metrics.calculators.cohens_kappa_score_calculator import (
+    CohensKappaScoreCalculator,
 )
 from src.evaluation.metrics.constants.agreements import (
     COHEN_KAPPA_METHOD_NAME,
@@ -23,7 +23,7 @@ from src.evaluation.metrics.value_objects.agreement_result import (
 )
 
 
-class CohenKappaCalculator:
+class CohensKappaCalculator:
     """
     Cohen's kappa agreement calculator.
 
@@ -50,7 +50,7 @@ class CohenKappaCalculator:
             evaluator_b_labels=evaluator_b_labels,
         )
 
-        kappa_score = CohenKappaScoreCalculator.calculate(
+        kappa_score = CohensKappaScoreCalculator.calculate(
             evaluator_a_labels=evaluator_a_labels,
             evaluator_b_labels=evaluator_b_labels,
             agreement_ratio=agreement_ratio,

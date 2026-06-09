@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections import Counter
 from collections.abc import Sequence
 
 from src.evaluation.domain.errors.evaluation_validation_error import (

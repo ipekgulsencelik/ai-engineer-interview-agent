@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from src.evaluation.metrics.calculators.cohen_kappa_calculator import (
-    CohenKappaCalculator,
+from src.evaluation.metrics.calculators.cohens_kappa_calculator import (
+    CohensKappaCalculator,
 )
 from src.evaluation.metrics.value_objects.agreement_result import (
     AgreementResult,
@@ -22,12 +22,12 @@ class AgreementAnalysisService:
         self,
         *,
         cohen_kappa_calculator: (
-            CohenKappaCalculator | None
+            CohensKappaCalculator | None
         ) = None,
     ) -> None:
         self._cohen_kappa_calculator = (
             cohen_kappa_calculator
-            or CohenKappaCalculator()
+            or CohensKappaCalculator()
         )
 
     def analyze_cohen_kappa(

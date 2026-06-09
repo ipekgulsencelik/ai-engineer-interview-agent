@@ -5,13 +5,13 @@ import pytest
 from src.evaluation.domain.errors.evaluation_validation_error import (
     EvaluationValidationError,
 )
-from src.evaluation.metrics.calculators.cohen_kappa_calculator import (
-    CohenKappaCalculator,
+from src.evaluation.metrics.calculators.cohens_kappa_calculator import (
+    CohensKappaCalculator,
 )
 
 
 def test_cohen_kappa_calculator_should_calculate_perfect_agreement() -> None:
-    result = CohenKappaCalculator.calculate(
+    result = CohensKappaCalculator.calculate(
         metric_name="overall_label",
         evaluator_a_labels=(
             "pass",
@@ -40,7 +40,7 @@ def test_cohen_kappa_calculator_should_calculate_perfect_agreement() -> None:
 
 
 def test_cohen_kappa_calculator_should_calculate_partial_agreement() -> None:
-    result = CohenKappaCalculator.calculate(
+    result = CohensKappaCalculator.calculate(
         metric_name="overall_label",
         evaluator_a_labels=(
             "pass",
@@ -65,7 +65,7 @@ def test_cohen_kappa_calculator_should_raise_for_mismatched_lengths() -> None:
         EvaluationValidationError,
         match="evaluator label sequences must have the same length",
     ):
-        CohenKappaCalculator.calculate(
+        CohensKappaCalculator.calculate(
             metric_name="overall_label",
             evaluator_a_labels=("pass",),
             evaluator_b_labels=("pass", "fail"),
@@ -77,7 +77,7 @@ def test_cohen_kappa_calculator_should_raise_for_empty_labels() -> None:
         EvaluationValidationError,
         match="evaluator label sequences cannot be empty",
     ):
-        CohenKappaCalculator.calculate(
+        CohensKappaCalculator.calculate(
             metric_name="overall_label",
             evaluator_a_labels=(),
             evaluator_b_labels=(),
@@ -89,7 +89,7 @@ def test_cohen_kappa_calculator_should_raise_for_non_string_label() -> None:
         EvaluationValidationError,
         match=r"evaluator_a_labels\[0\] must be a string",
     ):
-        CohenKappaCalculator.calculate(
+        CohensKappaCalculator.calculate(
             metric_name="overall_label",
             evaluator_a_labels=(123, "fail"),  # type: ignore[arg-type]
             evaluator_b_labels=("pass", "fail"),
@@ -101,7 +101,7 @@ def test_cohen_kappa_calculator_should_raise_for_empty_string_label() -> None:
         EvaluationValidationError,
         match=r"evaluator_a_labels\[0\] cannot be empty",
     ):
-        CohenKappaCalculator.calculate(
+        CohensKappaCalculator.calculate(
             metric_name="overall_label",
             evaluator_a_labels=("   ", "fail"),
             evaluator_b_labels=("pass", "fail"),
@@ -113,7 +113,7 @@ def test_cohen_kappa_calculator_should_raise_for_degenerate_expected_agreement()
         EvaluationValidationError,
         match="Cohen kappa is undefined",
     ):
-        CohenKappaCalculator.calculate(
+        CohensKappaCalculator.calculate(
             metric_name="overall_label",
             evaluator_a_labels=("pass", "pass"),
             evaluator_b_labels=("pass", "pass"),

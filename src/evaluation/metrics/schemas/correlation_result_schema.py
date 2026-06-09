@@ -6,6 +6,7 @@ from src.domain.validation.common_rules import (
     BOOLEAN_RULE,
     CORRELATION_RULE,
     NON_EMPTY_STRING_RULE,
+    OPTIONAL_NON_EMPTY_STRING_RULE,
     OPTIONAL_STRING_RULE,
     P_VALUE_RULE,
     POSITIVE_INTEGER_RULE,
@@ -23,5 +24,6 @@ CORRELATION_RESULT_SCHEMA: Final[SchemaDefinition] = {
     "sample_count": POSITIVE_INTEGER_RULE,
     "method": NON_EMPTY_STRING_RULE,
     "is_significant": BOOLEAN_RULE,
+    "interpretation": OPTIONAL_NON_EMPTY_STRING_RULE,
     "notes": OPTIONAL_STRING_RULE,
 }
