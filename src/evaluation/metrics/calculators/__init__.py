@@ -7,6 +7,9 @@ from src.evaluation.metrics.calculators.cohens_kappa_score_calculator import (
 from src.evaluation.metrics.calculators.cohens_kappa_calculator import (
     CohensKappaCalculator,
 )
+from src.evaluation.metrics.calculators.confidence_interval_calculator import (
+    ConfidenceIntervalCalculator,
+)
 from src.evaluation.metrics.calculators.fleiss_agreement_ratio_calculator import (
     FleissAgreementRatioCalculator,
 )
@@ -24,6 +27,9 @@ from src.evaluation.metrics.calculators.mse_calculator import (
 )
 from src.evaluation.metrics.calculators.overall_alignment_score_calculator import (
     OverallAlignmentScoreCalculator,
+)
+from src.evaluation.metrics.calculators.paired_t_test_calculator import (
+    PairedTTestCalculator,
 )
 from src.evaluation.metrics.calculators.pearson_coefficient_calculator import (
     PearsonCoefficientCalculator,
@@ -46,12 +52,14 @@ __all__ = [
     "AgreementRatioCalculator",
     "CohensKappaScoreCalculator",
     "CohensKappaCalculator",
+    "ConfidenceIntervalCalculator",
     "FleissAgreementRatioCalculator",
     "FleissKappaCalculator",
     "FleissKappaScoreCalculator",
     "MAECalculator",
     "MSECalculator",
     "OverallAlignmentScoreCalculator",
+    "PairedTTestCalculator",
     "PearsonCoefficientCalculator",
     "PearsonCorrelationCalculator",
     "R2ScoreCalculator",
