@@ -1,5 +1,5 @@
 from src.domain.coverage.interview_coverage import InterviewCoverage
-from src.domain.question.question import Question
+from src.domain.entities.question import Question
 
 
 class InterviewCoverageService:

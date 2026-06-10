@@ -1,9 +1,9 @@
-from src.domain.question.question import Question
+from src.domain.entities.question import Question
 from src.domain.results.pipeline_result import PipelineResult
 from src.domain.scoring.scoring_context import ScoringContext
-from src.services.answer_evaluation_service import AnswerEvaluationService
-from src.services.level_transition_service import LevelTransitionService
-from src.services.question_selection_service import QuestionSelectionService
+from src.application.services.answer_evaluation_service import AnswerEvaluationService
+from src.application.services.level_transition_service import LevelTransitionService
+from src.application.services.question_selection_service import QuestionSelectionService
 
 
 class RunInterviewStepUseCase:

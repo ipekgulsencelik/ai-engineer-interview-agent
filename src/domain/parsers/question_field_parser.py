@@ -1,37 +1,49 @@
+from __future__ import annotations
+
 from src.domain.enums.level import Level
+from src.domain.enums.question_category import QuestionCategory
 from src.domain.enums.question_type import QuestionType
+from src.domain.parsers.contracts.level_parser import LevelParser
+from src.domain.parsers.contracts.question_category_parser import (
+    QuestionCategoryParser,
+)
+from src.domain.parsers.contracts.question_type_parser import (
+    QuestionTypeParser,
+)
 
 
 class QuestionFieldParser:
-    @staticmethod
-    def parse_level(level: Level | str) -> Level:
-        if isinstance(level, Level):
-            return level
+    """
+    Question field parser facade.
 
-        level_value = str(level).strip().upper()
-        try:
-            return Level(level_value)
-        except ValueError as exc:
-            raise ValueError(
-                f"Invalid question level: {level}. "
-                f"Expected one of: {[level_item.value for level_item in Level]}"
-            ) from exc
+    Raw enum alanlarını domain-safe enum instance'lara dönüştürür.
+    """
 
-    @staticmethod
-    def parse_question_type(question_type: QuestionType | str) -> QuestionType:
-        if isinstance(question_type, QuestionType):
-            return question_type
+    def __init__(
+        self,
+        *,
+        level_parser: LevelParser,
+        category_parser: QuestionCategoryParser,
+        question_type_parser: QuestionTypeParser,
+    ) -> None:
+        self._level_parser = level_parser
+        self._category_parser = category_parser
+        self._question_type_parser = question_type_parser
 
-        question_type_value = str(question_type).strip().lower()
-        try:
-            return QuestionType(question_type_value)
-        except ValueError as exc:
-            raise ValueError(
-                f"Invalid question type: {question_type}. "
-                f"Expected one of: "
-                f"{[question_type_item.value for question_type_item in QuestionType]}"
-            ) from exc
+    def parse_level(
+        self,
+        value: Level | str,
+    ) -> Level:
+        return self._level_parser.parse(value)
 
-    @staticmethod
-    def normalize_category(category: str) -> str:
-        return str(category).strip()
+    def parse_category(
+        self,
+        value: QuestionCategory | str,
+    ) -> QuestionCategory:
+        return self._category_parser.parse(value)
+
+    def parse_question_type(
+        self,
+        value: QuestionType | str,
+    ) -> QuestionType:
+        return self._question_type_parser.parse(value)

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "rag_jr_001",
+    "text": "What is Retrieval-Augmented Generation?",
+    "category": "RAG",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 3,
+    "expected_points": [
+      "retrieval",
+      "generation",
+      "embedding"
+    ],
+    "keywords": [
+      "retrieval",
+      "generation",
+      "embedding"
+    ],
+    "followup": "How would you improve retrieval quality?",
+    "ideal_answer_hint": "RAG combines retrieval with generation.",
+    "market_weight": 0.8,
+    "followup_allowed": true
+  },
+  {
+    "id": "vector_mid_001",
+    "text": "How do vector databases support semantic search?",
+    "category": "Vector DB",
+    "level": "MID",
+    "question_type": "conceptual",
+    "difficulty": 3,
+    "expected_points": [
+      "embedding",
+      "similarity",
+      "vector"
+    ],
+    "keywords": [
+      "embedding",
+      "similarity",
+      "vector"
+    ],
+    "market_weight": 0.9,
+    "followup_allowed": true
+  }
+]

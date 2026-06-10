@@ -1,5 +1,7 @@
-from src.domain.config.provider_config import ProviderConfig
-from src.interfaces.llm_client import LLMClient
+from __future__ import annotations
+
+from src.application.ports.llm_client import LLMClient
+from src.domain.llm.llm_response import LLMResponse
 
 
 class MockLLMClient(LLMClient):
@@ -13,7 +15,6 @@ class MockLLMClient(LLMClient):
         - Anthropic API
         - Ollama server
         - local inference engine
-
     gibi external sistemlerle iletişim kurmaz.
 
     Amaç:
@@ -69,7 +70,6 @@ class MockLLMClient(LLMClient):
             - hızlı
             - deterministic
             - predictable
-
         davranış sunmayı hedefler.
 
     Deterministic output neden önemli?
@@ -105,25 +105,19 @@ class MockLLMClient(LLMClient):
         "Mock LLM response."
     """
 
-    def __init__(
-        self,
-        config: ProviderConfig | None = None,
-    ) -> None:
-        self.config = config or ProviderConfig(
-            provider_name="mock",
-            model_name="mock-llm",
-            temperature=0.0,
-            max_tokens=128,
-            timeout_seconds=5,
-        )
+    DEFAULT_RESPONSE_TEXT = "This is a mock response."
+    MODEL_NAME = "mock-llm"
+
 
     def generate(
         self,
         prompt: str,
+        *,
         system_prompt: str | None = None,
-        temperature: float | None = None,
+        temperature: float = 0.0,
         max_tokens: int | None = None,
-    ) -> str:
+        stop: list[str] | None = None,
+    ) -> LLMResponse:
         """
         Deterministic mock text response üretir.
 
@@ -142,7 +136,6 @@ class MockLLMClient(LLMClient):
                     - evaluation request
                     - summarization request
                     - question generation
-
                 gibi işlemler için kullanılabilir.
 
             system_prompt:
@@ -172,18 +165,25 @@ class MockLLMClient(LLMClient):
                 Ancak gerçek provider implementasyonlarıyla contract uyumu
                 için parametre korunur.
 
+            stop:
+                Generation'ı durduracak token veya string listesi.
+
+                Mock implementation içinde aktif kullanılmaz.
+                
+                Ancak gerçek provider implementasyonlarıyla uyum için parametre
+                korunur.
+
         Returns:
-            str:
+            LLMResponse:
                 Sabit mock response döndürür.
 
                 Varsayılan çıktı:
-                    "Mock LLM response."
+                    "This is a mock response."
 
                 Bu response:
                     - deterministic
                     - hızlı
                     - test dostu
-
                 olacak şekilde bilinçli olarak sabit tutulmuştur.
 
         Raises:
@@ -201,7 +201,6 @@ class MockLLMClient(LLMClient):
                 - pipeline akışı
                 - exception handling
                 - response parsing
-
             gibi sistem davranışları bu mock client ile güvenli şekilde
             test edilebilir.
 
@@ -215,7 +214,7 @@ class MockLLMClient(LLMClient):
             print(result)
 
         Output:
-            "Mock LLM response."
+            "This is a mock response."
         """
 
         # ---------------------------------------------------------
@@ -229,8 +228,15 @@ class MockLLMClient(LLMClient):
         #
         # Gerçek provider implementasyonlarında da benzer validation
         # yapılması beklenir.
-        if not prompt.strip():
-            raise ValueError("Prompt cannot be empty.")
+        self._validate_prompt(prompt)
+
+        # ---------------------------------------------------------
+        # PARAMETRE KULLANIMI
+        # ---------------------------------------------------------
+        # Mock implementation içinde bu parametreler aktif kullanılmaz.
+        # Ancak gerçek provider implementasyonlarıyla aynı method
+        # signature'ını korumak için burada bulunur.
+        _ = system_prompt, temperature, max_tokens, stop
 
         # ---------------------------------------------------------
         # DETERMINISTIC MOCK RESPONSE
@@ -244,4 +250,40 @@ class MockLLMClient(LLMClient):
         #   - gerçek API maliyetinden kaçınmak için
         #
         # Bu response gerçek semantic generation temsil etmez.
-        return "Mock LLM response."
+        return LLMResponse(
+            text=self.DEFAULT_RESPONSE_TEXT,
+            model_name=self.MODEL_NAME,
+            tokens_used=0,
+            latency_seconds=0.0,
+            raw_output=None,
+        )
+
+
+    @staticmethod
+    def _validate_prompt(
+        prompt: str,
+    ) -> None:
+        """
+        Prompt input'unu doğrular.
+        
+        Bu method, generate(...) metoduna gelen prompt parametresinin
+        geçerli bir string olduğunu doğrular.
+
+        Validation kuralları:
+            - prompt bir string olmalıdır
+            - prompt boş veya sadece whitespace karakterlerinden oluşmamalıdır
+
+        Raises:
+            ValueError:
+                prompt boş veya sadece whitespace karakterlerinden oluşuyorsa
+                fırlatılır.
+
+            TypeError:
+                prompt bir string değilse fırlatılır.
+        """
+
+        if not isinstance(prompt, str):
+            raise TypeError("prompt must be a string.")
+
+        if not prompt.strip():
+            raise ValueError("Prompt cannot be empty.")
