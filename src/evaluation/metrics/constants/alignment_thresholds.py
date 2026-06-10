@@ -1,4 +1,4 @@
-from src.evaluation.constants.alignment_thresholds import (
+from src.evaluation.metrics.constants.alignment import (
     MAX_ALIGNMENT_SCORE,
     MIN_ALIGNMENT_SCORE,
     MODERATE_ALIGNMENT_THRESHOLD,

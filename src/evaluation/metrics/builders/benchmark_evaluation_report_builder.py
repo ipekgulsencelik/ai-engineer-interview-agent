@@ -3,14 +3,14 @@ from __future__ import annotations
 from src.evaluation.metrics.calculators.benchmark_score_calculator import (
     BenchmarkScoreCalculator,
 )
-from src.evaluation.metrics.reports.benchmark_evaluation_report import (
-    BenchmarkEvaluationReport,
-)
 from src.evaluation.metrics.entities.evaluator_alignment_report import (
     EvaluatorAlignmentReport,
 )
 from src.evaluation.metrics.interpreters.benchmark_interpreter import (
     BenchmarkInterpreter,
+)
+from src.evaluation.metrics.reports.benchmark_evaluation_report import (
+    BenchmarkEvaluationReport,
 )
 from src.evaluation.metrics.value_objects.category_metric_snapshot import (
     CategoryMetricSnapshot,

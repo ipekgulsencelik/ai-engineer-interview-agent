@@ -5,7 +5,7 @@ import pytest
 from src.evaluation.metrics.builders.benchmark_evaluation_report_builder import (
     BenchmarkEvaluationReportBuilder,
 )
-from src.evaluation.metrics.entities.benchmark_evaluation_report import (
+from src.evaluation.metrics.reports.benchmark_evaluation_report import (
     BenchmarkEvaluationReport,
 )
 from tests.evaluation.metrics.entities.test_benchmark_evaluation_report import (
@@ -18,7 +18,6 @@ def test_benchmark_evaluation_report_builder_should_build_report() -> None:
     report = BenchmarkEvaluationReportBuilder.build(
         benchmark_id="benchmark-1",
         benchmark_name="AI Engineer Benchmark",
-        benchmark_version="1.0.0",
         dataset_id="dataset-1",
         dataset_version="1.0.0",
         model_name="gpt-5",

@@ -23,7 +23,6 @@ def _benchmark_report() -> BenchmarkEvaluationReport:
     return BenchmarkEvaluationReport(
         benchmark_id="benchmark-1",
         benchmark_name="AI Engineer Benchmark",
-        benchmark_version="1.0.0",
         dataset_id="dataset-1",
         dataset_version="1.0.0",
         model_name="gpt-5",

@@ -39,6 +39,13 @@ NUMBER_RULE: Final[ValidationRule] = ValidationRule(
     finite=True,
 )
 
+OPTIONAL_NUMBER_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=(int, float),
+    nullable=True,
+    reject_bool=True,
+    finite=True,
+)
+
 NON_NEGATIVE_NUMBER_RULE: Final[ValidationRule] = ValidationRule(
     expected_type=(int, float),
     reject_bool=True,
@@ -138,6 +145,20 @@ POSITIVE_INTEGER_RULE: Final[ValidationRule] = ValidationRule(
     reject_bool=True,
     finite=True,
     min_value=1,
+)
+
+NON_NEGATIVE_INTEGER_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=int,
+    reject_bool=True,
+    finite=True,
+    min_value=0,
+)
+
+OPTIONAL_INTEGER_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=int,
+    nullable=True,
+    reject_bool=True,
+    finite=True,
 )
 
 RATIO_RULE: Final[ValidationRule] = ValidationRule(

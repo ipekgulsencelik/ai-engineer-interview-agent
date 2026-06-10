@@ -29,8 +29,6 @@ class BenchmarkEvaluationReport:
     benchmark_id: str
     benchmark_name: str
 
-    benchmark_version: str
-
     dataset_id: str
     dataset_version: str
 
@@ -51,7 +49,6 @@ class BenchmarkEvaluationReport:
         BenchmarkEvaluationReportValidator.validate(
             benchmark_id=self.benchmark_id,
             benchmark_name=self.benchmark_name,
-            benchmark_version=self.benchmark_version,
             dataset_id=self.dataset_id,
             dataset_version=self.dataset_version,
             model_name=self.model_name,
@@ -75,10 +72,7 @@ class BenchmarkEvaluationReport:
     def sample_count(
         self,
     ) -> int:
-        return sum(
-            snapshot.sample_count
-            for snapshot in self.category_snapshots
-        )
+        return sum(snapshot.sample_count for snapshot in self.category_snapshots)
 
     @property
     def strongest_category(
@@ -89,9 +83,7 @@ class BenchmarkEvaluationReport:
 
         return max(
             self.category_snapshots,
-            key=lambda snapshot: (
-                snapshot.overall_alignment_score
-            ),
+            key=lambda snapshot: snapshot.overall_alignment_score,
         )
 
     @property
@@ -103,9 +95,7 @@ class BenchmarkEvaluationReport:
 
         return min(
             self.category_snapshots,
-            key=lambda snapshot: (
-                snapshot.overall_alignment_score
-            ),
+            key=lambda snapshot: snapshot.overall_alignment_score,
         )
 
     @property
@@ -115,12 +105,8 @@ class BenchmarkEvaluationReport:
         if not self.category_snapshots:
             return 0.0
 
-        return (
-            sum(
-                snapshot.overall_alignment_score
-                for snapshot in self.category_snapshots
-            )
-            / len(
-                self.category_snapshots,
-            )
+        return sum(
+            snapshot.overall_alignment_score for snapshot in self.category_snapshots
+        ) / len(
+            self.category_snapshots,
         )

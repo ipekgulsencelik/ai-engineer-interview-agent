@@ -98,7 +98,6 @@ def test_benchmark_evaluation_report_should_create_successfully() -> None:
     report = BenchmarkEvaluationReport(
         benchmark_id="benchmark-1",
         benchmark_name="AI Engineer Benchmark",
-        benchmark_version="1.0.0",
         dataset_id="dataset-1",
         dataset_version="1.0.0",
         model_name="gpt-5",
@@ -121,7 +120,6 @@ def test_benchmark_evaluation_report_should_create_successfully() -> None:
 
     assert report.benchmark_id == "benchmark-1"
     assert report.benchmark_name == "AI Engineer Benchmark"
-    assert report.benchmark_version == "1.0.0"
     assert report.dataset_id == "dataset-1"
     assert report.dataset_version == "1.0.0"
     assert report.category_count == 2
@@ -136,7 +134,6 @@ def test_benchmark_evaluation_report_should_create_successfully() -> None:
     [
         "benchmark_id",
         "benchmark_name",
-        "benchmark_version",
         "dataset_id",
         "dataset_version",
         "model_name",
@@ -150,7 +147,6 @@ def test_benchmark_evaluation_report_should_raise_for_empty_string_fields(
     kwargs = {
         "benchmark_id": "benchmark-1",
         "benchmark_name": "AI Engineer Benchmark",
-        "benchmark_version": "1.0.0",
         "dataset_id": "dataset-1",
         "dataset_version": "1.0.0",
         "model_name": "gpt-5",
@@ -181,7 +177,6 @@ def test_benchmark_evaluation_report_should_raise_for_invalid_overall_score() ->
         BenchmarkEvaluationReport(
             benchmark_id="benchmark-1",
             benchmark_name="AI Engineer Benchmark",
-            benchmark_version="1.0.0",
             dataset_id="dataset-1",
             dataset_version="1.0.0",
             model_name="gpt-5",
@@ -197,7 +192,6 @@ def test_benchmark_evaluation_report_should_be_immutable() -> None:
     report = BenchmarkEvaluationReport(
         benchmark_id="benchmark-1",
         benchmark_name="AI Engineer Benchmark",
-        benchmark_version="1.0.0",
         dataset_id="dataset-1",
         dataset_version="1.0.0",
         model_name="gpt-5",

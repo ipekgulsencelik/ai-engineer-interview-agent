@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Protocol
 
 from src.evaluation.metrics.builders.evaluator_alignment_report_builder import (
     EvaluatorAlignmentReportBuilder,
@@ -26,6 +27,76 @@ from src.evaluation.metrics.entities.evaluator_alignment_report import (
 from src.evaluation.metrics.validators.evaluator_alignment_input_validator import (
     EvaluatorAlignmentInputValidator,
 )
+from src.evaluation.metrics.value_objects.agreement_result import (
+    AgreementResult,
+)
+from src.evaluation.metrics.value_objects.correlation_result import (
+    CorrelationResult,
+)
+from src.evaluation.metrics.value_objects.regression_metric_result import (
+    RegressionMetricResult,
+)
+
+
+class CorrelationCalculatorProtocol(Protocol):
+    """
+    Contract for evaluator alignment correlation calculators.
+    """
+
+    def calculate(
+        self,
+        *,
+        metric_x: str,
+        metric_y: str,
+        x_values: Sequence[float],
+        y_values: Sequence[float],
+    ) -> CorrelationResult: ...
+
+
+class AgreementCalculatorProtocol(Protocol):
+    """
+    Contract for evaluator alignment agreement calculators.
+    """
+
+    def calculate(
+        self,
+        *,
+        metric_name: str,
+        evaluator_a_labels: Sequence[str],
+        evaluator_b_labels: Sequence[str],
+    ) -> AgreementResult: ...
+
+
+class RegressionCalculatorProtocol(Protocol):
+    """
+    Contract for evaluator alignment regression calculators.
+    """
+
+    def calculate(
+        self,
+        *,
+        metric_name: str,
+        actual_values: Sequence[float],
+        predicted_values: Sequence[float],
+    ) -> RegressionMetricResult: ...
+
+
+class EvaluatorAlignmentReportBuilderProtocol(Protocol):
+    """
+    Contract for evaluator alignment report builders.
+    """
+
+    def build(
+        self,
+        *,
+        report_id: str,
+        evaluator_id: str,
+        model_name: str,
+        correlation_result: CorrelationResult,
+        agreement_result: AgreementResult,
+        regression_result: RegressionMetricResult,
+        notes: str | None = None,
+    ) -> EvaluatorAlignmentReport: ...
 
 
 class EvaluatorAlignmentEngine:
@@ -39,13 +110,17 @@ class EvaluatorAlignmentEngine:
     def __init__(
         self,
         *,
-        pearson_calculator: PearsonCorrelationCalculator,
-        agreement_calculator: CohensKappaCalculator,
-        regression_calculator: RegressionMetricsCalculator,
+        pearson_calculator: CorrelationCalculatorProtocol | None = None,
+        agreement_calculator: AgreementCalculatorProtocol | None = None,
+        regression_calculator: RegressionCalculatorProtocol | None = None,
+        report_builder: EvaluatorAlignmentReportBuilderProtocol | None = None,
     ) -> None:
-        self._pearson_calculator = pearson_calculator
-        self._agreement_calculator = agreement_calculator
-        self._regression_calculator = regression_calculator
+        self._pearson_calculator = pearson_calculator or PearsonCorrelationCalculator()
+        self._agreement_calculator = agreement_calculator or CohensKappaCalculator()
+        self._regression_calculator = (
+            regression_calculator or RegressionMetricsCalculator()
+        )
+        self._report_builder = report_builder or EvaluatorAlignmentReportBuilder()
 
     def evaluate(
         self,
@@ -85,7 +160,7 @@ class EvaluatorAlignmentEngine:
             predicted_values=llm_scores,
         )
 
-        return EvaluatorAlignmentReportBuilder.build(
+        return self._report_builder.build(
             report_id=report_id,
             evaluator_id=evaluator_id,
             model_name=model_name,

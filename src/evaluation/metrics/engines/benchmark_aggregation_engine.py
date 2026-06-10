@@ -21,8 +21,15 @@ class BenchmarkAggregationEngine:
     Benchmark aggregation orchestration engine.
     """
 
-    @staticmethod
+    def __init__(
+        self,
+        *,
+        result_builder: BenchmarkAggregateResultBuilder | None = None,
+    ) -> None:
+        self._result_builder = result_builder or BenchmarkAggregateResultBuilder()
+
     def aggregate(
+        self,
         *,
         benchmark_id: str,
         benchmark_version: str,
@@ -33,7 +40,7 @@ class BenchmarkAggregationEngine:
             snapshots=snapshots,
         )
 
-        return BenchmarkAggregateResultBuilder.build(
+        return self._result_builder.build(
             benchmark_id=benchmark_id,
             benchmark_version=benchmark_version,
             snapshots=snapshots,
