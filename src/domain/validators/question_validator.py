@@ -18,16 +18,6 @@ if TYPE_CHECKING:
 class QuestionValidator:
     """
     Question entity'sinin domain invariant kurallarını validate eder.
-
-    Bu validator:
-        - type validation
-        - non-empty string validation
-        - list item validation
-        - numeric min/max validation
-        - finite number validation
-        - bool-as-number rejection
-
-    işlemlerinden sorumludur.
     """
 
     @classmethod
@@ -35,10 +25,6 @@ class QuestionValidator:
         cls,
         question: "Question",
     ) -> None:
-        """
-        Question entity'sini validation schema'ya göre doğrular.
-        """
-
         cls._validate_model_type(question)
 
         for model_field in fields(question):
