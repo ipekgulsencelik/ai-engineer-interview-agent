@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 from collections.abc import Callable, Sequence
 
-from src.evaluation.metrics.value_objects import (
+from src.evaluation.metrics.value_objects.bootstrap_sample_result import (
     BootstrapSampleResult,
 )
 

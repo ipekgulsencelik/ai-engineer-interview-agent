@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from src.evaluation.domain.errors.evaluation_validation_error import (
     EvaluationValidationError,
 )
-from src.evaluation.statistics.constants.statistical_tests import (
+from src.evaluation.metrics.constants.statistical_tests import (
     MAX_ALPHA,
     MAX_P_VALUE,
     MIN_ALPHA,
