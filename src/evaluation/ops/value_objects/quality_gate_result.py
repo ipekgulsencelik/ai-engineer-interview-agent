@@ -34,6 +34,9 @@ class QualityGateResult:
     actual_value: float
     expected_value: float
 
+    overall_score: float
+    minimum_required_score: float
+
     passed: bool
 
     severity: str
@@ -55,6 +58,8 @@ class QualityGateResult:
             metric_name=self.metric_name,
             actual_value=self.actual_value,
             expected_value=self.expected_value,
+            overall_score=self.overall_score,
+            minimum_required_score=self.minimum_required_score,
             passed=self.passed,
             severity=self.severity,
             interpretation=self.interpretation,
@@ -82,4 +87,22 @@ class QualityGateResult:
     ) -> float:
         return abs(
             self.value_delta,
+        )
+
+    @property
+    def score_margin(
+        self,
+    ) -> float:
+        return (
+            self.overall_score
+            - self.minimum_required_score
+        )
+
+    @property
+    def meets_score_requirement(
+        self,
+    ) -> bool:
+        return (
+            self.overall_score
+            >= self.minimum_required_score
         )
