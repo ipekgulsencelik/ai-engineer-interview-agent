@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from src.domain.validation.schema_validator import (
+from src.domain.validators.schema_validator import (
     SchemaValidator,
 )
 from src.evaluation.domain.errors.evaluation_validation_error import (
@@ -16,7 +16,7 @@ from src.evaluation.ops.constants.production_evaluation_dashboard import (
     DASHBOARD_TREND_POINT_TYPE_ERROR,
     DASHBOARD_TREND_POINTS_TYPE_ERROR,
 )
-from src.evaluation.ops.entities.dashboard_metric_card import (
+from src.evaluation.ops.value_objects.dashboard_metric_card import (
     DashboardMetricCard,
 )
 from src.evaluation.ops.schemas.production_evaluation_dashboard_schema import (
@@ -55,29 +55,21 @@ class ProductionEvaluationDashboardValidator:
                 "generated_at": generated_at,
                 "notes": notes,
             },
-            schema=(
-                PRODUCTION_EVALUATION_DASHBOARD_SCHEMA
-            ),
-            error_factory=(
-                EvaluationValidationError
-            ),
+            schema=(PRODUCTION_EVALUATION_DASHBOARD_SCHEMA),
+            error_factory=(EvaluationValidationError),
         )
 
         if not isinstance(
             metric_cards,
             tuple,
         ):
-            raise EvaluationValidationError(
-                DASHBOARD_METRIC_CARDS_TYPE_ERROR
-            )
+            raise EvaluationValidationError(DASHBOARD_METRIC_CARDS_TYPE_ERROR)
 
         if not isinstance(
             trend_points,
             tuple,
         ):
-            raise EvaluationValidationError(
-                DASHBOARD_TREND_POINTS_TYPE_ERROR
-            )
+            raise EvaluationValidationError(DASHBOARD_TREND_POINTS_TYPE_ERROR)
 
         seen_card_ids: set[str] = set()
 
@@ -86,9 +78,7 @@ class ProductionEvaluationDashboardValidator:
                 metric_card,
                 DashboardMetricCard,
             ):
-                raise EvaluationValidationError(
-                    DASHBOARD_METRIC_CARD_TYPE_ERROR
-                )
+                raise EvaluationValidationError(DASHBOARD_METRIC_CARD_TYPE_ERROR)
 
             if metric_card.card_id in seen_card_ids:
                 raise EvaluationValidationError(
@@ -106,18 +96,12 @@ class ProductionEvaluationDashboardValidator:
                 trend_point,
                 DashboardTrendPoint,
             ):
-                raise EvaluationValidationError(
-                    DASHBOARD_TREND_POINT_TYPE_ERROR
-                )
+                raise EvaluationValidationError(DASHBOARD_TREND_POINT_TYPE_ERROR)
 
             if (
                 previous_occurred_at is not None
                 and trend_point.occurred_at < previous_occurred_at
             ):
-                raise EvaluationValidationError(
-                    DASHBOARD_TREND_POINT_ORDER_ERROR
-                )
+                raise EvaluationValidationError(DASHBOARD_TREND_POINT_ORDER_ERROR)
 
-            previous_occurred_at = (
-                trend_point.occurred_at
-            )
+            previous_occurred_at = trend_point.occurred_at

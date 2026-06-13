@@ -55,18 +55,10 @@ class RegressionAuditEventFactory:
             triggered_by=triggered_by,
             occurred_at=occurred_at,
             metadata={
-                "regression_detected": (
-                    regression_result.regression_detected
-                ),
-                "baseline_score": (
-                    regression_result.baseline_score
-                ),
-                "current_score": (
-                    regression_result.current_score
-                ),
-                "score_delta": (
-                    regression_result.score_delta
-                ),
+                "regression_detected": (regression_result.regression_detected),
+                "baseline_score": (regression_result.baseline_score),
+                "current_score": (regression_result.candidate_score),
+                "score_delta": (regression_result.score_delta),
             },
             notes=notes,
         )

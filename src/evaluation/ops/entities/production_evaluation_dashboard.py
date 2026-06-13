@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from src.evaluation.ops.entities.dashboard_metric_card import (
+from src.evaluation.ops.value_objects.dashboard_metric_card import (
     DashboardMetricCard,
 )
 from src.evaluation.ops.value_objects.dashboard_trend_point import (
@@ -95,11 +95,7 @@ class ProductionEvaluationDashboard:
         card_id: str,
     ) -> DashboardMetricCard | None:
         return next(
-            (
-                card
-                for card in self.metric_cards
-                if card.card_id == card_id
-            ),
+            (card for card in self.metric_cards if card.card_id == card_id),
             None,
         )
 
@@ -111,8 +107,5 @@ class ProductionEvaluationDashboard:
         ...,
     ]:
         return tuple(
-            point
-            for point in self.trend_points
-            if point.metric_name
-            == metric_name
+            point for point in self.trend_points if point.metric_name == metric_name
         )

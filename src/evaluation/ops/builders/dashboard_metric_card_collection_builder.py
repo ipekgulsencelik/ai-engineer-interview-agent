@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.evaluation.ops.entities.dashboard_metric_card import (
+from src.evaluation.ops.value_objects.dashboard_metric_card import (
     DashboardMetricCard,
 )
 
@@ -24,8 +24,6 @@ class DashboardMetricCardCollectionBuilder:
         return tuple(
             sorted(
                 metric_cards,
-                key=lambda card: (
-                    card.sort_order,
-                ),
+                key=lambda card: (card.sort_order,),
             ),
         )

@@ -13,12 +13,9 @@ class RunSuccessEvaluator:
     @staticmethod
     def evaluate(
         *,
-        ci_policy_result: (
-            CIBenchmarkPolicyResult
-            | None
-        ),
+        ci_policy_result: (CIBenchmarkPolicyResult | None),
     ) -> bool:
         if ci_policy_result is None:
             return True
 
-        return ci_policy_result.passed
+        return ci_policy_result.deployment_allowed

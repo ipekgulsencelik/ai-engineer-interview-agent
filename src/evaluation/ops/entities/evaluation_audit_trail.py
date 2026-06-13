@@ -6,6 +6,9 @@ from datetime import datetime
 from src.evaluation.ops.value_objects.audit_event import (
     AuditEvent,
 )
+from src.evaluation.ops.validators.evaluation_audit_trail_validator import (
+    EvaluationAuditTrailValidator,
+)
 
 
 @dataclass(
@@ -40,9 +43,7 @@ class EvaluationAuditTrail:
     ) -> None:
         EvaluationAuditTrailValidator.validate(
             trail_id=self.trail_id,
-            evaluation_run_id=(
-                self.evaluation_run_id
-            ),
+            evaluation_run_id=(self.evaluation_run_id),
             experiment_id=self.experiment_id,
             benchmark_id=self.benchmark_id,
             events=self.events,
@@ -109,10 +110,7 @@ class EvaluationAuditTrail:
         self,
         event_type: object,
     ) -> bool:
-        return any(
-            event.event_type == event_type
-            for event in self.events
-        )
+        return any(event.event_type == event_type for event in self.events)
 
     def events_for_aggregate(
         self,
@@ -122,7 +120,5 @@ class EvaluationAuditTrail:
         ...,
     ]:
         return tuple(
-            event
-            for event in self.events
-            if event.aggregate_id == aggregate_id
+            event for event in self.events if event.aggregate_id == aggregate_id
         )

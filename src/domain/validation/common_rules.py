@@ -33,6 +33,11 @@ BOOLEAN_RULE: Final[ValidationRule] = ValidationRule(
     expected_type=bool,
 )
 
+OPTIONAL_BOOLEAN_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=bool,
+    nullable=True,
+)
+
 NUMBER_RULE: Final[ValidationRule] = ValidationRule(
     expected_type=(int, float),
     reject_bool=True,

@@ -21,8 +21,10 @@ def _valid_kwargs() -> dict[str, object]:
         "metric_name": "overall_score",
         "actual_value": 0.80,
         "expected_value": 0.75,
+        "overall_score": 0.80,
+        "minimum_required_score": 0.75,
         "passed": True,
-        "severity": "blocking",
+        "severity": "critical",
         "interpretation": "above_threshold",
         "notes": "Valid quality gate.",
     }
