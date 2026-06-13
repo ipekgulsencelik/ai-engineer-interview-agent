@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-from src.evaluation.ops.repositories.evaluation_run_read_repository import (
-    EvaluationRunReadRepository,
-)
-from src.evaluation.ops.repositories.evaluation_run_write_repository import (
-    EvaluationRunWriteRepository,
+from src.evaluation.ops.repositories.evaluation_run_repository import (
+    EvaluationRunRepository,
 )
 from src.evaluation.ops.value_objects.evaluation_run_result import (
     EvaluationRunResult,
@@ -12,20 +9,16 @@ from src.evaluation.ops.value_objects.evaluation_run_result import (
 
 
 class InMemoryEvaluationRunRepository(
-    EvaluationRunReadRepository,
-    EvaluationRunWriteRepository,
+    EvaluationRunRepository,
 ):
     """
-    In-memory repository for evaluation run results.
-
-    Intended for tests, local development, and non-persistent
-    evaluation workflows.
+    In-memory evaluation run repository.
     """
 
     def __init__(
         self,
     ) -> None:
-        self._results_by_run_id: dict[
+        self._results: dict[
             str,
             EvaluationRunResult,
         ] = {}
@@ -35,7 +28,7 @@ class InMemoryEvaluationRunRepository(
         *,
         result: EvaluationRunResult,
     ) -> None:
-        self._results_by_run_id[
+        self._results[
             result.run_id
         ] = result
 
@@ -44,7 +37,7 @@ class InMemoryEvaluationRunRepository(
         *,
         run_id: str,
     ) -> EvaluationRunResult | None:
-        return self._results_by_run_id.get(
+        return self._results.get(
             run_id,
         )
 
@@ -58,8 +51,11 @@ class InMemoryEvaluationRunRepository(
     ]:
         return tuple(
             result
-            for result in self._results_by_run_id.values()
-            if result.experiment_id == experiment_id
+            for result in self._results.values()
+            if (
+                result.experiment_id
+                == experiment_id
+            )
         )
 
     def find_by_benchmark_id(
@@ -72,8 +68,11 @@ class InMemoryEvaluationRunRepository(
     ]:
         return tuple(
             result
-            for result in self._results_by_run_id.values()
-            if result.benchmark_id == benchmark_id
+            for result in self._results.values()
+            if (
+                result.benchmark_id
+                == benchmark_id
+            )
         )
 
     def list_recent(
@@ -86,18 +85,15 @@ class InMemoryEvaluationRunRepository(
     ]:
         return tuple(
             sorted(
-                self._results_by_run_id.values(),
-                key=lambda result: result.completed_at,
+                self._results.values(),
+                key=lambda result: (
+                    result.completed_at
+                ),
                 reverse=True,
             )[:limit]
         )
 
-    def list_all(
+    def clear(
         self,
-    ) -> tuple[
-        EvaluationRunResult,
-        ...,
-    ]:
-        return tuple(
-            self._results_by_run_id.values(),
-        )
+    ) -> None:
+        self._results.clear()
