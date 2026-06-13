@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from typing import Final
+from datetime import datetime
 
 from src.domain.validation.common_rules import (
     BOOLEAN_RULE,
-    DATETIME_RULE,
     NON_EMPTY_STRING_RULE,
     NUMBER_RULE,
     OPTIONAL_STRING_RULE,
@@ -12,11 +12,17 @@ from src.domain.validation.common_rules import (
 from src.domain.validation.schema_types import (
     SchemaDefinition,
 )
+from src.domain.validation.schema_rules import (
+    ValidationRule,
+)
 
 
-DRIFT_ALERT_SCHEMA: Final[
-    SchemaDefinition
-] = {
+DATETIME_OBJECT_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=datetime,
+)
+
+
+DRIFT_ALERT_SCHEMA: Final[SchemaDefinition] = {
     "alert_id": NON_EMPTY_STRING_RULE,
     "benchmark_id": NON_EMPTY_STRING_RULE,
     "benchmark_name": NON_EMPTY_STRING_RULE,
@@ -29,7 +35,7 @@ DRIFT_ALERT_SCHEMA: Final[
     "drift_threshold": NUMBER_RULE,
     "alert_triggered": BOOLEAN_RULE,
     "interpretation": NON_EMPTY_STRING_RULE,
-    "created_at": DATETIME_RULE,
+    "created_at": DATETIME_OBJECT_RULE,
     "acknowledged": BOOLEAN_RULE,
     "acknowledged_by": OPTIONAL_STRING_RULE,
     "notes": OPTIONAL_STRING_RULE,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from src.domain.validation.schema_validator import (
+from src.domain.validators.schema_validator import (
     SchemaValidator,
 )
 from src.evaluation.domain.errors.evaluation_validation_error import (
@@ -61,30 +61,19 @@ class QueuedEvaluationRunValidator:
             status,
             EvaluationQueueStatus,
         ):
-            raise EvaluationValidationError(
-                "status must be EvaluationQueueStatus."
-            )
+            raise EvaluationValidationError("status must be EvaluationQueueStatus.")
 
-        if (
-            status == EvaluationQueueStatus.SCHEDULED
-            and scheduled_at is None
-        ):
+        if status == EvaluationQueueStatus.SCHEDULED and scheduled_at is None:
             raise EvaluationValidationError(
                 "scheduled_at is required for scheduled runs."
             )
 
-        if (
-            status == EvaluationQueueStatus.QUEUED
-            and scheduled_at is not None
-        ):
+        if status == EvaluationQueueStatus.QUEUED and scheduled_at is not None:
             raise EvaluationValidationError(
                 "scheduled_at must be None for queued runs."
             )
 
-        if (
-            scheduled_at is not None
-            and scheduled_at < queued_at
-        ):
+        if scheduled_at is not None and scheduled_at < queued_at:
             raise EvaluationValidationError(
                 "scheduled_at cannot be earlier than queued_at."
             )
