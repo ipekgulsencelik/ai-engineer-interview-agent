@@ -52,25 +52,15 @@ class QualityGateAuditEventFactory:
             model_name=snapshot.model_name,
             actor=actor,
             action=(
-                AuditAction.ALLOW
-                if quality_gate_result.passed
-                else AuditAction.BLOCK
+                AuditAction.ALLOW if quality_gate_result.passed else AuditAction.BLOCK
             ),
             triggered_by=triggered_by,
             occurred_at=occurred_at,
             metadata={
-                "gate_name": (
-                    quality_gate_result.gate_name
-                ),
-                "passed": (
-                    quality_gate_result.passed
-                ),
-                "severity": (
-                    quality_gate_result.severity
-                ),
-                "message": (
-                    quality_gate_result.message
-                ),
+                "gate_name": (quality_gate_result.gate_name),
+                "passed": (quality_gate_result.passed),
+                "severity": (quality_gate_result.severity),
+                "message": (quality_gate_result.interpretation),
             },
             notes=notes,
         )

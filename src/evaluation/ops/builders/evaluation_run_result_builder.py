@@ -27,10 +27,7 @@ class EvaluationRunResultBuilder:
         completed_at: datetime,
         duration_seconds: float,
         success: bool,
-        ci_policy_result: (
-            CIBenchmarkPolicyResult
-            | None
-        ),
+        ci_policy_result: (CIBenchmarkPolicyResult | None),
         notes: str | None = None,
     ) -> EvaluationRunResult:
         return EvaluationRunResult(
@@ -40,7 +37,12 @@ class EvaluationRunResultBuilder:
             completed_at=completed_at,
             duration_seconds=duration_seconds,
             success=success,
+            quality_gate_result=(
+                ci_policy_result.gate_results[0]
+                if ci_policy_result is not None and ci_policy_result.gate_results
+                else None
+            ),
             ci_policy_result=ci_policy_result,
-            error_message=None,
+            error_message=(None if success else "ci_policy_failed"),
             notes=notes,
         )

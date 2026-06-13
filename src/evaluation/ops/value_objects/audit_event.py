@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from types import MappingProxyType
 from typing import Mapping
@@ -61,7 +61,9 @@ class AuditEvent:
     metadata: Mapping[
         str,
         AuditMetadataValue,
-    ] = MappingProxyType({})
+    ] = field(
+        default_factory=lambda: MappingProxyType({}),
+    )
 
     notes: str | None = None
 
@@ -87,9 +89,7 @@ class AuditEvent:
         object.__setattr__(
             self,
             "metadata",
-            MappingProxyType(
-                dict(self.metadata)
-            ),
+            MappingProxyType(dict(self.metadata)),
         )
 
     @property

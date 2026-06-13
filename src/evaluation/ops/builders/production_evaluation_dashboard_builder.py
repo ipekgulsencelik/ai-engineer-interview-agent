@@ -9,7 +9,7 @@ from src.evaluation.ops.builders.dashboard_metric_card_collection_builder import
 from src.evaluation.ops.builders.dashboard_trend_collection_builder import (
     DashboardTrendCollectionBuilder,
 )
-from src.evaluation.ops.entities.dashboard_metric_card import (
+from src.evaluation.ops.value_objects.dashboard_metric_card import (
     DashboardMetricCard,
 )
 from src.evaluation.ops.entities.production_evaluation_dashboard import (
@@ -42,15 +42,9 @@ class ProductionEvaluationDashboardBuilder:
         notes: str | None = None,
     ) -> ProductionEvaluationDashboard:
         return ProductionEvaluationDashboard(
-            dashboard_id=(
-                dashboard_id
-                or str(uuid4())
-            ),
+            dashboard_id=(dashboard_id or str(uuid4())),
             title=title,
-            generated_at=(
-                generated_at
-                or datetime.now(UTC)
-            ),
+            generated_at=(generated_at or datetime.now(UTC)),
             metric_cards=(
                 DashboardMetricCardCollectionBuilder.build(
                     metric_cards=metric_cards,

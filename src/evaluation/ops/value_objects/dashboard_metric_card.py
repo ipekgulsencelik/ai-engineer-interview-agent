@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from src.evaluation.ops.enums.dashboard_severity import DashboardSeverity
+from src.evaluation.ops.validators.dashboard_metric_card_validator import (
+    DashboardMetricCardValidator,
+)
+
 
 @dataclass(
     frozen=True,
@@ -45,16 +50,12 @@ class DashboardMetricCard:
             card_id=self.card_id,
             title=self.title,
             value=self.value,
-            formatted_value=(
-                self.formatted_value
-            ),
+            formatted_value=(self.formatted_value),
             unit=self.unit,
             description=self.description,
             trend_value=self.trend_value,
             trend_label=self.trend_label,
-            is_positive_trend=(
-                self.is_positive_trend
-            ),
+            is_positive_trend=(self.is_positive_trend),
             severity=self.severity,
             sort_order=self.sort_order,
         )
@@ -63,23 +64,16 @@ class DashboardMetricCard:
     def has_trend(
         self,
     ) -> bool:
-        return (
-            self.trend_value is not None
-            or self.trend_label is not None
-        )
+        return self.trend_value is not None or self.trend_label is not None
 
     @property
     def has_description(
         self,
     ) -> bool:
-        return (
-            self.description is not None
-        )
+        return self.description is not None
 
     @property
     def has_severity(
         self,
     ) -> bool:
-        return (
-            self.severity is not None
-        )
+        return self.severity is not None

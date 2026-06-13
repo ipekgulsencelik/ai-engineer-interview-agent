@@ -17,6 +17,13 @@ from src.evaluation.ops.evaluators.blocking_failure_counter import (
 from src.evaluation.ops.evaluators.ci_policy_evaluator import (
     CIPolicyEvaluator,
 )
+from src.evaluation.ops.ports.ci_benchmark_policy_ports import (
+    BlockingFailureCounting,
+    CIBenchmarkPolicyInputValidation,
+    CIBenchmarkPolicyResultBuilding,
+    CIPolicyEvaluation,
+    QualityGateEvaluation,
+)
 from src.evaluation.ops.services.evaluation_quality_gate import (
     EvaluationQualityGate,
 )
@@ -26,9 +33,7 @@ from src.evaluation.ops.validators.ci_benchmark_policy_input_validator import (
 from src.evaluation.ops.value_objects.ci_benchmark_policy_result import (
     CIBenchmarkPolicyResult,
 )
-from src.evaluation.ops.value_objects.quality_gate_result import (
-    QualityGateResult,
-)
+from src.evaluation.ops.value_objects.quality_gate_result import QualityGateResult
 
 
 class CIBenchmarkPolicy:
@@ -39,12 +44,19 @@ class CIBenchmarkPolicy:
     def __init__(
         self,
         *,
-        quality_gate: EvaluationQualityGate | None = None,
+        quality_gate: QualityGateEvaluation | None = None,
+        input_validator: CIBenchmarkPolicyInputValidation | None = None,
+        blocking_failure_counter: BlockingFailureCounting | None = None,
+        policy_evaluator: CIPolicyEvaluation | None = None,
+        result_builder: CIBenchmarkPolicyResultBuilding | None = None,
     ) -> None:
-        self._quality_gate = (
-            quality_gate
-            or EvaluationQualityGate()
+        self._quality_gate = quality_gate or EvaluationQualityGate()
+        self._input_validator = input_validator or CIBenchmarkPolicyInputValidator()
+        self._blocking_failure_counter = (
+            blocking_failure_counter or BlockingFailureCounter()
         )
+        self._policy_evaluator = policy_evaluator or CIPolicyEvaluator()
+        self._result_builder = result_builder or CIBenchmarkPolicyResultBuilder()
 
     def evaluate(
         self,
@@ -55,7 +67,7 @@ class CIBenchmarkPolicy:
         additional_gate_results: Sequence[QualityGateResult] = (),
         notes: str | None = None,
     ) -> CIBenchmarkPolicyResult:
-        CIBenchmarkPolicyInputValidator.validate(
+        self._input_validator.validate(
             snapshot=snapshot,
             additional_gate_results=additional_gate_results,
         )
@@ -72,15 +84,15 @@ class CIBenchmarkPolicy:
             *tuple(additional_gate_results),
         )
 
-        blocking_failure_count = BlockingFailureCounter.count(
+        blocking_failure_count = self._blocking_failure_counter.count(
             gate_results=gate_results,
         )
 
-        deployment_allowed = CIPolicyEvaluator.evaluate(
+        deployment_allowed = self._policy_evaluator.evaluate(
             blocking_failure_count=blocking_failure_count,
         )
 
-        return CIBenchmarkPolicyResultBuilder.build(
+        return self._result_builder.build(
             policy_name=policy_name,
             snapshot=snapshot,
             minimum_required_score=minimum_required_score,

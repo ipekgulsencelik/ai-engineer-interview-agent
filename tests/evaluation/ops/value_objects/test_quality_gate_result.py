@@ -20,7 +20,7 @@ def test_quality_gate_result_should_expose_failure_and_delta_helpers() -> None:
         actual_value=0.78,
         expected_value=0.80,
         passed=False,
-        severity="blocking",
+        severity="critical",
         interpretation="below_threshold",
     )
 
@@ -42,6 +42,6 @@ def test_quality_gate_result_should_raise_for_empty_gate_name() -> None:
             actual_value=0.78,
             expected_value=0.80,
             passed=False,
-            severity="blocking",
+            severity="critical",
             interpretation="below_threshold",
         )

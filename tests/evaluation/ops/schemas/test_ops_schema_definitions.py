@@ -23,7 +23,9 @@ def test_ops_schema_modules_should_define_non_empty_schema_dictionaries() -> Non
             assert all(isinstance(field_name, str) for field_name in schema)
 
 
-def test_registered_benchmark_schema_should_match_registered_benchmark_contract() -> None:
+def test_registered_benchmark_schema_should_match_registered_benchmark_contract() -> (
+    None
+):
     from src.evaluation.ops.schemas.registered_benchmark_schema import (
         REGISTERED_BENCHMARK_SCHEMA,
     )
@@ -109,6 +111,8 @@ def test_quality_gate_result_schema_should_match_quality_gate_contract() -> None
         "metric_name",
         "actual_value",
         "expected_value",
+        "overall_score",
+        "minimum_required_score",
         "passed",
         "severity",
         "interpretation",
