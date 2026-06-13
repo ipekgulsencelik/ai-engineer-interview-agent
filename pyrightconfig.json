@@ -3,9 +3,11 @@
     "src",
     "tests"
   ],
-  "exclude": [
-    "**/__pycache__",
-    ".venv"
+ "exclude": [
+    ".venv",
+    "app",
+    "src/scripts",
+    "**/__pycache__"
   ],
   "typeCheckingMode": "off",
   "pythonVersion": "3.11",

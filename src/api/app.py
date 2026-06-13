@@ -8,6 +8,9 @@ from fastapi import FastAPI
 from src.api.routes.cv_routes import (
     router as cv_router,
 )
+from src.api.routes.evaluation_dashboard_router import (
+    router as evaluation_dashboard_router,
+)
 from src.api.routes.evaluation_routes import (
     router as evaluation_router,
 )
@@ -69,6 +72,11 @@ def create_app() -> FastAPI:
 
     app.include_router(
         cv_router,
+        prefix="/api/v1",
+    )
+
+    app.include_router(
+        evaluation_dashboard_router,
         prefix="/api/v1",
     )
 
