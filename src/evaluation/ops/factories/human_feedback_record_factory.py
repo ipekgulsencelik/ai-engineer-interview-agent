@@ -4,7 +4,7 @@ from datetime import UTC
 from datetime import datetime
 from uuid import uuid4
 
-from src.evaluation.ops.value_objects.human_feedback_record import (
+from src.evaluation.ops.entities.human_feedback_record import (
     HumanFeedbackRecord,
 )
 
@@ -42,10 +42,7 @@ class HumanFeedbackRecordFactory:
             benchmark_name=benchmark_name,
             benchmark_version=benchmark_version,
             model_name=model_name,
-            created_at=(
-                created_at
-                or datetime.now(UTC)
-            ),
+            created_at=(created_at or datetime.now(UTC)),
             sample_id=sample_id,
             reviewer_id=reviewer_id,
             rating=rating,

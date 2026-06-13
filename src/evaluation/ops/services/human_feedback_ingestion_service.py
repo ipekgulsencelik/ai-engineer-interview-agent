@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from src.evaluation.ops.factories.human_feedback_record_factory import (
     HumanFeedbackRecordFactory,
 )
-from src.evaluation.ops.value_objects.human_feedback_record import (
+from src.evaluation.ops.entities.human_feedback_record import (
     HumanFeedbackRecord,
 )
 
@@ -18,15 +18,9 @@ class HumanFeedbackIngestionService:
     def __init__(
         self,
         *,
-        record_factory: (
-            HumanFeedbackRecordFactory
-            | None
-        ) = None,
+        record_factory: (HumanFeedbackRecordFactory | None) = None,
     ) -> None:
-        self._record_factory = (
-            record_factory
-            or HumanFeedbackRecordFactory()
-        )
+        self._record_factory = record_factory or HumanFeedbackRecordFactory()
 
     def ingest(
         self,
@@ -64,9 +58,7 @@ class HumanFeedbackIngestionService:
     def ingest_batch(
         self,
         *,
-        records: Iterable[
-            HumanFeedbackRecord
-        ],
+        records: Iterable[HumanFeedbackRecord],
     ) -> tuple[
         HumanFeedbackRecord,
         ...,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from src.domain.validation.schema_validator import (
+from src.domain.validators.schema_validator import (
     SchemaValidator,
 )
 from src.evaluation.domain.errors.evaluation_validation_error import (
@@ -80,56 +80,32 @@ class DriftAlertValidator:
             severity,
             DriftSeverity,
         ):
-            raise EvaluationValidationError(
-                DRIFT_SEVERITY_TYPE_ERROR
-            )
+            raise EvaluationValidationError(DRIFT_SEVERITY_TYPE_ERROR)
 
         if drift_threshold < 0:
-            raise EvaluationValidationError(
-                NEGATIVE_DRIFT_THRESHOLD_ERROR
-            )
+            raise EvaluationValidationError(NEGATIVE_DRIFT_THRESHOLD_ERROR)
 
-        calculated_delta = (
-            current_score
-            - baseline_score
-        )
+        calculated_delta = current_score - baseline_score
 
         if abs(calculated_delta - drift_delta) > 1e-6:
-            raise EvaluationValidationError(
-                DRIFT_DELTA_MISMATCH_ERROR
-            )
+            raise EvaluationValidationError(DRIFT_DELTA_MISMATCH_ERROR)
 
-        expected_alert_triggered = (
-            abs(drift_delta) >= drift_threshold
-        )
+        expected_alert_triggered = abs(drift_delta) >= drift_threshold
 
         if alert_triggered != expected_alert_triggered:
-            raise EvaluationValidationError(
-                ALERT_TRIGGER_MISMATCH_ERROR
-            )
+            raise EvaluationValidationError(ALERT_TRIGGER_MISMATCH_ERROR)
 
         if acknowledged:
             if acknowledged_by is None:
-                raise EvaluationValidationError(
-                    ACKNOWLEDGED_BY_REQUIRED_ERROR
-                )
+                raise EvaluationValidationError(ACKNOWLEDGED_BY_REQUIRED_ERROR)
 
             if acknowledged_at is None:
-                raise EvaluationValidationError(
-                    ACKNOWLEDGED_AT_REQUIRED_ERROR
-                )
+                raise EvaluationValidationError(ACKNOWLEDGED_AT_REQUIRED_ERROR)
 
             if acknowledged_at < created_at:
-                raise EvaluationValidationError(
-                    ACKNOWLEDGED_AT_BEFORE_CREATED_AT_ERROR
-                )
+                raise EvaluationValidationError(ACKNOWLEDGED_AT_BEFORE_CREATED_AT_ERROR)
 
             return
 
-        if (
-            acknowledged_by is not None
-            or acknowledged_at is not None
-        ):
-            raise EvaluationValidationError(
-                ACKNOWLEDGED_FIELDS_NOT_ALLOWED_ERROR
-            )
+        if acknowledged_by is not None or acknowledged_at is not None:
+            raise EvaluationValidationError(ACKNOWLEDGED_FIELDS_NOT_ALLOWED_ERROR)
