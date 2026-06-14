@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from src.evaluation.ops.validators.experiment_node_validator import (
+from src.evaluation.rag.validators.experiment_node_validator import (
     ExperimentNodeValidator,
 )
 

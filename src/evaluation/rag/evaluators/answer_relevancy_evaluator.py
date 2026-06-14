@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.evaluation.rag.calculators.answer_relevancy_score_calculator import (
     AnswerRelevancyScoreCalculator,
 )
-from src.evaluation.rag.requests.answer_relevancy_request import (
+from src.evaluation.rag.value_objects.answer_relevancy_request import (
     AnswerRelevancyRequest,
 )
 from src.evaluation.rag.tokenizers.text_tokenizer import (

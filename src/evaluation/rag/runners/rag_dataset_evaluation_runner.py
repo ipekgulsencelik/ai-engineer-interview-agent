@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from datetime import UTC
 from datetime import datetime
+
+from src.application.ports.clock import Clock
+from src.infrastructure.time.system_clock import SystemClock
 
 from src.evaluation.rag.builders.rag_evaluation_report_builder import (
     RAGEvaluationReportBuilder,
@@ -18,7 +20,7 @@ from src.evaluation.rag.services.rag_sample_evaluation_service import (
 from src.evaluation.rag.validators.rag_dataset_evaluation_input_validator import (
     RAGDatasetEvaluationInputValidator,
 )
-from src.evaluation.rag.value_objects.rag_dataset_run_result import (
+from src.evaluation.rag.entities.rag_dataset_run_result import (
     RAGDatasetRunResult,
 )
 from src.evaluation.rag.value_objects.rag_evaluation_result import (
@@ -49,6 +51,7 @@ class RAGDatasetEvaluationRunner:
         input_validator: (
             RAGDatasetEvaluationInputValidator | None
         ) = None,
+        clock: Clock | None = None,
     ) -> None:
         self._sample_evaluation_service = (
             sample_evaluation_service
@@ -66,6 +69,7 @@ class RAGDatasetEvaluationRunner:
             input_validator
             or RAGDatasetEvaluationInputValidator()
         )
+        self._clock = clock or SystemClock()
 
     def run(
         self,
@@ -101,9 +105,7 @@ class RAGDatasetEvaluationRunner:
             retrieved_contexts=retrieved_contexts,
         )
 
-        started_at = datetime.now(
-            UTC,
-        )
+        started_at = self._clock.now()
 
         results = self._evaluate_samples(
             experiment_id=experiment_id,
@@ -119,9 +121,7 @@ class RAGDatasetEvaluationRunner:
             ),
         )
 
-        completed_at = datetime.now(
-            UTC,
-        )
+        completed_at = self._clock.now()
 
         return self._build_run_result(
             experiment_id=experiment_id,

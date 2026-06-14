@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.evaluation.ops.entities.experiment_node import (
+from src.evaluation.rag.entities.experiment_node import (
     ExperimentNode,
 )
 

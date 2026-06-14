@@ -21,7 +21,7 @@ from src.evaluation.rag.constants.rag_thresholds import (
 )
 
 
-class RagFailureReasonEvaluator:
+class RAGFailureReasonEvaluator:
     """
     Evaluates the first failing RAG quality reason.
     """
@@ -91,3 +91,4 @@ class RagFailureReasonEvaluator:
             return RAG_FAILED_DUE_TO_LOW_OVERALL_SCORE
 
         return None
+RagFailureReasonEvaluator = RAGFailureReasonEvaluator

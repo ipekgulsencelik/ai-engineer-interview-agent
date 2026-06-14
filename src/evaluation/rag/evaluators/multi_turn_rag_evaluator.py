@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.evaluation.rag.requests.multi_turn_rag_request import (
+from src.evaluation.rag.value_objects.multi_turn_rag_request import (
     MultiTurnRAGRequest,
 )
 from src.evaluation.rag.services.multi_turn_rag_summary_service import (

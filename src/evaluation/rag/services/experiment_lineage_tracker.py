@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from src.evaluation.ops.builders.experiment_lineage_builder import (
+from src.evaluation.rag.builders.experiment_lineage_builder import (
     ExperimentLineageBuilder,
 )
-from src.evaluation.ops.entities.experiment_lineage_graph import (
+from src.evaluation.rag.entities.experiment_lineage_graph import (
     ExperimentLineageGraph,
 )
-from src.evaluation.ops.entities.experiment_node import (
+from src.evaluation.rag.entities.experiment_node import (
     ExperimentNode,
 )
-from src.evaluation.ops.validators.experiment_lineage_validator import (
+from src.evaluation.rag.validators.experiment_lineage_validator import (
     ExperimentLineageValidator,
 )
 
@@ -45,16 +45,8 @@ class ExperimentLineageTracker:
         ] = (),
         notes: str | None = None,
     ) -> ExperimentLineageGraph:
-        self._lineage_validator.validate_nodes_do_not_exist(
-            graph=ExperimentLineageGraph(
-                root_experiment_id=root_node.experiment_id,
-                nodes=(),
-                notes=notes,
-            ),
-            nodes=(
-                root_node,
-                *child_nodes,
-            ),
+        self._lineage_validator.validate_unique_nodes(
+            nodes=(root_node, *child_nodes),
         )
 
         return self._lineage_builder.build(

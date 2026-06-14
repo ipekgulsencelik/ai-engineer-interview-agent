@@ -66,6 +66,17 @@ class ExperimentLineageValidator:
                 f"{duplicated_existing_ids}"
             )
 
+        cls.validate_unique_nodes(nodes=nodes)
+
+
+    @staticmethod
+    def validate_unique_nodes(
+        *,
+        nodes: tuple[
+            ExperimentNode,
+            ...,
+        ],
+    ) -> None:
         incoming_ids = tuple(
             node.experiment_id
             for node in nodes

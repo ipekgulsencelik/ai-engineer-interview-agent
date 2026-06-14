@@ -9,10 +9,10 @@ from src.evaluation.rag.evaluators.context_recall_evaluator import (
 from src.evaluation.rag.evaluators.retrieval_hit_rate_evaluator import (
     RetrievalHitRateEvaluator,
 )
-from src.evaluation.rag.requests.context_recall_request import (
+from src.evaluation.rag.value_objects.context_recall_request import (
     ContextRecallRequest,
 )
-from src.evaluation.rag.requests.retrieval_hit_rate_request import (
+from src.evaluation.rag.value_objects.retrieval_hit_rate_request import (
     RetrievalHitRateRequest,
 )
 

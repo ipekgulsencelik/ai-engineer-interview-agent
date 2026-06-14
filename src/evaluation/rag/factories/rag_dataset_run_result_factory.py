@@ -6,7 +6,7 @@ from uuid import uuid4
 from src.evaluation.rag.entities.rag_evaluation_report import (
     RAGEvaluationReport,
 )
-from src.evaluation.rag.value_objects.rag_dataset_run_result import (
+from src.evaluation.rag.entities.rag_dataset_run_result import (
     RAGDatasetRunResult,
 )
 

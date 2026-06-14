@@ -13,7 +13,7 @@ from src.evaluation.rag.schemas.rag_evaluation_result_schema import (
 )
 
 
-class RagEvaluationResultValidator:
+class RAGEvaluationResultValidator:
     """
     RAGEvaluationResult validation service.
     """

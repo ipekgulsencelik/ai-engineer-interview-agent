@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.evaluation.rag.requests.retrieval_hit_rate_request import (
+from src.evaluation.rag.value_objects.retrieval_hit_rate_request import (
     RetrievalHitRateRequest,
 )
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from typing import Final
 
 from src.domain.validation.common_rules import (
@@ -13,6 +15,9 @@ from src.domain.validation.common_rules import (
 from src.domain.validation.schema_types import (
     SchemaDefinition,
 )
+from src.domain.validation.schema_rules import ValidationRule
+
+DATETIME_OBJECT_RULE = ValidationRule(expected_type=datetime)
 
 
 EXPERIMENT_NODE_SCHEMA: Final[
@@ -37,6 +42,6 @@ EXPERIMENT_NODE_SCHEMA: Final[
     "passed_count": OPTIONAL_NUMBER_RULE,
     "failed_count": OPTIONAL_NUMBER_RULE,
     "tags": TUPLE_RULE,
-    "created_at": DATETIME_RULE,
+    "created_at": DATETIME_OBJECT_RULE,
     "notes": OPTIONAL_STRING_RULE,
 }
