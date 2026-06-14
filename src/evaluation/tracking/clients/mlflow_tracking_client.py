@@ -7,16 +7,16 @@ import mlflow
 from src.evaluation.tracking.clients.external_tracking_client import (
     ExternalTrackingClient,
 )
-from src.evaluation.tracking.loggers.mlflow.mlflow_artifact_logger import (
+from src.evaluation.tracking.loggers.mlflow_artifact_logger import (
     MLflowArtifactLogger,
 )
-from src.evaluation.tracking.loggers.mlflow.mlflow_event_logger import (
+from src.evaluation.tracking.loggers.mlflow_event_logger import (
     MLflowEventLogger,
 )
-from src.evaluation.tracking.loggers.mlflow.mlflow_model_registry_logger import (
+from src.evaluation.tracking.loggers.mlflow_model_registry_logger import (
     MLflowModelRegistryLogger,
 )
-from src.evaluation.tracking.loggers.mlflow.mlflow_run_logger import (
+from src.evaluation.tracking.loggers.mlflow_run_logger import (
     MLflowRunLogger,
 )
 from src.evaluation.tracking.entities.experiment_artifact import (

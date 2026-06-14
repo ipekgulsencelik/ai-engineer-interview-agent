@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.evaluation.rag.entities.experiment_run import (
+from src.evaluation.tracking.entities.experiment_run import (
     ExperimentRun,
 )
 

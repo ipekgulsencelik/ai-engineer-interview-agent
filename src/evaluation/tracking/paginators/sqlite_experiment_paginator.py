@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from src.evaluation.ops.entities.experiment_node import (
+from src.evaluation.tracking.entities.experiment_node import (
     ExperimentNode,
 )
-from src.evaluation.ops.value_objects.experiment_query import (
+from src.evaluation.tracking.value_objects.experiment_query import (
     ExperimentQuery,
 )
 

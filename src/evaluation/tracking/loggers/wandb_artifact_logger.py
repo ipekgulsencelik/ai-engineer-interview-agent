@@ -4,7 +4,7 @@ from pathlib import Path
 
 import wandb
 
-from src.evaluation.tracking.clients.wandb.wandb_run_initializer import (
+from src.evaluation.tracking.clients.wandb_run_initializer import (
     WandBRunInitializer,
 )
 from src.evaluation.tracking.entities.experiment_artifact import (

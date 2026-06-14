@@ -1,7 +1,7 @@
-from src.evaluation.ops.events.async_event_queue import (
+from src.evaluation.tracking.events.async_event_queue import (
     AsyncEventQueue,
 )
-from src.evaluation.ops.events.tracking_event_dispatcher import (
+from src.evaluation.tracking.events.tracking_event_dispatcher import (
     TrackingEventDispatcher,
 )
 

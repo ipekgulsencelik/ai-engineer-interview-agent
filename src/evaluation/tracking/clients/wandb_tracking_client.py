@@ -7,19 +7,19 @@ import wandb
 from src.evaluation.tracking.clients.external_tracking_client import (
     ExternalTrackingClient,
 )
-from src.evaluation.tracking.loggers.wandb.wandb_artifact_logger import (
+from src.evaluation.tracking.loggers.wandb_artifact_logger import (
     WandBArtifactLogger,
 )
-from src.evaluation.tracking.loggers.wandb.wandb_event_logger import (
+from src.evaluation.tracking.loggers.wandb_event_logger import (
     WandBEventLogger,
 )
-from src.evaluation.tracking.loggers.wandb.wandb_model_registry_logger import (
+from src.evaluation.tracking.loggers.wandb_model_registry_logger import (
     WandBModelRegistryLogger,
 )
-from src.evaluation.tracking.initializers.wandb.wandb_run_initializer import (
+from src.evaluation.tracking.initializers.wandb_run_initializer import (
     WandBRunInitializer,
 )
-from src.evaluation.tracking.loggers.wandb.wandb_run_logger import (
+from src.evaluation.tracking.loggers.wandb_run_logger import (
     WandBRunLogger,
 )
 from src.evaluation.tracking.entities.experiment_artifact import (

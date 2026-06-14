@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import mlflow
 
-from src.evaluation.ops.entities.model_registry_entry import (
+from src.evaluation.tracking.entities.model_registry_entry import (
     ModelRegistryEntry,
 )
 

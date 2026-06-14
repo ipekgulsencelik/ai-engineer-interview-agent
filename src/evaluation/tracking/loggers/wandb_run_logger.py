@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.evaluation.tracking.clients.wandb.wandb_run_initializer import (
+from src.evaluation.tracking.clients.wandb_run_initializer import (
     WandBRunInitializer,
 )
 from src.evaluation.tracking.entities.experiment_run import (

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import mlflow
 
-from src.evaluation.ops.clients.mlflow.mlflow_payload_logger import (
+from src.evaluation.tracking.clients.mlflow_payload_logger import (
     MLflowPayloadLogger,
 )
-from src.evaluation.ops.entities.tracking_event import (
+from src.evaluation.tracking.entities.tracking_event import (
     TrackingEvent,
 )
 
