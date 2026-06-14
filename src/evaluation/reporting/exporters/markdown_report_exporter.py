@@ -2,25 +2,31 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.evaluation.ops.entities.executive_summary import (
+from src.evaluation.reporting.exporters.protocols import (
+    ExecutiveSummaryRenderer,
+    ExperimentComparisonRenderer,
+    ExperimentTrendRenderer,
+    TextReportWriter,
+)
+from src.evaluation.reporting.entities.executive_summary import (
     ExecutiveSummary,
 )
-from src.evaluation.ops.exporters.executive_summary_markdown_renderer import (
+from src.evaluation.reporting.renderers.executive_summary_markdown_renderer import (
     ExecutiveSummaryMarkdownRenderer,
 )
-from src.evaluation.ops.exporters.experiment_comparison_markdown_renderer import (
+from src.evaluation.reporting.renderers.experiment_comparison_markdown_renderer import (
     ExperimentComparisonMarkdownRenderer,
 )
-from src.evaluation.ops.exporters.experiment_trend_markdown_renderer import (
+from src.evaluation.reporting.renderers.experiment_trend_markdown_renderer import (
     ExperimentTrendMarkdownRenderer,
 )
-from src.evaluation.ops.exporters.markdown_file_writer import (
+from src.evaluation.reporting.writers.markdown_file_writer import (
     MarkdownFileWriter,
 )
-from src.evaluation.ops.value_objects.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
-from src.evaluation.ops.value_objects.experiment_trend_result import (
+from src.evaluation.tracking.entities.experiment_trend_result import (
     ExperimentTrendResult,
 )
 
@@ -33,15 +39,15 @@ class MarkdownReportExporter:
     def __init__(
         self,
         *,
-        file_writer: MarkdownFileWriter | None = None,
+        file_writer: TextReportWriter | None = None,
         executive_summary_renderer: (
-            ExecutiveSummaryMarkdownRenderer | None
+            ExecutiveSummaryRenderer | None
         ) = None,
         experiment_comparison_renderer: (
-            ExperimentComparisonMarkdownRenderer | None
+            ExperimentComparisonRenderer | None
         ) = None,
         experiment_trend_renderer: (
-            ExperimentTrendMarkdownRenderer | None
+            ExperimentTrendRenderer | None
         ) = None,
     ) -> None:
         self._file_writer = (

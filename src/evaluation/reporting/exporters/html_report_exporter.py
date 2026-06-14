@@ -2,25 +2,31 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.evaluation.ops.entities.executive_summary import (
+from src.evaluation.reporting.exporters.protocols import (
+    ExecutiveSummaryRenderer,
+    ExperimentComparisonRenderer,
+    ExperimentTrendRenderer,
+    TextReportWriter,
+)
+from src.evaluation.reporting.entities.executive_summary import (
     ExecutiveSummary,
 )
-from src.evaluation.ops.exporters.executive_summary_html_renderer import (
+from src.evaluation.reporting.renderers.executive_summary_html_renderer import (
     ExecutiveSummaryHTMLRenderer,
 )
-from src.evaluation.ops.exporters.experiment_comparison_html_renderer import (
+from src.evaluation.reporting.renderers.experiment_comparison_html_renderer import (
     ExperimentComparisonHTMLRenderer,
 )
-from src.evaluation.ops.exporters.experiment_trend_html_renderer import (
+from src.evaluation.reporting.renderers.experiment_trend_html_renderer import (
     ExperimentTrendHTMLRenderer,
 )
-from src.evaluation.ops.exporters.html_file_writer import (
+from src.evaluation.reporting.writers.html_file_writer import (
     HTMLFileWriter,
 )
-from src.evaluation.ops.value_objects.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
-from src.evaluation.ops.value_objects.experiment_trend_result import (
+from src.evaluation.tracking.entities.experiment_trend_result import (
     ExperimentTrendResult,
 )
 
@@ -33,15 +39,15 @@ class HTMLReportExporter:
     def __init__(
         self,
         *,
-        file_writer: HTMLFileWriter | None = None,
+        file_writer: TextReportWriter | None = None,
         executive_summary_renderer: (
-            ExecutiveSummaryHTMLRenderer | None
+            ExecutiveSummaryRenderer | None
         ) = None,
         experiment_comparison_renderer: (
-            ExperimentComparisonHTMLRenderer | None
+            ExperimentComparisonRenderer | None
         ) = None,
         experiment_trend_renderer: (
-            ExperimentTrendHTMLRenderer | None
+            ExperimentTrendRenderer | None
         ) = None,
     ) -> None:
         self._file_writer = (

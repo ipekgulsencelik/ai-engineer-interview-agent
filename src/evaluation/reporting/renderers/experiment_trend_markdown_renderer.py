@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from src.evaluation.ops.exporters.markdown_rendering_utils import (
+from src.evaluation.reporting.utils.markdown_rendering_utils import (
     MarkdownRenderingUtils,
 )
-from src.evaluation.ops.value_objects.experiment_trend_result import (
+from src.evaluation.tracking.entities.experiment_trend_result import (
     ExperimentTrendResult,
 )
 

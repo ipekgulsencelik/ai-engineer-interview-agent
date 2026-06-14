@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from src.evaluation.ops.exporters.json_serialization_utils import (
+from src.evaluation.reporting.utils.json_serialization_utils import (
     JSONSerializationUtils,
 )
-from src.evaluation.ops.value_objects.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
 

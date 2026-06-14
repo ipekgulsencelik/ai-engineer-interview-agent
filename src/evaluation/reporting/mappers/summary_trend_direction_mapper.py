@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.evaluation.ops.enums.summary_trend_direction import (
+from src.evaluation.reporting.enums.summary_trend_direction import (
     SummaryTrendDirection,
 )
 

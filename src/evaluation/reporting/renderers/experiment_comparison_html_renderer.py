@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from src.evaluation.ops.exporters.html_rendering_utils import (
+from src.evaluation.reporting.utils.html_rendering_utils import (
     HTMLRenderingUtils,
 )
-from src.evaluation.ops.value_objects.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
 

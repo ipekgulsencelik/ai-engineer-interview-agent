@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.evaluation.reporting.mappers.summary_trend_direction_mapper import (
     SummaryTrendDirectionMapper,
 )
-from src.evaluation.reporting.entities.experiment_trend_result import (
+from src.evaluation.tracking.entities.experiment_trend_result import (
     ExperimentTrendResult,
 )
 
@@ -86,3 +86,47 @@ class ExperimentTrendVisualMapper:
                 trend.trend_direction,
             ),
         )
+
+    @staticmethod
+    def title(
+        *,
+        trend: ExperimentTrendResult,
+        override: str | None = None,
+    ) -> str:
+        if override is not None:
+            return override
+
+        return (
+            "Experiment Trend - "
+            f"{trend.experiment_name}"
+        )
+
+    @staticmethod
+    def description(
+        *,
+        trend: ExperimentTrendResult,
+        override: str | None = None,
+    ) -> str:
+        return (
+            override
+            or trend.interpretation
+        )
+
+    @staticmethod
+    def metadata(
+        *,
+        trend: ExperimentTrendResult,
+        extra_metadata: dict[str, str] | None = None,
+    ) -> dict[str, str]:
+        return {
+            **(
+                extra_metadata
+                or {}
+            ),
+            "experiment_version": trend.experiment_version,
+            "first_run_id": trend.first_run_id,
+            "latest_run_id": trend.latest_run_id,
+            "run_count": str(
+                trend.run_count,
+            ),
+        }
