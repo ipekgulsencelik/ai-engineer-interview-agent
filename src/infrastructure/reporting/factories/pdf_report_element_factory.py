@@ -5,7 +5,7 @@ from reportlab.platypus import Paragraph
 from reportlab.platypus import Spacer
 from reportlab.platypus.flowables import Flowable
 
-from src.application.reporting.constants.pdf_report import (
+from src.infrastructure.constants.pdf_report import (
     PDF_SECTION_SPACER_HEIGHT,
     PDF_SMALL_SPACER_HEIGHT,
     PDF_SPACER_WIDTH,

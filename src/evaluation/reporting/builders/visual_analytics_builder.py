@@ -4,22 +4,22 @@ from datetime import UTC
 from datetime import datetime
 from uuid import uuid4
 
-from src.evaluation.ops.calculators.visual_average_score_calculator import (
+from src.evaluation.reporting.calculators.visual_average_score_calculator import (
     VisualAverageScoreCalculator,
 )
-from src.evaluation.ops.detectors.visual_trend_direction_detector import (
+from src.evaluation.reporting.detectors.visual_trend_direction_detector import (
     VisualTrendDirectionDetector,
 )
-from src.evaluation.ops.entities.visual_analytics_snapshot import (
+from src.evaluation.reporting.entities.visual_analytics_snapshot import (
     VisualAnalyticsSnapshot,
 )
-from src.evaluation.ops.enums.summary_trend_direction import (
+from src.evaluation.reporting.enums.summary_trend_direction import (
     SummaryTrendDirection,
 )
-from src.evaluation.ops.mappers.experiment_trend_visual_mapper import (
+from src.evaluation.reporting.mappers.experiment_trend_visual_mapper import (
     ExperimentTrendVisualMapper,
 )
-from src.evaluation.ops.value_objects.experiment_trend_result import (
+from src.evaluation.tracking.entities.experiment_trend_result import (
     ExperimentTrendResult,
 )
 
@@ -158,12 +158,9 @@ class VisualAnalyticsBuilder:
         )
 
         return self.build(
-            title=(
-                title
-                or (
-                    "Experiment Trend - "
-                    f"{trend.experiment_name}"
-                )
+            title=self._trend_visual_mapper.title(
+                trend=trend,
+                override=title,
             ),
             chart_type=chart_type,
             labels=resolved_labels,
@@ -178,20 +175,12 @@ class VisualAnalyticsBuilder:
             y_axis_label="Overall Score",
             series_name=trend.experiment_name,
             experiment_id=trend.experiment_id,
-            description=(
-                description
-                or trend.interpretation
+            description=self._trend_visual_mapper.description(
+                trend=trend,
+                override=description,
             ),
-            metadata={
-                **(
-                    metadata
-                    or {}
-                ),
-                "experiment_version": trend.experiment_version,
-                "first_run_id": trend.first_run_id,
-                "latest_run_id": trend.latest_run_id,
-                "run_count": str(
-                    trend.run_count,
-                ),
-            },
+            metadata=self._trend_visual_mapper.metadata(
+                trend=trend,
+                extra_metadata=metadata,
+            ),
         )

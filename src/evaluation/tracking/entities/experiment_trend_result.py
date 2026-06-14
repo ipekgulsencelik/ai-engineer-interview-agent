@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.evaluation.ops.enums.experiment_trend_direction import (
+from src.evaluation.tracking.enums.experiment_trend_direction import (
     ExperimentTrendDirection,
 )
-from src.evaluation.ops.validators.experiment_trend_result_validator import (
+from src.evaluation.tracking.validators.experiment_trend_result_validator import (
     ExperimentTrendResultValidator,
 )
 

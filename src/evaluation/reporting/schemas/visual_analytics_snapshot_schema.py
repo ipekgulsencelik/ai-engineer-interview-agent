@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Final
 
+from src.domain.validation.schema_rules import ValidationRule
 from src.domain.validation.common_rules import (
-    DATETIME_RULE,
-    DICT_RULE,
+    OPTIONAL_DICT_RULE,
     NON_EMPTY_STRING_RULE,
     OPTIONAL_RATIO_RULE,
     OPTIONAL_STRING_RULE,
@@ -21,7 +22,7 @@ VISUAL_ANALYTICS_SNAPSHOT_SCHEMA: Final[
     "snapshot_id": NON_EMPTY_STRING_RULE,
     "title": NON_EMPTY_STRING_RULE,
     "chart_type": NON_EMPTY_STRING_RULE,
-    "created_at": DATETIME_RULE,
+    "created_at": ValidationRule(expected_type=datetime),
     "labels": TUPLE_RULE,
     "scores": TUPLE_RULE,
     "average_score": OPTIONAL_RATIO_RULE,
@@ -34,5 +35,5 @@ VISUAL_ANALYTICS_SNAPSHOT_SCHEMA: Final[
     "benchmark_id": OPTIONAL_STRING_RULE,
     "model_name": OPTIONAL_STRING_RULE,
     "description": OPTIONAL_STRING_RULE,
-    "metadata": DICT_RULE,
+    "metadata": OPTIONAL_DICT_RULE,
 }

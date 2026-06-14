@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.evaluation.reporting.utils.markdown_rendering_utils import (
     MarkdownRenderingUtils,
 )
-from src.evaluation.reporting.entities.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
 

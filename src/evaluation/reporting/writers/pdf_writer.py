@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.evaluation.ops.exporters.pdf_converter import (
+from src.evaluation.reporting.converters.pdf_converter import (
     PDFConverter,
 )
-from src.evaluation.ops.exporters.temporary_html_file_factory import (
+from src.evaluation.reporting.factories.temporary_html_file_factory import (
     TemporaryHTMLFileFactory,
 )
 

@@ -1,47 +1,33 @@
-from src.evaluation.tracking.entities.artifact_version import (
-    ArtifactVersion,
-)
-from src.evaluation.tracking.entities.experiment_artifact import (
-    ExperimentArtifact,
-)
-from src.evaluation.tracking.entities.experiment_comparison_result import (
-    ExperimentComparisonResult,
-)
-from src.evaluation.tracking.entities.experiment_run import (
-    ExperimentRun,
-)
-from src.evaluation.tracking.entities.experiment_tag import (
-    ExperimentTag,
-)
-from src.evaluation.tracking.entities.experiment_trend_result import (
-    ExperimentTrendResult,
-)
-from src.evaluation.tracking.entities.lineage_edge import (
-    LineageEdge,
-)
-from src.evaluation.tracking.entities.model_registry_entry import (
-    ModelRegistryEntry,
-)
-from src.evaluation.tracking.entities.tracking_event import (
-    TrackingEvent,
-)
-from src.evaluation.tracking.entities.tracking_provider import (
-    TrackingProvider,
-)
-from src.evaluation.tracking.entities.worker_node import (
-    WorkerNode,
-)
+from __future__ import annotations
 
-__all__ = [
-    "ArtifactVersion",
-    "ExperimentArtifact",
-    "ExperimentComparisonResult",
-    "ExperimentRun",
-    "ExperimentTag",
-    "ExperimentTrendResult",
-    "LineageEdge",
-    "ModelRegistryEntry",
-    "TrackingEvent",
-    "TrackingProvider",
-    "WorkerNode",
-]
+from typing import Any
+
+_EXPORTS = {
+    "ArtifactVersion": "artifact_version",
+    "ExperimentArtifact": "experiment_artifact",
+    "ExperimentComparisonResult": "experiment_comparison_result",
+    "ExperimentRun": "experiment_run",
+    "ExperimentTag": "experiment_tag",
+    "ExperimentTrendResult": "experiment_trend_result",
+    "LineageEdge": "lineage_edge",
+    "ModelRegistryEntry": "model_registry_entry",
+    "TrackingEvent": "tracking_event",
+    "TrackingProvider": "tracking_provider",
+    "WorkerNode": "worker_node",
+}
+
+__all__ = list(_EXPORTS)
+
+
+def __getattr__(name: str) -> Any:
+    if name not in _EXPORTS:
+        raise AttributeError(name)
+
+    from importlib import import_module
+
+    module = import_module(
+        f"src.evaluation.tracking.entities.{_EXPORTS[name]}",
+    )
+    value = getattr(module, name)
+    globals()[name] = value
+    return value

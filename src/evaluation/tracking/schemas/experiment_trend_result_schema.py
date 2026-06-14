@@ -7,6 +7,7 @@ from src.domain.validation.common_rules import (
     POSITIVE_INTEGER_RULE,
     OPTIONAL_RATIO_RULE,
     OPTIONAL_STRING_RULE,
+    OPTIONAL_NUMBER_RULE,
 )
 from src.domain.validation.schema_types import (
     SchemaDefinition,

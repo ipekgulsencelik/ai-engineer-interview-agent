@@ -2,19 +2,23 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.evaluation.ops.entities.executive_summary import (
+from src.evaluation.reporting.exporters.protocols import (
+    HTMLReportRenderer,
+    PDFReportWriter,
+)
+from src.evaluation.reporting.entities.executive_summary import (
     ExecutiveSummary,
 )
-from src.evaluation.ops.exporters.html_report_exporter import (
+from src.evaluation.reporting.exporters.html_report_exporter import (
     HTMLReportExporter,
 )
-from src.evaluation.ops.exporters.pdf_writer import (
+from src.evaluation.reporting.writers.pdf_writer import (
     PDFWriter,
 )
-from src.evaluation.ops.value_objects.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
-from src.evaluation.ops.value_objects.experiment_trend_result import (
+from src.evaluation.tracking.entities.experiment_trend_result import (
     ExperimentTrendResult,
 )
 
@@ -28,9 +32,9 @@ class PDFReportExporter:
         self,
         *,
         html_exporter: (
-            HTMLReportExporter | None
+            HTMLReportRenderer | None
         ) = None,
-        pdf_writer: PDFWriter | None = None,
+        pdf_writer: PDFReportWriter | None = None,
     ) -> None:
         self._html_exporter = (
             html_exporter

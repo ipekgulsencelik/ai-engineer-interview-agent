@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from src.evaluation.ops.entities.executive_summary import (
+from src.evaluation.reporting.entities.executive_summary import (
     ExecutiveSummary,
 )
-from src.evaluation.ops.exporters.json_serialization_utils import (
+from src.evaluation.reporting.utils.json_serialization_utils import (
     JSONSerializationUtils,
 )
 
