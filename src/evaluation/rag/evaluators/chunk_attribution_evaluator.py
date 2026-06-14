@@ -9,7 +9,7 @@ from src.evaluation.rag.counters.matched_token_counter import (
 from src.evaluation.rag.factories.chunk_attribution_result_factory import (
     ChunkAttributionResultFactory,
 )
-from src.evaluation.rag.requests.chunk_attribution_request import (
+from src.evaluation.rag.value_objects.chunk_attribution_request import (
     ChunkAttributionRequest,
 )
 from src.evaluation.rag.tokenizers.text_tokenizer import (

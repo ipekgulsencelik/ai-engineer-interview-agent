@@ -11,7 +11,7 @@ from src.evaluation.rag.constants.rag_thresholds import (
 )
 
 
-class RagPassFailEvaluator:
+class RAGPassFailEvaluator:
     """
     Evaluates whether a RAG evaluation passes
     configured quality thresholds.
@@ -48,3 +48,4 @@ class RagPassFailEvaluator:
             and overall_score
             >= MINIMUM_OVERALL_RAG_SCORE
         )
+RagPassFailEvaluator = RAGPassFailEvaluator

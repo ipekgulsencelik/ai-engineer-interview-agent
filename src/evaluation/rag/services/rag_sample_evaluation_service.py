@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from datetime import UTC
-from datetime import datetime
+from src.application.ports.clock import Clock
+from src.infrastructure.time.system_clock import SystemClock
 
 from src.evaluation.rag.entities.rag_evaluation_sample import (
     RAGEvaluationSample,
@@ -42,6 +42,7 @@ class RAGSampleEvaluationService:
             RAGResultInterpretationService | None
         ) = None,
         result_factory: RAGEvaluationResultFactory | None = None,
+        clock: Clock | None = None,
     ) -> None:
         self._metric_evaluation_service = (
             metric_evaluation_service
@@ -58,6 +59,7 @@ class RAGSampleEvaluationService:
         self._result_factory = (
             result_factory or RAGEvaluationResultFactory()
         )
+        self._clock = clock or SystemClock()
 
     def evaluate(
         self,
@@ -71,7 +73,7 @@ class RAGSampleEvaluationService:
         retrieved_context: str,
         retrieved_chunk_ids: tuple[str, ...],
     ) -> RAGEvaluationResult:
-        started_at = datetime.now(UTC)
+        started_at = self._clock.now()
 
         metric_result = self._metric_evaluation_service.evaluate(
             sample=sample,
@@ -96,7 +98,7 @@ class RAGSampleEvaluationService:
             retrieval_result=retrieval_result,
         )
 
-        completed_at = datetime.now(UTC)
+        completed_at = self._clock.now()
 
         return self._result_factory.create(
             experiment_id=experiment_id,

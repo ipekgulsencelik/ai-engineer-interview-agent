@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from typing import Final
 
 from src.domain.validation.common_rules import (
@@ -13,6 +15,9 @@ from src.domain.validation.common_rules import (
 from src.domain.validation.schema_types import (
     SchemaDefinition,
 )
+from src.domain.validation.schema_rules import ValidationRule
+
+DATETIME_OBJECT_RULE = ValidationRule(expected_type=datetime)
 
 
 RAG_EVALUATION_REPORT_SCHEMA: Final[
@@ -40,7 +45,7 @@ RAG_EVALUATION_REPORT_SCHEMA: Final[
     "passed_count": NON_NEGATIVE_NUMBER_RULE,
     "failed_count": NON_NEGATIVE_NUMBER_RULE,
     "pass_rate": RATIO_RULE,
-    "generated_at": DATETIME_RULE,
+    "generated_at": DATETIME_OBJECT_RULE,
     "interpretation": NON_EMPTY_STRING_RULE,
     "notes": OPTIONAL_STRING_RULE,
 }

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from src.evaluation.rag.validators.rag_evaluation_result_validator import (
-    RagEvaluationResultValidator,
+    RAGEvaluationResultValidator,
 )
 
 
@@ -13,7 +13,7 @@ from src.evaluation.rag.validators.rag_evaluation_result_validator import (
     slots=True,
     kw_only=True,
 )
-class RagEvaluationResult:
+class RAGEvaluationResult:
     """
     Immutable RAG evaluation result.
 

@@ -11,6 +11,16 @@ class HallucinationLabel(
     Hallucination taxonomy labels.
     """
 
+    NONE = "none"
+
+    LOW = "low"
+
+    MEDIUM = "medium"
+
+    HIGH = "high"
+
+    CRITICAL = "critical"
+
     SUPPORTED = "supported"
 
     UNSUPPORTED = "unsupported"

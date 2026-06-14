@@ -8,7 +8,7 @@ from src.evaluation.rag.evaluators.rag_failure_reason_evaluator import (
 )
 
 
-class RagMetricInterpreter:
+class RAGMetricInterpreter:
     """
     Produces interpretation labels for RAG evaluation outcomes.
     """
@@ -66,3 +66,4 @@ class RagMetricInterpreter:
             return RAG_EVALUATION_PASSED
 
         return failure_reason
+RagMetricInterpreter = RAGMetricInterpreter

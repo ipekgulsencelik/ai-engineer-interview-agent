@@ -12,7 +12,7 @@ from src.evaluation.rag.factories.multi_turn_rag_result_factory import (
 from src.evaluation.rag.interpreters.multi_turn_rag_interpreter import (
     MultiTurnRAGInterpreter,
 )
-from src.evaluation.rag.requests.multi_turn_rag_request import (
+from src.evaluation.rag.value_objects.multi_turn_rag_request import (
     MultiTurnRAGRequest,
 )
 from src.evaluation.rag.value_objects.multi_turn_rag_result import (

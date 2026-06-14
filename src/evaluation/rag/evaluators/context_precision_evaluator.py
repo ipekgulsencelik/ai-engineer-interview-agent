@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.evaluation.rag.calculators.context_precision_score_calculator import (
     ContextPrecisionScoreCalculator,
 )
-from src.evaluation.rag.requests.context_precision_request import (
+from src.evaluation.rag.value_objects.context_precision_request import (
     ContextPrecisionRequest,
 )
 from src.evaluation.rag.tokenizers.text_tokenizer import (

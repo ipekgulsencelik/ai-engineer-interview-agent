@@ -86,6 +86,11 @@ OPTIONAL_METADATA_RULE: Final[ValidationRule] = ValidationRule(
     allow_empty=True,
 )
 
+TUPLE_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=tuple,
+    allow_empty=True,
+)
+
 STRING_TUPLE_RULE: Final[ValidationRule] = ValidationRule(
     expected_type=tuple,
     item_type=str,

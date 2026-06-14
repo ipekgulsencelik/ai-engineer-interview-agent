@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from src.evaluation.rag.requests.answer_relevancy_request import (
+from src.evaluation.rag.value_objects.answer_relevancy_request import (
     AnswerRelevancyRequest,
 )
-from src.evaluation.rag.requests.context_precision_request import (
+from src.evaluation.rag.value_objects.context_precision_request import (
     ContextPrecisionRequest,
 )
-from src.evaluation.rag.requests.faithfulness_evaluation_request import (
+from src.evaluation.rag.value_objects.faithfulness_evaluation_request import (
     FaithfulnessEvaluationRequest,
 )
 from src.evaluation.rag.value_objects.conversation_turn import (

@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.evaluation.rag.calculators.semantic_similarity_score_calculator import (
     SemanticSimilarityScoreCalculator,
 )
-from src.evaluation.rag.requests.semantic_similarity_request import (
+from src.evaluation.rag.value_objects.semantic_similarity_request import (
     SemanticSimilarityRequest,
 )
 from src.evaluation.rag.tokenizers.text_tokenizer import (

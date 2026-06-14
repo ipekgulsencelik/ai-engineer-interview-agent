@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Final
 
 from src.domain.validation.common_rules import (
-    DICT_RULE,
+    OPTIONAL_DICT_RULE,
     NON_EMPTY_STRING_RULE,
     OPTIONAL_STRING_RULE,
     TUPLE_RULE,
@@ -24,7 +24,7 @@ RAG_EVALUATION_SAMPLE_SCHEMA: Final[
     "expected_answer": OPTIONAL_STRING_RULE,
     "expected_context": OPTIONAL_STRING_RULE,
     "expected_chunk_ids": TUPLE_RULE,
-    "metadata": DICT_RULE,
+    "metadata": OPTIONAL_DICT_RULE,
     "tags": TUPLE_RULE,
     "difficulty": OPTIONAL_STRING_RULE,
     "category": OPTIONAL_STRING_RULE,

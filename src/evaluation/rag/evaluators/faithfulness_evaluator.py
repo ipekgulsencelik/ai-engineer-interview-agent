@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.evaluation.rag.calculators.lexical_overlap_calculator import (
     LexicalOverlapCalculator,
 )
-from src.evaluation.rag.requests.faithfulness_evaluation_request import (
+from src.evaluation.rag.value_objects.faithfulness_evaluation_request import (
     FaithfulnessEvaluationRequest,
 )
 from src.evaluation.rag.tokenizers.text_tokenizer import (
