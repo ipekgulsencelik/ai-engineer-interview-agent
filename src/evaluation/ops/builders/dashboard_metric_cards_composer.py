@@ -19,7 +19,7 @@ from src.evaluation.ops.entities.dashboard_metric_card import (
 
 class DashboardMetricCardsComposer:
     """
-    Composes all dashboard metric cards.
+    Composes dashboard metric cards from all dashboard sources.
     """
 
     def __init__(

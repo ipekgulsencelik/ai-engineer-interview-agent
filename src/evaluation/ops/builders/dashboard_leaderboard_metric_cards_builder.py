@@ -1,48 +1,88 @@
 from __future__ import annotations
 
+from src.evaluation.ops.builders.ci_policy_metric_value_builder import (
+    CIPolicyMetricValueBuilder,
+)
+from src.evaluation.ops.constants.dashboard_card_ids import (
+    CI_POLICY_CARD_ID,
+)
+from src.evaluation.ops.constants.dashboard_card_labels import (
+    CI_ALLOWED_LABEL,
+    CI_BLOCKED_LABEL,
+)
+from src.evaluation.ops.constants.dashboard_card_sort_orders import (
+    CI_POLICY_SORT_ORDER,
+)
+from src.evaluation.ops.constants.dashboard_card_titles import (
+    CI_POLICY_TITLE,
+)
 from src.evaluation.ops.entities.dashboard_metric_card import (
     DashboardMetricCard,
 )
-from src.evaluation.ops.enums.dashboard_severity import (
-    DashboardSeverity,
+from src.evaluation.ops.resolvers.ci_policy_dashboard_severity_resolver import (
+    CIPolicyDashboardSeverityResolver,
 )
 
 
-class DashboardLeaderboardMetricCardsBuilder:
+class CIPolicyDashboardMetricCardsBuilder:
     """
-    Builds dashboard cards from leaderboard entries.
+    Builds dashboard metric cards from CI policy results.
     """
 
-    @staticmethod
-    def build(
+    def __init__(
+        self,
         *,
-        leaderboard_entries,
+        metric_value_builder: (
+            CIPolicyMetricValueBuilder | None
+        ) = None,
+        severity_resolver: (
+            CIPolicyDashboardSeverityResolver | None
+        ) = None,
+    ) -> None:
+        self._metric_value_builder = (
+            metric_value_builder
+            or CIPolicyMetricValueBuilder()
+        )
+
+        self._severity_resolver = (
+            severity_resolver
+            or CIPolicyDashboardSeverityResolver()
+        )
+
+    def build(
+        self,
+        *,
+        ci_policy_result,
     ) -> tuple[
         DashboardMetricCard,
         ...,
     ]:
-        entries = tuple(
-            leaderboard_entries,
-        )
-
-        if not entries:
+        if ci_policy_result is None:
             return ()
 
-        best_entry = entries[0]
+        deployment_allowed = (
+            ci_policy_result.deployment_allowed
+        )
 
         return (
             DashboardMetricCard(
-                card_id="leaderboard_top_score",
-                title="Leaderboard Top Score",
-                value=best_entry.score,
+                card_id=CI_POLICY_CARD_ID,
+                title=CI_POLICY_TITLE,
+                value=self._metric_value_builder.build(
+                    deployment_allowed=deployment_allowed,
+                ),
                 formatted_value=(
-                    f"{best_entry.score:.2f}"
+                    CI_ALLOWED_LABEL
+                    if deployment_allowed
+                    else CI_BLOCKED_LABEL
                 ),
                 unit=None,
                 description=(
-                    f"Top model: {best_entry.model_name}"
+                    ci_policy_result.interpretation
                 ),
-                severity=DashboardSeverity.INFO,
-                sort_order=4,
+                severity=self._severity_resolver.resolve(
+                    deployment_allowed=deployment_allowed,
+                ),
+                sort_order=CI_POLICY_SORT_ORDER,
             ),
         )
