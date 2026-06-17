@@ -204,3 +204,25 @@ R2_SCORE_RULE: Final[ValidationRule] = ValidationRule(
     min_value=-1,
     max_value=1,
 )
+
+
+POSITIVE_NUMBER_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=(int, float),
+    reject_bool=True,
+    finite=True,
+    min_value=1,
+)
+
+OPTIONAL_NON_NEGATIVE_NUMBER_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=(int, float),
+    nullable=True,
+    reject_bool=True,
+    finite=True,
+    min_value=0,
+)
+
+OPTIONAL_TUPLE_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=tuple,
+    nullable=True,
+    allow_empty=True,
+)

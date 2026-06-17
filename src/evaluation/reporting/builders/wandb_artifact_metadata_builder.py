@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.evaluation.ops.entities.report_artifact import (
+from src.evaluation.reporting.entities.report_artifact import (
     ReportArtifact,
 )
 

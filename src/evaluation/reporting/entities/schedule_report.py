@@ -233,3 +233,5 @@ class ScheduledReport:
         return (
             self.success_rate >= 0.95
         )
+
+ScheduleReport = ScheduledReport

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from src.evaluation.reporting.enums.experiment_artifact_type import (
+from src.evaluation.tracking.enums.experiment_artifact_type import (
     ExperimentArtifactType,
 )
 from src.evaluation.reporting.validators.report_artifact_validator import (
