@@ -8,7 +8,7 @@ from src.domain.validation.schema_validator import (
 from src.evaluation.domain.errors.evaluation_validation_error import (
     EvaluationValidationError,
 )
-from src.evaluation.reporting.enums.experiment_artifact_type import (
+from src.evaluation.tracking.enums.experiment_artifact_type import (
     ExperimentArtifactType,
 )
 from src.evaluation.reporting.schemas.report_artifact_schema import (

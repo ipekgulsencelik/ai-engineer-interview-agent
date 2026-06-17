@@ -1,31 +1,28 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 
 from src.evaluation.reporting.entities.executive_summary import (
     ExecutiveSummary,
 )
-from src.evaluation.reporting.exporters.html_report_exporter import (
-    HTMLReportExporter,
-)
-from src.evaluation.reporting.exporters.json_report_exporter import (
-    JSONReportExporter,
-)
-from src.evaluation.reporting.exporters.markdown_report_exporter import (
-    MarkdownReportExporter,
-)
-from src.evaluation.reporting.exporters.pdf_report_exporter import (
+from src.evaluation.reporting.services.report_export_protocols import (
     PDFReportExporter,
+    ReportTextWriter,
+    TextReportExporter,
 )
-from src.evaluation.reporting.services.report_file_writer import (
-    ReportFileWriter,
+from src.evaluation.reporting.services.text_report_exporter_registry import (
+    TextReportExporterRegistry,
 )
-from src.evaluation.reporting.value_objects.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
-from src.evaluation.reporting.value_objects.experiment_trend_result import (
+from src.evaluation.tracking.entities.experiment_trend_result import (
     ExperimentTrendResult,
 )
+
+
+PDF_REPORT_FORMAT = "pdf"
 
 
 class ReportExportService:
@@ -36,15 +33,27 @@ class ReportExportService:
     def __init__(
         self,
         *,
-        markdown_exporter: MarkdownReportExporter,
-        html_exporter: HTMLReportExporter,
-        json_exporter: JSONReportExporter,
+        markdown_exporter: TextReportExporter,
+        html_exporter: TextReportExporter,
+        json_exporter: TextReportExporter,
         pdf_exporter: PDFReportExporter,
-        file_writer: ReportFileWriter,
+        file_writer: ReportTextWriter,
+        text_exporters: Mapping[
+            str,
+            TextReportExporter,
+        ]
+        | None = None,
+        text_exporter_registry: TextReportExporterRegistry | None = None,
     ) -> None:
-        self._markdown_exporter = markdown_exporter
-        self._html_exporter = html_exporter
-        self._json_exporter = json_exporter
+        self._text_exporter_registry = (
+            text_exporter_registry
+            or TextReportExporterRegistry(
+                markdown_exporter=markdown_exporter,
+                html_exporter=html_exporter,
+                json_exporter=json_exporter,
+                text_exporters=text_exporters,
+            )
+        )
         self._pdf_exporter = pdf_exporter
         self._file_writer = file_writer
 
@@ -55,41 +64,20 @@ class ReportExportService:
         report_format: str,
         output_path: Path,
     ) -> str | None:
-        match report_format:
-            case "markdown":
-                content = (
-                    self._markdown_exporter.render_executive_summary(
-                        summary=summary,
-                    )
-                )
+        if report_format == PDF_REPORT_FORMAT:
+            self._pdf_exporter.export_executive_summary(
+                summary=summary,
+                output_path=output_path,
+            )
+            return None
 
-            case "html":
-                content = (
-                    self._html_exporter.render_executive_summary(
-                        summary=summary,
-                    )
-                )
-
-            case "json":
-                content = (
-                    self._json_exporter.render_executive_summary(
-                        summary=summary,
-                    )
-                )
-
-            case "pdf":
-                self._pdf_exporter.export_executive_summary(
-                    summary=summary,
-                    output_path=output_path,
-                )
-                return None
-
-            case _:
-                raise ValueError(
-                    f"unsupported format: {report_format}",
-                )
-
-        self._file_writer.write_text(
+        exporter = self._text_exporter_registry.get(
+            report_format=report_format,
+        )
+        content = exporter.render_executive_summary(
+            summary=summary,
+        )
+        self._write_text(
             output_path=output_path,
             content=content,
         )
@@ -103,41 +91,20 @@ class ReportExportService:
         report_format: str,
         output_path: Path,
     ) -> str | None:
-        match report_format:
-            case "markdown":
-                content = (
-                    self._markdown_exporter.render_experiment_comparison(
-                        comparison=comparison,
-                    )
-                )
+        if report_format == PDF_REPORT_FORMAT:
+            self._pdf_exporter.export_experiment_comparison(
+                comparison=comparison,
+                output_path=output_path,
+            )
+            return None
 
-            case "html":
-                content = (
-                    self._html_exporter.render_experiment_comparison(
-                        comparison=comparison,
-                    )
-                )
-
-            case "json":
-                content = (
-                    self._json_exporter.render_experiment_comparison(
-                        comparison=comparison,
-                    )
-                )
-
-            case "pdf":
-                self._pdf_exporter.export_experiment_comparison(
-                    comparison=comparison,
-                    output_path=output_path,
-                )
-                return None
-
-            case _:
-                raise ValueError(
-                    f"unsupported format: {report_format}",
-                )
-
-        self._file_writer.write_text(
+        exporter = self._text_exporter_registry.get(
+            report_format=report_format,
+        )
+        content = exporter.render_experiment_comparison(
+            comparison=comparison,
+        )
+        self._write_text(
             output_path=output_path,
             content=content,
         )
@@ -151,43 +118,33 @@ class ReportExportService:
         report_format: str,
         output_path: Path,
     ) -> str | None:
-        match report_format:
-            case "markdown":
-                content = (
-                    self._markdown_exporter.render_experiment_trend(
-                        trend=trend,
-                    )
-                )
+        if report_format == PDF_REPORT_FORMAT:
+            self._pdf_exporter.export_experiment_trend(
+                trend=trend,
+                output_path=output_path,
+            )
+            return None
 
-            case "html":
-                content = (
-                    self._html_exporter.render_experiment_trend(
-                        trend=trend,
-                    )
-                )
-
-            case "json":
-                content = (
-                    self._json_exporter.render_experiment_trend(
-                        trend=trend,
-                    )
-                )
-
-            case "pdf":
-                self._pdf_exporter.export_experiment_trend(
-                    trend=trend,
-                    output_path=output_path,
-                )
-                return None
-
-            case _:
-                raise ValueError(
-                    f"unsupported format: {report_format}",
-                )
-
-        self._file_writer.write_text(
+        exporter = self._text_exporter_registry.get(
+            report_format=report_format,
+        )
+        content = exporter.render_experiment_trend(
+            trend=trend,
+        )
+        self._write_text(
             output_path=output_path,
             content=content,
         )
 
         return content
+
+    def _write_text(
+        self,
+        *,
+        output_path: Path,
+        content: str,
+    ) -> None:
+        self._file_writer.write_text(
+            output_path=output_path,
+            content=content,
+        )

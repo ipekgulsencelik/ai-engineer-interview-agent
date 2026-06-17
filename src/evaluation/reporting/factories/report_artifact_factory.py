@@ -8,7 +8,7 @@ from uuid import uuid4
 from src.evaluation.reporting.entities.report_artifact import (
     ReportArtifact,
 )
-from src.evaluation.reporting.enums.experiment_artifact_type import (
+from src.evaluation.tracking.enums.experiment_artifact_type import (
     ExperimentArtifactType,
 )
 from src.evaluation.reporting.resolvers.content_type_resolver import (

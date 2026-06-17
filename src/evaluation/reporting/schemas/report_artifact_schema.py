@@ -4,11 +4,8 @@ from typing import Final
 
 from src.domain.validation.common_rules import (
     DATETIME_RULE,
-    DICT_RULE,
     NON_EMPTY_STRING_RULE,
-    NON_NEGATIVE_NUMBER_RULE,
     OPTIONAL_STRING_RULE,
-    TUPLE_RULE,
     OPTIONAL_TUPLE_RULE,
     OPTIONAL_DICT_RULE,
     OPTIONAL_NON_NEGATIVE_NUMBER_RULE,
