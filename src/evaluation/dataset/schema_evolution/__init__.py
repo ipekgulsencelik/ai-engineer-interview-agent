@@ -15,6 +15,16 @@ from src.evaluation.dataset.schema_evolution.migrations import (
     RenameField,
     SetDefault,
 )
+from src.evaluation.dataset.schema_evolution.coordinator import (
+    DatasetMigrationCoordinator,
+    RecordMigrationPort,
+)
+from src.evaluation.dataset.schema_evolution.persistence import (
+    MigrationAuditEvent,
+    MigrationPersistencePort,
+    MigrationSnapshot,
+    MigrationTelemetryPort,
+)
 from src.evaluation.dataset.schema_evolution.models import (
     DatasetField,
     DatasetRecordSchema,
@@ -22,6 +32,7 @@ from src.evaluation.dataset.schema_evolution.models import (
 from src.evaluation.dataset.schema_evolution.service import (
     RecordValidationPort,
     SchemaCompatibilityPort,
+    SchemaLookupPort,
     SchemaEvolutionService,
 )
 from src.evaluation.dataset.schema_evolution.validation import (
@@ -31,18 +42,25 @@ from src.evaluation.dataset.schema_evolution.validation import (
 __all__ = [
     "CompatibilityReport",
     "DatasetField",
+    "DatasetMigrationCoordinator",
     "DatasetRecordSchema",
     "DatasetRecordValidator",
     "DropField",
+    "MigrationAuditEvent",
     "MigrationOperation",
+    "MigrationPersistencePort",
+    "MigrationSnapshot",
+    "MigrationTelemetryPort",
     "MigrationPathResolver",
     "MigrationRegistry",
     "MigrationStep",
     "RecordMigration",
     "RecordValidationPort",
+    "RecordMigrationPort",
     "RenameField",
     "SchemaCompatibilityChecker",
     "SchemaCompatibilityPort",
+    "SchemaLookupPort",
     "SchemaEvolutionError",
     "SchemaEvolutionService",
     "SetDefault",
