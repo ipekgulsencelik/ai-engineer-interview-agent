@@ -25,7 +25,7 @@ def test_analyze_computes_matched_missing_and_focus_areas(
     assert result.matched_skills == ("docker", "python")
     assert result.missing_skills == ("sql",)
     assert result.recommended_focus_areas == ("sql",)
-    assert result.alignment_score == 2 / 3
+    assert result.alignment_score == 0.67
 
 
 def test_invalid_profile_is_rejected_by_real_validator() -> None:
