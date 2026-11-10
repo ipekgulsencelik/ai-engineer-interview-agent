@@ -357,7 +357,7 @@ class PostgresLeasedDatasetAlertOutbox:
                     SELECT event_type, attempt_count, reason_code
                     FROM dataset_monitor_alert_delivery_events
                     WHERE alert_id = %s
-                    ORDER BY occurred_at, event_id
+                    ORDER BY event_seq
                     """,
                     (alert_id,),
                 )

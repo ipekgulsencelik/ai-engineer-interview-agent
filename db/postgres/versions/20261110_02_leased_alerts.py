@@ -62,6 +62,10 @@ def upgrade() -> None:
     )
     op.create_table(
         "dataset_monitor_alert_delivery_events",
+        sa.Column(
+            "event_seq", sa.BigInteger(),
+            sa.Identity(always=True), nullable=False, unique=True,
+        ),
         sa.Column("event_id", sa.Text(), primary_key=True),
         sa.Column(
             "alert_id", sa.Text(),

@@ -97,7 +97,7 @@ Use the existing coordinator to save monitoring snapshots and call
 - Expired claims are recovered in bounded batches of up to 1,000; retries
   use exponential backoff and terminal failures enter the Dead-Letter Queue.
 - Claim, retry, dead-letter, requeue and receipt state changes are
-  transactional with metadata-only delivery audit events.
+  transactional with metadata-only delivery audit events ordered by\n  a database-generated sequence number.
 - Requeue must be protected by an external **authorized operator**
   workflow. The data layer alone is not an authorization boundary.
 - Delivery remains **at-least-once**. A send that succeeds before a worker
