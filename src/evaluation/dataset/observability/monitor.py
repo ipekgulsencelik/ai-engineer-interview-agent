@@ -192,12 +192,12 @@ class DatasetObservabilityMonitor:
         ):
             if distribution.dataset_id != quality.dataset_id:
                 raise DatasetObservabilityError("distribution and report dataset differ")
-            if distribution.sample_count != quality.record_count:
-                raise DatasetObservabilityError("distribution and quality counts differ")
             if distribution.sample_count < 1 or quality.total_checks < 1:
                 raise DatasetObservabilityError(
                     "monitoring requires nonempty checked datasets"
                 )
+            if distribution.sample_count != quality.record_count:
+                raise DatasetObservabilityError("distribution and quality counts differ")
             for name in (
                 "category_distribution", "level_distribution",
                 "split_distribution",
