@@ -36,6 +36,12 @@ class TextReportExporter(Protocol):
     ) -> str: ...
 
 
+class TextReportExporterResolver(Protocol):
+    """Resolves a text exporter without exposing a concrete registry."""
+
+    def get(self, *, report_format: str) -> TextReportExporter: ...
+
+
 class PDFReportExporter(Protocol):
     """Exports reporting payloads directly to PDF files."""
 

@@ -10,6 +10,7 @@ from src.evaluation.reporting.services.report_export_protocols import (
     PDFReportExporter,
     ReportTextWriter,
     TextReportExporter,
+    TextReportExporterResolver,
 )
 from src.evaluation.reporting.services.text_report_exporter_registry import (
     TextReportExporterRegistry,
@@ -43,11 +44,12 @@ class ReportExportService:
             TextReportExporter,
         ]
         | None = None,
-        text_exporter_registry: TextReportExporterRegistry | None = None,
+        text_exporter_registry: TextReportExporterResolver | None = None,
     ) -> None:
         self._text_exporter_registry = (
             text_exporter_registry
-            or TextReportExporterRegistry(
+            if text_exporter_registry is not None
+            else TextReportExporterRegistry(
                 markdown_exporter=markdown_exporter,
                 html_exporter=html_exporter,
                 json_exporter=json_exporter,
