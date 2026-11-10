@@ -109,4 +109,6 @@ jobs:
         run: >-
           python -m pytest -q
           tests/infrastructure/telemetry/test_otel_dataset_telemetry_sdk.py
+          tests/infrastructure/telemetry/test_otel_http_server_telemetry_sdk.py
           tests/evaluation/dataset/observability/test_telemetry_instrumentation.py
+          tests/api/test_http_dashboard_assets.py
