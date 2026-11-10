@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Protocol
 
 from src.evaluation.dataset.observability.models import MonitoringAlert
 from src.evaluation.dataset.observability.ports import AlertSender
+from src.evaluation.dataset.observability.telemetry import (
+    DatasetTelemetryPort,
+    SafeDatasetTelemetry,
+)
 
 
 class AlertLeaseError(RuntimeError):
@@ -132,6 +138,8 @@ class LeasedDatasetAlertDispatcher:
         sender: AlertSender,
         worker_id: str,
         lease_seconds: int = 60,
+        telemetry: DatasetTelemetryPort | None = None,
+        monotonic_clock: Callable[[], float] | None = None,
     ) -> None:
         if not isinstance(worker_id, str) or not worker_id.strip():
             raise ValueError("worker_id must not be empty")
@@ -141,36 +149,57 @@ class LeasedDatasetAlertDispatcher:
         self._sender = sender
         self._worker_id = worker_id
         self._lease_seconds = lease_seconds
+        self._telemetry = SafeDatasetTelemetry(telemetry)
+        self._clock = monotonic_clock or time.monotonic
 
     def dispatch_once(self, *, limit: int = 100) -> AlertDispatchSummary:
         if type(limit) is not int or not 1 <= limit <= 1000:
             raise ValueError("limit must be in [1, 1000]")
-        leases = self._outbox.claim(
-            worker_id=self._worker_id,
-            limit=limit,
-            lease_seconds=self._lease_seconds,
-        )
-        delivered = retried = dead = 0
-        for lease in leases:
+        started = self._clock()
+        with self._telemetry.span(activity="dispatch"):
             try:
-                self._sender.send(alert=lease.alert)
-            except Exception:
-                # Never persist raw exception messages (may contain PII).
-                outcome = self._outbox.fail(
-                    lease=lease, reason_code="SENDER_FAILURE"
+                leases = self._outbox.claim(
+                    worker_id=self._worker_id,
+                    limit=limit,
+                    lease_seconds=self._lease_seconds,
                 )
-                if outcome.dead_lettered:
-                    dead += 1
-                else:
-                    retried += 1
-                continue
-            if not self._outbox.acknowledge(lease=lease):
-                raise AlertLeaseError("delivery acknowledgment rejected")
-            delivered += 1
-        return AlertDispatchSummary(
-            claimed=len(leases),
-            delivered=delivered,
-            retry_scheduled=retried,
-            dead_lettered=dead,
-        )
+                delivered = retried = dead = 0
+                for lease in leases:
+                    try:
+                        self._sender.send(alert=lease.alert)
+                    except Exception:
+                        # Never persist raw exception messages (may contain PII).
+                        outcome = self._outbox.fail(
+                            lease=lease, reason_code="SENDER_FAILURE"
+                        )
+                        if outcome.dead_lettered:
+                            dead += 1
+                            label = "dead_letter"
+                        else:
+                            retried += 1
+                            label = "retry"
+                        self._telemetry.count(
+                            activity="dispatch", outcome=label
+                        )
+                        continue
+                    if not self._outbox.acknowledge(lease=lease):
+                        raise AlertLeaseError("delivery acknowledgment rejected")
+                    delivered += 1
+                    self._telemetry.count(
+                        activity="dispatch", outcome="delivered"
+                    )
+                return AlertDispatchSummary(
+                    claimed=len(leases),
+                    delivered=delivered,
+                    retry_scheduled=retried,
+                    dead_lettered=dead,
+                )
+            except Exception:
+                self._telemetry.count(activity="dispatch", outcome="error")
+                raise
+            finally:
+                self._telemetry.duration(
+                    activity="dispatch",
+                    seconds=max(0.0, self._clock() - started),
+                )
 

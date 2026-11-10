@@ -1,0 +1,18 @@
+# Example alerts only: thresholds must be tuned to your production SLO.
+groups:
+  - name: dataset-pipeline
+    rules:
+      - alert: DatasetMonitorErrorRate
+        expr: sum(rate(dataset_operations_total{activity="monitor",outcome="error"}[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Dataset monitoring operations are failing
+      - alert: DatasetDispatchErrorRate
+        expr: sum(rate(dataset_operations_total{activity="dispatch",outcome="error"}[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Dataset alert dispatch operations are failing

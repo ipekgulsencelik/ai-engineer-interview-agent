@@ -84,3 +84,29 @@ jobs:
         env:
           POSTGRES_TEST_DSN: postgresql://interview:testpw@localhost:5432/interview_test
         run: python -m pytest -q tests/infrastructure/repositories/test_postgres_monitoring_integration.py
+
+  telemetry-sdk:
+    name: OpenTelemetry SDK + Prometheus integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install lightweight telemetry SDK dependencies
+        run: uv pip install --system -r requirements-observability.txt "pytest>=9,<10"
+
+      - name: Run real SDK and bounded telemetry tests
+        run: >-
+          python -m pytest -q
+          tests/infrastructure/telemetry/test_otel_dataset_telemetry_sdk.py
+          tests/evaluation/dataset/observability/test_telemetry_instrumentation.py

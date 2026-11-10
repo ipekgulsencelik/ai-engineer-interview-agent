@@ -1,0 +1,6 @@
+# Opt-in instrumentation dependencies. Core uv.lock remains unchanged.
+# Pin/hash-lock these for reproducible production deployments.
+opentelemetry-sdk>=1.37,<2
+opentelemetry-exporter-prometheus>=0.58b0,<1
+opentelemetry-exporter-otlp-proto-http>=1.37,<2
+prometheus-client>=0.20,<1
