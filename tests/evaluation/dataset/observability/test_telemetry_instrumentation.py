@@ -222,7 +222,7 @@ class _Sender:
 
 class _Outbox:
     def __init__(self, *, fail: bool = False, dead_letter: bool = False) -> None:
-        self.fail = fail
+        self.fail_claim = fail
         self.dead_letter = dead_letter
         self.acks = 0
         self.failures = 0
@@ -236,7 +236,7 @@ class _Outbox:
         )
 
     def claim(self, *, worker_id: str, limit: int, lease_seconds: int):
-        if self.fail:
+        if self.fail_claim:
             raise OSError("database unavailable")
         return (
             AlertLease(
