@@ -1,86 +1,137 @@
-# Dataset Schema Evolution (Phase 2)
+# Schema Evolution — Production Hardening (Phase 2)
 
-The `src.evaluation.dataset.schema_evolution` package provides **explicit
-versioned schemas for serialized dataset records**. Schema versions are independent
-of `DatasetVersion.version`: changing dataset contents is not the same as changing
-the shape of a record.
+Versioned dataset record schemas are separate from dataset content versions.
+This package does **not** mutate immutable `EvaluationDataset` domain aggregates.
 
-## Supported behavior
+## Architecture and SOLID
 
-- Immutable schema definitions with strict `MAJOR.MINOR.PATCH` versions.
-- Top-level JSON-compatible kinds: `string`, `integer`, `number`, `boolean`,
-  `object`, and `array`. Nested object/array contents are **not** recursively
-  typed in this first implementation.
-- Strict record validation: missing required fields, unexpected fields, invalid
-  types, unsupported nulls, and non-finite numeric values are rejected.
-- Backward compatibility analysis determines whether **old records can be read
-  by the new strict schema**. Consequently removal of a field is considered
-  breaking, even if it was optional.
-- Explicit, forward-only, linear migration chains. Adding a field may be
-  compatible, but promoting records to a new schema version still requires
-  an auditable migration step (it may have zero operations).
-- Migrations receive copies of records. A failed batch raises an error; the
-  service returns no partially migrated batch and does not mutate inputs.
+- `DatasetField`, `DatasetRecordSchema`: immutable schema value objects
+- `DatasetRecordValidator`: recursive record validation, no implicit coercion
+- `SchemaCompatibilityChecker`: breaking/safe changes, including nested fields
+- `MigrationRegistry`: forward-only, unambiguous version paths
+- `SchemaEvolutionService`: migration orchestration and step validation
+- `DatasetMigrationCoordinator`: validates before durable commit
+- `SQLiteDatasetSchemaRepository`: persistent immutable schema definitions
+- `SQLiteDatasetMigrationStore`: transactional snapshots and durable audit
+- `LoggingDatasetMigrationTelemetry`: best-effort metadata-only logging
 
-## Example
+The core components depend on structural Python `Protocol` interfaces,
+not SQLite or a particular logger. Infrastructure adapters are isolated
+under `src/infrastructure`.
+
+## Validated nested types
+
+`DatasetField` supports `properties=(...)` on objects and `items=...`
+on arrays. Unknown fields, invalid nested types, missing required fields,
+non-finite numbers and non-nullable nulls are rejected. Primitive types are
+`string`, `integer`, `number`, `boolean`, `object` and `array`.
+Unconstrained objects/arrays remain supported for backwards compatibility.
+This is **not** yet full JSON Schema (e.g., regex, unions, deep cross-field
+constraints and recursion depth limits are not provided).
+
+Compatibility reports ask whether **old valid records** can be read by the
+**new strict validator**. Removing an old field is breaking because old
+records would now contain unexpected keys; removing nested constraints is
+compatible. Reported compatibility does not auto-migrate records.
+
+## Persistent and audited migration example
 
 ```python
+from pathlib import Path
+
 from src.evaluation.dataset.schema_evolution import (
     DatasetField,
     DatasetRecordSchema,
+    DatasetMigrationCoordinator,
     MigrationRegistry,
     MigrationStep,
     RenameField,
-    SchemaCompatibilityChecker,
     SchemaEvolutionService,
 )
+from src.infrastructure.logging.dataset_migration_telemetry import (
+    LoggingDatasetMigrationTelemetry,
+)
+from src.infrastructure.repositories.sqlite_dataset_schema_repository import (
+    SQLiteDatasetSchemaRepository,
+)
+from src.infrastructure.repositories.sqlite_dataset_migration_store import (
+    SQLiteDatasetMigrationStore,
+)
 
-v1 = DatasetRecordSchema(
+db_path = Path("data/schema_evolution.sqlite")
+db_path.parent.mkdir(parents=True, exist_ok=True)
+
+registry = SQLiteDatasetSchemaRepository(db_path)
+store = SQLiteDatasetMigrationStore(db_path)
+
+old = DatasetRecordSchema(
     name="interview_samples",
     version="1.0.0",
     fields=(DatasetField("answer", "string"),),
 )
-v2 = DatasetRecordSchema(
+new = DatasetRecordSchema(
     name="interview_samples",
     version="2.0.0",
     fields=(DatasetField("candidate_answer", "string"),),
 )
+registry.register(schema=old)
+registry.register(schema=new)
 
-report = SchemaCompatibilityChecker().compare(source=v1, target=v2)
-assert not report.backward_compatible
-
-registry = MigrationRegistry([
+migrations = MigrationRegistry([
     MigrationStep(
         from_version="1.0.0",
         to_version="2.0.0",
         operations=(RenameField("answer", "candidate_answer"),),
     )
 ])
-result = SchemaEvolutionService(migrations=registry).migrate_records(
-    records=[{"answer": "A retrieval-augmented response"}],
-    source_schema=v1,
-    target_schema=v2,
+coordinator = DatasetMigrationCoordinator(
+    migrator=SchemaEvolutionService(
+        migrations=migrations,
+        intermediate_schemas=registry,
+    ),
+    persistence=store,
+    telemetry=LoggingDatasetMigrationTelemetry(),
 )
-assert result == ({"candidate_answer": "A retrieval-augmented response"},)
+event = coordinator.execute(
+    records=[{"answer": "Retrieval plus generation"}],
+    source_schema=old,
+    target_schema=new,
+)
+assert event.operation == "migration"
+assert store.current_snapshot(schema_name=old.name).schema_version == "2.0.0"
+
+# Explicit rollback moves the active snapshot back to the source version.
+rollback = coordinator.rollback_last(schema_name=old.name)
+assert rollback.operation == "rollback"
 ```
 
-## Integration boundary
+## Transactional guarantees and limits
 
-The package deliberately operates on serialized record mappings and **does not
-rewrite existing immutable `EvaluationDataset` aggregates or silently update their
-`dataset_version`**. A caller can project serialized samples using
-`EvaluationDatasetSerializer`, explicitly define a record schema, migrate the
-record mappings, and then validate/rebuild domain entities through existing
-loaders/constructors. End-to-end aggregate reconstruction, persistent schema
-registries, lineage, rollback and nested schema evolution are future work.
+A local SQLite `BEGIN IMMEDIATE` transaction atomically writes new snapshots,
+moves the active pointer, and appends a migration audit event. A failed SQL
+statement rolls back those writes; a failed migration validation never writes
+anything. Concurrent/stale requests are rejected by the expected source
+version **and content checksum**. Stored snapshots permit explicit rollback
+of the latest committed migration, with a separate audit event. Audit events
+include versions, hashes, record counts, and timestamps, **not raw answers**.
+Audit event metadata and raw snapshots are stored in the same SQLite file;
+protect that file according to your data privacy needs.
 
-## SOLID contracts
+SQLite snapshot rollback does **not** roll back external database writes,
+remote APIs, object storage or side effects of custom migration operations.
+Custom `MigrationOperation` implementations should be deterministic and
+side-effect free. This implementation is a durable local transaction boundary,
+not distributed two-phase commit, nor an externally replayable workflow.
 
-`DatasetRecordValidator` validates; `SchemaCompatibilityChecker` compares;
-`MigrationRegistry` resolves; `SchemaEvolutionService` orchestrates.
-The service depends on `RecordValidationPort` and `MigrationPathResolver`
-protocols. Custom migration operations implement `MigrationOperation` without
-modifying the orchestration service.
+For multi-hop migrations, pass `intermediate_schemas=registry` to
+`SchemaEvolutionService` so each intermediate version is validated.
+The optional parameter remains absent by default to preserve compatibility
+with older in-memory use cases, so production composition must pass it.
+
+The system does not yet persist failed validation attempts, enforce cross-
+process authorization, offer nested JSON Schema `$ref`, perform external
+storage migration, provide automatic disaster recovery/backups, or support a
+distributed database. Those are separate production deployment concerns.
 
 ## Quality gates
 
@@ -89,3 +140,7 @@ uv run ruff check .
 uv run pyright
 uv run pytest -q
 ```
+
+Integration tests cover schema round-trip, nested validation, multi-hop
+migration, stale-source detection, audit persistence, explicit rollback,
+transaction failure injection, and telemetry failures.

@@ -1,4 +1,4 @@
-"""Strict record validation with no implicit coercion."""
+"""Strict, recursive record validation with no implicit type coercion."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ def _matches_kind(value: object, kind: str) -> bool:
 
 
 class DatasetRecordValidator:
-    """Validates records using an explicit, versioned dataset record schema."""
+    """Validate nested objects/arrays using an explicit versioned schema."""
 
     def validate(
         self,
@@ -41,36 +41,63 @@ class DatasetRecordValidator:
         schema: DatasetRecordSchema,
         record: Mapping[str, object],
     ) -> None:
+        self._validate_fields(
+            fields=schema.fields,
+            record=record,
+            prefix="",
+        )
+
+    def _validate_fields(
+        self,
+        *,
+        fields: tuple[DatasetField, ...],
+        record: Mapping[str, object],
+        prefix: str,
+    ) -> None:
         if not isinstance(record, Mapping):
-            raise SchemaEvolutionError("record must be a mapping")
-        field_map = {field.name: field for field in schema.fields}
+            raise SchemaEvolutionError(f"{prefix or 'record'} must be a mapping")
+        field_map = {field.name: field for field in fields}
         unknown = set(record) - set(field_map)
         if unknown:
+            labels = sorted(str(key) for key in unknown)
             raise SchemaEvolutionError(
-                f"unknown record fields: {sorted(unknown)}"
+                f"unknown record fields at {prefix or 'root'}: {labels}"
             )
-        for field in schema.fields:
-            self._validate_field(field=field, record=record)
+        for field in fields:
+            path = f"{prefix}.{field.name}" if prefix else field.name
+            if field.name not in record:
+                if field.required:
+                    raise SchemaEvolutionError(f"missing required field: {path}")
+                continue
+            self._validate_value(field=field, value=record[field.name], path=path)
 
-    @staticmethod
-    def _validate_field(
+    def _validate_value(
+        self,
         *,
         field: DatasetField,
-        record: Mapping[str, object],
+        value: object,
+        path: str,
     ) -> None:
-        if field.name not in record:
-            if field.required:
-                raise SchemaEvolutionError(
-                    f"missing required field: {field.name}"
-                )
-            return
-        value = record[field.name]
         if value is None:
             if not field.nullable:
-                raise SchemaEvolutionError(
-                    f"field {field.name} cannot be null"
-                )
-        elif not _matches_kind(value, field.kind):
+                raise SchemaEvolutionError(f"field {path} cannot be null")
+            return
+        if not _matches_kind(value, field.kind):
             raise SchemaEvolutionError(
-                f"field {field.name} must have kind {field.kind}"
+                f"field {path} must have kind {field.kind}"
             )
+        if field.kind == "object" and field.properties:
+            assert isinstance(value, dict)
+            self._validate_fields(
+                fields=field.properties,
+                record=value,
+                prefix=path,
+            )
+        if field.kind == "array" and field.items is not None:
+            assert isinstance(value, list)
+            for index, item in enumerate(value):
+                self._validate_value(
+                    field=field.items,
+                    value=item,
+                    path=f"{path}[{index}]",
+                )

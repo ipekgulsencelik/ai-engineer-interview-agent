@@ -1,4 +1,4 @@
-"""Immutable schema contracts, versioned independently of dataset releases."""
+"""Immutable, independently versioned JSON record schema contracts."""
 
 from __future__ import annotations
 
@@ -33,6 +33,8 @@ class DatasetField:
     kind: str
     required: bool = True
     nullable: bool = False
+    properties: tuple[DatasetField, ...] = ()
+    items: DatasetField | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or not self.name.strip():
@@ -43,6 +45,18 @@ class DatasetField:
             )
         if type(self.required) is not bool or type(self.nullable) is not bool:
             raise SchemaEvolutionError("required and nullable must be booleans")
+        if not isinstance(self.properties, tuple):
+            raise SchemaEvolutionError("properties must be a tuple")
+        if not all(isinstance(item, DatasetField) for item in self.properties):
+            raise SchemaEvolutionError("properties must contain DatasetField")
+        if self.properties and self.kind != "object":
+            raise SchemaEvolutionError("only object fields may have properties")
+        names = [item.name for item in self.properties]
+        if len(names) != len(set(names)):
+            raise SchemaEvolutionError("duplicate nested field name")
+        if self.items is not None:
+            if self.kind != "array" or not isinstance(self.items, DatasetField):
+                raise SchemaEvolutionError("only arrays may have a DatasetField item")
 
 
 @dataclass(frozen=True, slots=True)
