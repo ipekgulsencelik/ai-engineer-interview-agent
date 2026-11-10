@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.domain.constants.market_skills import (
     MARKET_REQUIRED_SKILLS,
 )
-from src.domain.normalization.skill_normalizer import (
+from src.domain.normalizers.skill_normalizer import (
     SkillNormalizer,
 )
 from src.domain.results.cv_gap_analysis_result import (
@@ -12,7 +12,7 @@ from src.domain.results.cv_gap_analysis_result import (
 from src.domain.scoring.cv_alignment_score_calculator import (
     CVAlignmentScoreCalculator,
 )
-from src.application.services.validators.cv_gap_analysis_service_validator import (
+from src.application.validators.cv_gap_analysis_service_validator import (
     CVGapAnalysisServiceValidator,
 )
 from src.domain.value_objects.candidate_profile import (
