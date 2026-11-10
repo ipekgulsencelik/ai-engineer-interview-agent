@@ -38,6 +38,11 @@ from src.evaluation.dataset.observability.ports import (
 from src.evaluation.dataset.observability.serialization import (
     MonitoringSnapshotSerializer,
 )
+from src.evaluation.dataset.observability.telemetry import (
+    DatasetTelemetryPort,
+    NoopDatasetTelemetry,
+    SafeDatasetTelemetry,
+)
 
 __all__ = [
     "AlertDeliveryError",
@@ -53,6 +58,7 @@ __all__ = [
     "DatasetObservabilityCoordinator",
     "DatasetObservabilityError",
     "DatasetObservabilityMonitor",
+    "DatasetTelemetryPort",
     "DriftAnalyzerPort",
     "LeasedAlertOutbox",
     "LeasedDatasetAlertDispatcher",
@@ -63,5 +69,7 @@ __all__ = [
     "MonitoringSnapshotSerializer",
     "MonitoringStatus",
     "MonitoringWriter",
+    "NoopDatasetTelemetry",
+    "SafeDatasetTelemetry",
     "ObservabilityStorageError",
 ]

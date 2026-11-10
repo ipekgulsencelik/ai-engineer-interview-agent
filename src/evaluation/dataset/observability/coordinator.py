@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import time
+from collections.abc import Callable
 from typing import Protocol
 
 from src.evaluation.dataset.observability.errors import AlertDeliveryError
@@ -11,6 +13,10 @@ from src.evaluation.dataset.observability.ports import (
     AlertOutbox,
     AlertSender,
     MonitoringWriter,
+)
+from src.evaluation.dataset.observability.telemetry import (
+    DatasetTelemetryPort,
+    SafeDatasetTelemetry,
 )
 from src.evaluation.dataset.quality.models import QualityReport
 from src.evaluation.dataset.value_objects.dataset_distribution_snapshot import (
@@ -33,10 +39,17 @@ class DatasetObservabilityCoordinator:
     """Store snapshot and pending alerts atomically before dispatch."""
 
     def __init__(
-        self, *, monitor: MonitorEvaluatorPort, store: MonitoringWriter
+        self,
+        *,
+        monitor: MonitorEvaluatorPort,
+        store: MonitoringWriter,
+        telemetry: DatasetTelemetryPort | None = None,
+        monotonic_clock: Callable[[], float] | None = None,
     ) -> None:
         self._monitor = monitor
         self._store = store
+        self._telemetry = SafeDatasetTelemetry(telemetry)
+        self._clock = monotonic_clock or time.monotonic
 
     def evaluate_and_store(
         self,
@@ -46,14 +59,29 @@ class DatasetObservabilityCoordinator:
         baseline_quality: QualityReport,
         comparison_quality: QualityReport,
     ) -> MonitoringSnapshot:
-        snapshot = self._monitor.evaluate(
-            baseline_distribution=baseline_distribution,
-            comparison_distribution=comparison_distribution,
-            baseline_quality=baseline_quality,
-            comparison_quality=comparison_quality,
-        )
-        self._store.save(snapshot=snapshot)
-        return snapshot
+        started = self._clock()
+        with self._telemetry.span(activity="monitor"):
+            try:
+                snapshot = self._monitor.evaluate(
+                    baseline_distribution=baseline_distribution,
+                    comparison_distribution=comparison_distribution,
+                    baseline_quality=baseline_quality,
+                    comparison_quality=comparison_quality,
+                )
+                self._store.save(snapshot=snapshot)
+            except Exception:
+                self._telemetry.count(activity="monitor", outcome="error")
+                raise
+            else:
+                self._telemetry.count(
+                    activity="monitor", outcome=snapshot.status.value
+                )
+                return snapshot
+            finally:
+                self._telemetry.duration(
+                    activity="monitor",
+                    seconds=max(0.0, self._clock() - started),
+                )
 
 
 class DatasetAlertDispatcher:
