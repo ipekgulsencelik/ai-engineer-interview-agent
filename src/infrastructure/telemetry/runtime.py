@@ -13,6 +13,9 @@ from typing import Any
 from src.infrastructure.telemetry.otel_dataset_telemetry import (
     OpenTelemetryDatasetTelemetry,
 )
+from src.infrastructure.telemetry.otel_http_server_telemetry import (
+    OpenTelemetryHTTPServerTelemetry,
+)
 
 
 @dataclass(slots=True)
@@ -23,6 +26,16 @@ class DatasetTelemetryRuntime:
     meter_provider: Any
     tracer_provider: Any
     registry: Any
+
+    def http_server_telemetry(
+        self, *, route_templates: frozenset[str]
+    ) -> OpenTelemetryHTTPServerTelemetry:
+        """Share the same meter/tracer providers without global mutations."""
+        return OpenTelemetryHTTPServerTelemetry(
+            meter=self.meter_provider.get_meter("http.server"),
+            tracer=self.tracer_provider.get_tracer("http.server"),
+            route_templates=route_templates,
+        )
 
     def shutdown(self) -> None:
         # OTel providers manage reader/span processor lifetimes.

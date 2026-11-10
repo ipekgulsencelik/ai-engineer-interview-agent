@@ -1,12 +1,16 @@
 from __future__ import annotations
 
-from src.domain.retrieval.search_filters import SearchFilters
+from typing import TYPE_CHECKING
+
 from src.domain.schemas.search_filters_schema import (
     SEARCH_FILTERS_SCHEMA,
 )
 from src.domain.validators.schema_validator import (
     SchemaValidator,
 )
+
+if TYPE_CHECKING:
+    from src.domain.retrieval.search_filters import SearchFilters
 
 
 class SearchFiltersValidator:
