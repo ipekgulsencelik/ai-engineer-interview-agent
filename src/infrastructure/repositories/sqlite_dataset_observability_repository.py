@@ -188,11 +188,27 @@ class SQLiteDatasetObservabilityRepository:
             raise ObservabilityStorageError("monitoring listing failed") from exc
         return tuple(_decode_snapshot(*row) for row in rows)
 
+    @staticmethod
+    def _reject_legacy_dispatch_when_leases_enabled(
+        conn: sqlite3.Connection,
+    ) -> None:
+        columns = {
+            row[1]
+            for row in conn.execute(
+                "PRAGMA table_info(dataset_monitor_alert_outbox)"
+            )
+        }
+        if "lease_token" in columns:
+            raise ObservabilityStorageError(
+                "legacy alert delivery disabled: use leased outbox dispatcher"
+            )
+
     def pending(self, *, limit: int = 100) -> tuple[MonitoringAlert, ...]:
         if type(limit) is not int or not 1 <= limit <= 1000:
             raise ObservabilityStorageError("limit must be between 1 and 1000")
         try:
             with closing(self._connect()) as conn:
+                self._reject_legacy_dispatch_when_leases_enabled(conn)
                 rows = conn.execute(
                     """
                     SELECT a.alert_json, a.checksum
@@ -212,6 +228,7 @@ class SQLiteDatasetObservabilityRepository:
         try:
             with closing(self._connect()) as conn, conn:
                 conn.execute("BEGIN IMMEDIATE")
+                self._reject_legacy_dispatch_when_leases_enabled(conn)
                 row = conn.execute(
                     """
                     SELECT delivered_at, alert_json, checksum

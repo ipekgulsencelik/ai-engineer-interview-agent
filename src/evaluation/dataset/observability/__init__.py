@@ -4,6 +4,15 @@ from src.evaluation.dataset.observability.coordinator import (
     DatasetAlertDispatcher,
     DatasetObservabilityCoordinator,
 )
+from src.evaluation.dataset.observability.delivery import (
+    AlertDispatchSummary,
+    AlertFailureOutcome,
+    AlertLease,
+    AlertLeaseError,
+    AlertRetryPolicy,
+    LeasedAlertOutbox,
+    LeasedDatasetAlertDispatcher,
+)
 from src.evaluation.dataset.observability.errors import (
     AlertDeliveryError,
     DatasetObservabilityError,
@@ -32,6 +41,11 @@ from src.evaluation.dataset.observability.serialization import (
 
 __all__ = [
     "AlertDeliveryError",
+    "AlertDispatchSummary",
+    "AlertFailureOutcome",
+    "AlertLease",
+    "AlertLeaseError",
+    "AlertRetryPolicy",
     "AlertOutbox",
     "AlertSender",
     "AlertSeverity",
@@ -40,6 +54,8 @@ __all__ = [
     "DatasetObservabilityError",
     "DatasetObservabilityMonitor",
     "DriftAnalyzerPort",
+    "LeasedAlertOutbox",
+    "LeasedDatasetAlertDispatcher",
     "MonitoringAlert",
     "MonitoringPolicy",
     "MonitoringReader",
