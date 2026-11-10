@@ -151,7 +151,6 @@ def test_export_executive_summary_rejects_unknown_format(tmp_path) -> None:
     assert writer.writes == []
 
 
-
 class _InjectedResolver:
     def __init__(self, exporter: _TextExporterStub) -> None:
         self.exporter = exporter

@@ -62,7 +62,6 @@ def test_registry_rejects_unknown_format() -> None:
         registry.get(report_format="xml")
 
 
-
 def test_custom_format_preserves_builtin_formats() -> None:
     markdown = _TextExporterStub()
     html = _TextExporterStub()
