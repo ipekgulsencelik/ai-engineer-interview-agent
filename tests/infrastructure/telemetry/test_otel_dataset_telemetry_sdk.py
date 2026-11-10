@@ -117,6 +117,8 @@ def test_spans_do_not_capture_exception_messages() -> None:
 
 
 def test_prometheus_runtime_uses_isolated_registry_not_global_state() -> None:
+    pytest.importorskip("opentelemetry.exporter.prometheus")
+    pytest.importorskip("prometheus_client")
     from prometheus_client import CollectorRegistry, generate_latest
 
     registry = CollectorRegistry(auto_describe=True)
