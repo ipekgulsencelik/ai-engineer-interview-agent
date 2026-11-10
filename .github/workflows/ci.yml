@@ -39,3 +39,48 @@ jobs:
 
       - name: Pytest (required)
         run: uv run pytest -q
+
+  postgres-integration:
+    name: PostgreSQL + Alembic integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: interview
+          POSTGRES_PASSWORD: testpw
+          POSTGRES_DB: interview_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U interview -d interview_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install lightweight PostgreSQL test dependencies
+        run: uv pip install --system -r requirements-postgres.txt "pytest>=9,<10"
+
+      - name: Apply Alembic migrations to live PostgreSQL
+        env:
+          POSTGRES_DATABASE_URL: postgresql+psycopg://interview:testpw@localhost:5432/interview_test
+        run: python -m alembic -c db/postgres/alembic.ini upgrade head
+
+      - name: Verify PostgreSQL integration and concurrency
+        env:
+          POSTGRES_TEST_DSN: postgresql://interview:testpw@localhost:5432/interview_test
+        run: python -m pytest -q tests/infrastructure/repositories/test_postgres_monitoring_integration.py

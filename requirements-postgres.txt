@@ -1,0 +1,6 @@
+# Optional PostgreSQL/Alembic deployment dependencies.
+# Installed only for PostgreSQL deployments and the postgres-integration CI job.
+# Core uv.lock is unchanged; production must compile/pin an environment-specific lock.
+alembic>=1.14,<2
+SQLAlchemy>=2.0,<3
+psycopg[binary]>=3.2,<4
