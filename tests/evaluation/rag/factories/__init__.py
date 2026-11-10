@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from src.evaluation.rag.entities.experiment_node import ExperimentNode
+from src.evaluation.rag.entities.rag_evaluation_report import RAGEvaluationReport
 from src.evaluation.rag.entities.rag_evaluation_sample import RAGEvaluationSample
+from src.evaluation.rag.value_objects.conversation_turn import ConversationTurn
 from src.evaluation.rag.value_objects.rag_evaluation_result import RAGEvaluationResult
+from src.evaluation.rag.value_objects.turn_rag_result import TurnRAGResult
 
 
 def rag_sample(**overrides: object) -> RAGEvaluationSample:
@@ -58,10 +62,6 @@ def rag_result(**overrides: object) -> RAGEvaluationResult:
     }
     data.update(overrides)
     return RAGEvaluationResult(**data)  # type: ignore[arg-type]
-
-from src.evaluation.rag.entities.rag_evaluation_report import RAGEvaluationReport
-from src.evaluation.rag.value_objects.conversation_turn import ConversationTurn
-from src.evaluation.rag.value_objects.turn_rag_result import TurnRAGResult
 
 
 def rag_report(**overrides: object) -> RAGEvaluationReport:
@@ -124,8 +124,6 @@ def turn_rag_result(**overrides: object) -> TurnRAGResult:
     }
     data.update(overrides)
     return TurnRAGResult(**data)  # type: ignore[arg-type]
-
-from src.evaluation.rag.entities.experiment_node import ExperimentNode
 
 
 def experiment_node(**overrides: object) -> ExperimentNode:

@@ -60,3 +60,36 @@ def test_registry_rejects_unknown_format() -> None:
 
     with pytest.raises(ValueError, match="unsupported format: xml"):
         registry.get(report_format="xml")
+
+
+def test_custom_format_preserves_builtin_formats() -> None:
+    markdown = _TextExporterStub()
+    html = _TextExporterStub()
+    json = _TextExporterStub()
+    csv = _TextExporterStub()
+    registry = TextReportExporterRegistry(
+        markdown_exporter=markdown,
+        html_exporter=html,
+        json_exporter=json,
+        text_exporters={"csv": csv},
+    )
+
+    assert registry.get(report_format="markdown") is markdown
+    assert registry.get(report_format="html") is html
+    assert registry.get(report_format="json") is json
+    assert registry.get(report_format="csv") is csv
+
+
+def test_custom_mapping_can_override_default_without_mutation() -> None:
+    original_markdown = _TextExporterStub()
+    replacement = _TextExporterStub()
+    provided = {"markdown": replacement}
+    registry = TextReportExporterRegistry(
+        markdown_exporter=original_markdown,
+        html_exporter=_TextExporterStub(),
+        json_exporter=_TextExporterStub(),
+        text_exporters=provided,
+    )
+    provided["markdown"] = original_markdown
+
+    assert registry.get(report_format="markdown") is replacement

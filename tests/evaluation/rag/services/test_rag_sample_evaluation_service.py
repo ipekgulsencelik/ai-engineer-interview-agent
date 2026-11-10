@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from src.evaluation.rag.services.rag_sample_evaluation_service import RAGSampleEvaluationService
 from tests.evaluation.rag.factories import rag_sample
 
@@ -28,8 +30,6 @@ def test_rag_sample_evaluation_service_should_return_full_sample_level_result() 
     assert result.faithfulness_score == 1.0
     assert result.passed is True
     assert result.latency_ms >= 0.0
-
-from datetime import UTC, datetime
 
 
 class _FixedClock:

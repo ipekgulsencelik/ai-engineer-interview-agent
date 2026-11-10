@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Final
 
 from src.domain.validation.common_rules import (
-    BOOLEAN_RULE,
     DATETIME_RULE,
     DICT_RULE,
     NON_EMPTY_STRING_RULE,

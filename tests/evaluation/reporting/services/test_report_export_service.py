@@ -149,3 +149,45 @@ def test_export_executive_summary_rejects_unknown_format(tmp_path) -> None:
         )
 
     assert writer.writes == []
+
+
+class _InjectedResolver:
+    def __init__(self, exporter: _TextExporterStub) -> None:
+        self.exporter = exporter
+        self.requested_formats: list[str] = []
+
+    def get(self, *, report_format: str) -> _TextExporterStub:
+        self.requested_formats.append(report_format)
+        return self.exporter
+
+
+def test_service_accepts_protocol_based_exporter_resolver(tmp_path) -> None:
+    from src.evaluation.reporting.services.report_export_service import (
+        ReportExportService,
+    )
+
+    exporter = _TextExporterStub("resolved-content")
+    resolver = _InjectedResolver(exporter)
+    writer = _ReportTextWriterStub()
+    default_exporter = _TextExporterStub("unused")
+    service = ReportExportService(
+        markdown_exporter=default_exporter,
+        html_exporter=default_exporter,
+        json_exporter=default_exporter,
+        pdf_exporter=_PDFExporterStub(),
+        file_writer=writer,
+        text_exporter_registry=resolver,
+    )
+    output_path = tmp_path / "summary.txt"
+    summary = object()
+
+    result = service.export_executive_summary(
+        summary=summary,
+        report_format="custom",
+        output_path=output_path,
+    )
+
+    assert result == "resolved-content"
+    assert resolver.requested_formats == ["custom"]
+    assert exporter.calls == [("summary", summary)]
+    assert writer.writes == [(output_path, "resolved-content")]

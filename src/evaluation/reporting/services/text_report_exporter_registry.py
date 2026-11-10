@@ -30,8 +30,7 @@ class TextReportExporterRegistry:
         | None = None,
     ) -> None:
         self._text_exporters = dict(
-            text_exporters
-            or zip(
+            zip(
                 DEFAULT_TEXT_EXPORTER_FORMATS,
                 (
                     markdown_exporter,
@@ -41,6 +40,8 @@ class TextReportExporterRegistry:
                 strict=True,
             )
         )
+        if text_exporters is not None:
+            self._text_exporters.update(text_exporters)
 
     def get(
         self,
