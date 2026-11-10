@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from src.evaluation.rag.evaluators.llm_judge_rag_evaluator import LLMJudgeRAGEvaluator
 from src.evaluation.rag.value_objects.llm_judge_request import LLMJudgeRequest
+from src.evaluation.rag.value_objects.llm_judge_result import LLMJudgeResult
 
 
 def test_llm_judge_rag_evaluator_should_build_prompt_and_parse_response() -> None:
@@ -14,8 +15,6 @@ def test_llm_judge_rag_evaluator_should_build_prompt_and_parse_response() -> Non
     assert "criteria" in prompt
     assert result.score == 0.8
     assert result.reason == "ok"
-
-from src.evaluation.rag.value_objects.llm_judge_result import LLMJudgeResult
 
 
 class _PromptBuilderSpy:

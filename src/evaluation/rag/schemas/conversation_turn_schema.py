@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import Final
 
 from src.domain.validation.common_rules import (
-    DATETIME_RULE,
     NON_EMPTY_STRING_RULE,
     NON_NEGATIVE_NUMBER_RULE,
     OPTIONAL_STRING_RULE,
