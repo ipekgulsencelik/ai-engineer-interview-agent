@@ -92,7 +92,7 @@ def snapshot(index: int = 0) -> MonitoringSnapshot:
 def test_alembic_created_schema_at_expected_head(pg_connection) -> None:
     with pg_connection() as conn, conn.cursor() as cursor:
         cursor.execute("SELECT version_num FROM alembic_version")
-        assert cursor.fetchone()[0] == "20261110_02"
+        assert cursor.fetchone()[0] == "20261121_03"
         cursor.execute(
             """
             SELECT column_name FROM information_schema.columns
@@ -100,7 +100,7 @@ def test_alembic_created_schema_at_expected_head(pg_connection) -> None:
             """
         )
         columns = {row[0] for row in cursor.fetchall()}
-    assert {"lease_token", "attempt_count", "dead_lettered_at"} <= columns
+    assert {"lease_token", "attempt_count", "dead_lettered_at", "tenant_id"} <= columns
 
 
 def test_snapshot_and_alert_outbox_roundtrip_across_connections(
