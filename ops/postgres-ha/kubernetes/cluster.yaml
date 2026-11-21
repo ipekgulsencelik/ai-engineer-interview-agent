@@ -1,0 +1,41 @@
+# Requires CloudNativePG operator 1.30.x + Barman Cloud Plugin 0.16.x,
+# three independent Kubernetes zone failure domains and reliable PVCs.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: interview-db-primary
+  namespace: interview-db
+  labels:
+    app.kubernetes.io/part-of: ai-engineer-interview-agent
+spec:
+  # Exact version tag, not a mutable 'latest' image. Pin digest in release.
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.16-system-trixie
+  instances: 3
+  primaryUpdateStrategy: supervised
+  # Acknowledged writes require one synchronous replica. When both replicas
+  # fail, availability is deliberately traded for reduced risk of lost commits.
+  minSyncReplicas: 1
+  maxSyncReplicas: 1
+  postgresql:
+    parameters:
+      max_connections: "150"
+      archive_timeout: "300s"
+  storage:
+    size: 20Gi
+  walStorage:
+    size: 10Gi
+  resources:
+    requests:
+      cpu: "250m"
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+  affinity:
+    enablePodAntiAffinity: true
+    podAntiAffinityType: required
+    topologyKey: topology.kubernetes.io/zone
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: interview-db-primary-backups

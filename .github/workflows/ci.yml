@@ -168,3 +168,29 @@ jobs:
           -v "$ALERT_WEBHOOK_URL_FILE:/run/secrets/alert_webhook_url:ro"
           prom/alertmanager:v0.28.1
           check-config /etc/alertmanager/alertmanager.yml
+
+  postgres-ha-dr:
+    name: PostgreSQL HA/DR contract + real PITR replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install contract dependencies
+        run: python -m pip install "PyYAML>=6,<7" "pytest>=9,<10"
+
+      - name: Verify isolated HA/DR manifests and failover guardrails
+        run: >-
+          python -m pytest -q
+          tests/ops/test_postgres_ha_dr_contracts.py
+          tests/ops/test_postgres_failover_drill.py
+
+      - name: Run real PostgreSQL 16 physical backup and WAL PITR drill
+        run: bash ops/postgres-ha/tests/pitr_docker_drill.sh

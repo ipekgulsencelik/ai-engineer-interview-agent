@@ -1,0 +1,19 @@
+# This ObjectStore is READ-ONLY for recovery; the Kubernetes Secret MUST
+# contain credentials restricted to GetObject/ListBucket on the archive.
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: interview-db-backup-source
+  namespace: interview-db-restore
+spec:
+  configuration:
+    destinationPath: s3://REPLACE_WITH_REAL_VERSIONED_BACKUP_BUCKET/interview-db-primary/
+    s3Credentials:
+      accessKeyId:
+        name: interview-db-s3-restore-reader
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: interview-db-s3-restore-reader
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip

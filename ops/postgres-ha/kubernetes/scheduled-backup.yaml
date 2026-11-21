@@ -1,0 +1,16 @@
+# CloudNativePG six-field cron: second minute hour day month weekday.
+# An initial backup starts immediately after this resource is created.
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: interview-db-daily
+  namespace: interview-db
+spec:
+  schedule: "0 0 2 * * *"
+  immediate: true
+  backupOwnerReference: self
+  cluster:
+    name: interview-db-primary
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io

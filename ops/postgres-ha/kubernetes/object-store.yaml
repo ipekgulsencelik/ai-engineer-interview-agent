@@ -1,0 +1,23 @@
+# Runbook prerequisite: replace the deliberately invalid S3 bucket before apply.
+# This configuration NEVER contains static AWS keys, IAM tokens or secret values.
+# Supply the referenced Kubernetes Secret through an external secret manager.
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: interview-db-primary-backups
+  namespace: interview-db
+spec:
+  configuration:
+    destinationPath: s3://REPLACE_WITH_REAL_VERSIONED_BACKUP_BUCKET/interview-db-primary/
+    s3Credentials:
+      accessKeyId:
+        name: interview-db-s3-writer
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: interview-db-s3-writer
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+    data:
+      compression: gzip
+  retentionPolicy: "30d"

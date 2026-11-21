@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: interview-db-restore
+  labels:
+    app.kubernetes.io/part-of: ai-engineer-interview-agent
+    pod-security.kubernetes.io/enforce: restricted

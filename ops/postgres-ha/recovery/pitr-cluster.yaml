@@ -1,0 +1,27 @@
+# NOT ready to apply: replace the timestamp with a confirmed UTC target.
+# Never recover into the source Cluster name, namespace or WAL archive prefix.
+# Restored clusters have NO write-capable backup plugin to the source archive.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: interview-db-pitr-restore
+  namespace: interview-db-restore
+spec:
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.16-system-trixie
+  instances: 1
+  storage:
+    size: 20Gi
+  walStorage:
+    size: 10Gi
+  bootstrap:
+    recovery:
+      source: source
+      recoveryTarget:
+        targetTime: "REPLACE_WITH_VERIFIED_UTC_TIMESTAMP"
+  externalClusters:
+    - name: source
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: interview-db-backup-source
+          serverName: interview-db-primary
