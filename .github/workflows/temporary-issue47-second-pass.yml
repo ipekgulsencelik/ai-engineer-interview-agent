@@ -1,0 +1,39 @@
+# One-shot; isolated security branch only; self-removing resolver.
+name: One-shot issue 47 Pillow and LangGraph compatibility refresh
+on:
+  push:
+    branches:
+      - security/issue-47-dependency-updates
+permissions:
+  contents: write
+jobs:
+  upgrade:
+    if: github.ref == 'refs/heads/security/issue-47-dependency-updates'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install uv
+        run: python -m pip install "uv>=0.9,<1"
+      - name: Upgrade parent dependencies to admit patched Pillow and LangGraph SDK
+        run: |
+          uv lock --upgrade-package streamlit \
+            --upgrade-package reportlab \
+            --upgrade-package pillow \
+            --upgrade-package langgraph \
+            --upgrade-package langgraph-sdk
+          uv lock --check
+          git diff --stat -- uv.lock
+      - name: Self-remove and push only updated locked packages
+        run: |
+          git rm -- .github/workflows/temporary-issue47-second-pass.yml
+          git add uv.lock
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build(security): upgrade Streamlit and LangGraph parents for patched transitive dependencies'
+          git push origin HEAD:refs/heads/security/issue-47-dependency-updates
