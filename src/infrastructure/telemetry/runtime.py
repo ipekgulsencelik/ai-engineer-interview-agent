@@ -116,3 +116,127 @@ def create_prometheus_runtime(
         tracer_provider=tracer_provider,
         registry=metric_registry,
     )
+
+
+def create_otlp_runtime(
+    *,
+    service_name: str,
+    collector_endpoint: str,
+    allow_insecure_local: bool = False,
+    export_interval_millis: int = 15000,
+    headers: dict[str, str] | None = None,
+) -> DatasetTelemetryRuntime:
+    """Build opt-in OTLP HTTP metrics+traces with a single injected SDK.
+
+    HTTPS is mandatory, except explicit opt-in for localhost or the isolated
+    Docker Compose hostname "otel-collector". Never mutates global providers.
+    A metric push reader supports separate app worker processes; the collector
+    is responsible for fleet-level aggregation and forwarding.
+    """
+    from urllib.parse import urlsplit
+
+    if not isinstance(service_name, str) or not service_name.strip():
+        raise ValueError("service_name must be non-empty")
+    if type(export_interval_millis) is not int or not (
+        1000 <= export_interval_millis <= 300000
+    ):
+        raise ValueError("export_interval_millis must be in [1000, 300000]")
+    if type(allow_insecure_local) is not bool:
+        raise ValueError("allow_insecure_local must be boolean")
+    if not isinstance(collector_endpoint, str):
+        raise ValueError("collector_endpoint must be URL")
+    try:
+        endpoint = urlsplit(collector_endpoint)
+        port = endpoint.port
+    except ValueError as exc:
+        raise ValueError("collector_endpoint must have valid port") from exc
+    if (
+        endpoint.scheme not in ("https", "http")
+        or not endpoint.hostname
+        or port is None
+        or endpoint.username is not None
+        or endpoint.password is not None
+        or endpoint.path not in ("", "/")
+        or endpoint.query
+        or endpoint.fragment
+    ):
+        raise ValueError(
+            "collector_endpoint must be a scheme, host and port with no credentials"
+        )
+    if endpoint.scheme == "http" and not (
+        allow_insecure_local
+        and endpoint.hostname in ("localhost", "127.0.0.1", "::1", "otel-collector")
+    ):
+        raise ValueError(
+            "plain HTTP OTLP is restricted to explicitly approved local hosts"
+        )
+    if headers is not None and (
+        not isinstance(headers, dict)
+        or any(
+            not isinstance(key, str) or not key.strip()
+            or not isinstance(value, str)
+            for key, value in headers.items()
+        )
+    ):
+        raise ValueError("headers must be a mapping of nonempty names and values")
+
+    try:
+        sdk_metrics = importlib.import_module("opentelemetry.sdk.metrics")
+        sdk_trace = importlib.import_module("opentelemetry.sdk.trace")
+        sdk_resource = importlib.import_module("opentelemetry.sdk.resources")
+        sdk_metric_export = importlib.import_module(
+            "opentelemetry.sdk.metrics.export"
+        )
+        sdk_trace_export = importlib.import_module(
+            "opentelemetry.sdk.trace.export"
+        )
+        otlp_metrics = importlib.import_module(
+            "opentelemetry.exporter.otlp.proto.http.metric_exporter"
+        )
+        otlp_trace = importlib.import_module(
+            "opentelemetry.exporter.otlp.proto.http.trace_exporter"
+        )
+    except ImportError as exc:
+        raise RuntimeError(
+            "Install optional requirements-observability.txt for OTLP"
+        ) from exc
+
+    base_url = collector_endpoint.rstrip("/")
+    resource = sdk_resource.Resource.create({"service.name": service_name})
+    meter_reader = sdk_metric_export.PeriodicExportingMetricReader(
+        otlp_metrics.OTLPMetricExporter(
+            endpoint=f"{base_url}/v1/metrics",
+            timeout=5,
+            headers=headers,
+        ),
+        export_interval_millis=export_interval_millis,
+        export_timeout_millis=5000,
+    )
+    meter_provider = sdk_metrics.MeterProvider(
+        resource=resource,
+        metric_readers=[meter_reader],
+    )
+    tracer_provider = sdk_trace.TracerProvider(resource=resource)
+    try:
+        tracer_provider.add_span_processor(
+            sdk_trace_export.BatchSpanProcessor(
+                otlp_trace.OTLPSpanExporter(
+                    endpoint=f"{base_url}/v1/traces",
+                    timeout=5,
+                    headers=headers,
+                )
+            )
+        )
+        return DatasetTelemetryRuntime(
+            telemetry=OpenTelemetryDatasetTelemetry(
+                meter=meter_provider.get_meter("dataset.observability"),
+                tracer=tracer_provider.get_tracer("dataset.observability"),
+            ),
+            meter_provider=meter_provider,
+            tracer_provider=tracer_provider,
+            registry=None,
+        )
+    except Exception:
+        meter_provider.shutdown()
+        tracer_provider.shutdown()
+        raise

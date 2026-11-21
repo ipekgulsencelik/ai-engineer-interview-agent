@@ -1,0 +1,124 @@
+# Local/staging observability stack. All telemetry APIs are container-only.
+# Only Grafana is published, and only on host loopback.
+# Run: docker compose --env-file ops/observability/.env \
+#      -f ops/observability/compose.yml up -d
+name: interview-observability
+
+services:
+  tempo:
+    image: grafana/tempo:2.8.2
+    command: ["-config.file=/etc/tempo.yml"]
+    volumes:
+      - ./tempo.yml:/etc/tempo.yml:ro
+      - tempo-data:/var/tempo
+    expose: ["3200", "4317"]
+    networks: [telemetry-private]
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.137.0
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    volumes:
+      - ./collector.yml:/etc/otelcol-contrib/config.yaml:ro
+    expose: ["4317", "4318", "9464"]
+    depends_on:
+      tempo:
+        condition: service_started
+    networks: [telemetry-private]
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.7.2
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=35d
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./slo-rules.yml:/etc/prometheus/slo-rules.yml:ro
+      - prometheus-data:/prometheus
+    expose: ["9090"]
+    depends_on:
+      otel-collector:
+        condition: service_started
+      alertmanager:
+        condition: service_started
+    networks: [telemetry-private]
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    secrets: [alert_webhook_url]
+    expose: ["9093"]
+    networks:
+      - telemetry-private
+      - notifications-egress
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:12.2.0
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_PLUGINS_PLUGIN_ADMIN_ENABLED: "false"
+    secrets: [grafana_admin_password]
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/ai-interview-http-dataset-dashboard.json:/var/lib/grafana/dashboards/ai-interview-http-dataset-dashboard.json:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      prometheus:
+        condition: service_started
+      tempo:
+        condition: service_started
+    networks: [telemetry-private]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
+networks:
+  telemetry-private:
+    internal: true
+  notifications-egress:
+    # Only Alertmanager has outbound notification transport access.
+    driver: bridge
+
+volumes:
+  tempo-data:
+  prometheus-data:
+  alertmanager-data:
+  grafana-data:
+
+secrets:
+  grafana_admin_password:
+    file: ${GRAFANA_ADMIN_PASSWORD_FILE:?set absolute Grafana password file path}
+  alert_webhook_url:
+    file: ${ALERT_WEBHOOK_URL_FILE:?set absolute alert webhook URL file path}

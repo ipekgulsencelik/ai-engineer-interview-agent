@@ -1,0 +1,34 @@
+# Real notification delivery requires the operator-provided webhook secret.
+# No notification payload, URL or token is committed to git.
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: incident-webhook
+  group_by: [alertname, severity]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers:
+        - severity="critical"
+      receiver: incident-webhook
+      group_wait: 10s
+      repeat_interval: 1h
+    - matchers:
+        - severity="warning"
+      receiver: incident-webhook
+      repeat_interval: 6h
+
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal: [alertname]
+
+receivers:
+  - name: incident-webhook
+    webhook_configs:
+      - url_file: /run/secrets/alert_webhook_url
+        send_resolved: true
