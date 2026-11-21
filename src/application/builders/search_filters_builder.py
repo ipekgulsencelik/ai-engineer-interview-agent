@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.domain.scoring.scoring_context import (
     ScoringContext,
 )
-from src.domain.value_objects.search_filters import (
+from src.domain.retrieval.search_filters import (
     SearchFilters,
 )
 

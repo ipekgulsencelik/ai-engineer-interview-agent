@@ -6,7 +6,7 @@ from src.domain.entities.question import Question
 from src.domain.retrieval.question_search_result import (
     QuestionSearchResult,
 )
-from src.domain.value_objects.search_filters import (
+from src.domain.retrieval.search_filters import (
     SearchFilters,
 )
 

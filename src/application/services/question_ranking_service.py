@@ -4,7 +4,7 @@ from src.domain.constants.ranking import (
     INITIAL_CANDIDATE_RANK,
     RANKING_START_INDEX,
 )
-from src.application.ranking.selection_result_factory import (
+from src.application.rankers.selection_result_factory import (
     SelectionResultFactory,
 )
 from src.domain.results.selection_result import (

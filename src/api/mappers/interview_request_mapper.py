@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.api.schemas.interview.requests import (
+from src.api.schemas.interview.request import (
     InterviewStepRequest,
 )
 from src.application.use_cases.run_interview_step_use_case import (

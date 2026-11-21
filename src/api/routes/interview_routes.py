@@ -12,7 +12,7 @@ from src.api.mappers.interview_request_mapper import (
 from src.api.mappers.interview_step_response_mapper import (
     InterviewStepResponseMapper,
 )
-from src.api.schemas.interview.requests import (
+from src.api.schemas.interview.request import (
     InterviewStepRequest,
 )
 from src.api.schemas.interview.responses import (
