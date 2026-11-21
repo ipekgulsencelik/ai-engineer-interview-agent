@@ -1,0 +1,47 @@
+"""Fail-closed guardrails against accidentally exposing unpatched ChromaDB."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from unittest.mock import patch
+
+
+def test_chroma_factory_is_embedded_local_only() -> None:
+    from src.infrastructure.vector_stores.chroma.chroma_client_factory import (
+        create_chroma_client,
+    )
+
+    with patch(
+        "src.infrastructure.vector_stores.chroma.chroma_client_factory."
+        "chromadb.PersistentClient"
+    ) as factory:
+        returned = create_chroma_client(persist_directory="data/chroma")
+        assert returned is factory.return_value
+        factory.assert_called_once_with(path="data/chroma")
+
+
+def test_all_chroma_infrastructure_code_disallows_remote_client() -> None:
+    root = Path("src/infrastructure")
+    offenders = []
+    for filename in root.rglob("*.py"):
+        source = filename.read_text(encoding="utf-8")
+        if (
+            "chromadb.HttpClient(" in source
+            or "chromadb.AsyncHttpClient(" in source
+            or "chromadb.CloudClient(" in source
+        ):
+            offenders.append(str(filename))
+    assert offenders == []
+
+
+def test_embedded_store_has_no_published_chroma_service() -> None:
+    code = Path(
+        "src/infrastructure/vector_stores/chroma/chroma_vector_store.py"
+    ).read_text(encoding="utf-8")
+    assert "chromadb.PersistentClient(" in code
+    dockerfile = Path("Dockerfile.release").read_text(encoding="utf-8")
+    compose = Path("docker-compose.yml").read_text(encoding="utf-8")
+    assert "chroma run" not in dockerfile
+    assert "chroma run" not in compose
+    assert "8000" in dockerfile
+    assert "chroma:" not in compose
