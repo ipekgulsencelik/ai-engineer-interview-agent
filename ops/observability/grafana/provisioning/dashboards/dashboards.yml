@@ -1,0 +1,11 @@
+apiVersion: 1
+providers:
+  - name: interview-agent-observability
+    orgId: 1
+    folder: AI Interview Agent
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 60
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards

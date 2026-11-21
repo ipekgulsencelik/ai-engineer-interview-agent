@@ -1,0 +1,41 @@
+rule_files:
+  - /etc/prometheus/slo-rules.yml
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'http_server_requests_total{status_class="5xx",method="GET",route="/api/v1/health/"}'
+        values: '0+10x450'
+      - series: 'http_server_requests_total{status_class="2xx",method="GET",route="/api/v1/health/"}'
+        values: '0+100x450'
+    alert_rule_test:
+      - eval_time: 7h
+        alertname: InterviewAPIAvailabilityFastBurn
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              slo: http-availability-99-9
+            exp_annotations:
+              summary: API is exhausting its 30-day error budget rapidly
+              description: More than 14.4x burn across 1h and 5m; investigate 5xx.
+      - eval_time: 7h
+        alertname: InterviewAPIAvailabilitySlowBurn
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              slo: http-availability-99-9
+            exp_annotations:
+              summary: API error budget burn is elevated
+              description: More than 6x burn across 6h and 30m; review error sources.
+
+  - interval: 1m
+    input_series:
+      - series: 'http_server_requests_total{status_class="2xx",method="GET",route="/api/v1/health/"}'
+        values: '500+0x450'
+    alert_rule_test:
+      - eval_time: 7h
+        alertname: InterviewAPIAvailabilityFastBurn
+        exp_alerts: []
+      - eval_time: 7h
+        alertname: InterviewAPIAvailabilitySlowBurn
+        exp_alerts: []

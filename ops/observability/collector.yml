@@ -1,0 +1,42 @@
+# OTLP ingress is Docker-private. Do NOT publish 4317/4318/9464 to a host.
+# Place an authenticated mTLS gateway before remote collectors in production.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 256
+    spike_limit_mib: 64
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:9464
+    # Avoid exporting high-cardinality resource attributes as labels.
+    resource_to_telemetry_conversion:
+      enabled: false
+  otlp/tempo:
+    endpoint: tempo:4317
+    # TLS is disabled only on this isolated Docker network. Cross-host requires
+    # TLS and authentication enforced by an approved gateway/service mesh.
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [prometheus]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/tempo]

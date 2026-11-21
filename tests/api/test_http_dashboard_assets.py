@@ -14,7 +14,7 @@ def test_dashboard_is_importable_and_uses_expected_promql_metrics() -> None:
     )
     assert dashboard["uid"] == "ai-interview-api-ops"
     assert dashboard["schemaVersion"] >= 39
-    assert len(dashboard["panels"]) >= 6
+    assert len(dashboard["panels"]) >= 8
     ids = [panel["id"] for panel in dashboard["panels"]]
     assert len(ids) == len(set(ids))
     promql = " ".join(
@@ -27,10 +27,11 @@ def test_dashboard_is_importable_and_uses_expected_promql_metrics() -> None:
     assert "dataset_operations_total" in promql
     assert "histogram_quantile" in promql
     assert "status_class" in promql
+    assert "interview:http_5xx:ratio_30d" in promql
     assert "candidate_answer" not in promql
     assert "raw_path" not in promql
     assert all(
-        panel["datasource"]["uid"] == "${DS_PROMETHEUS}"
+        panel["datasource"]["uid"] == "prometheus"
         for panel in dashboard["panels"]
     )
 

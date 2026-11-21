@@ -1,0 +1,51 @@
+# Availability SLO: 99.9% over rolling 30d. Error budget = 0.001.
+# 5xx are bad; 2xx/3xx/4xx count in total. Tune for route/traffic mix.
+# Empty/low-traffic windows are explicitly suppressed by min request guards.
+groups:
+  - name: interview-api-slo
+    interval: 30s
+    rules:
+      - record: interview:http_5xx:ratio_5m
+        expr: (sum(rate(http_server_requests_total{status_class="5xx"}[5m])) or vector(0)) / clamp_min(sum(rate(http_server_requests_total[5m])), 0.000000001)
+      - record: interview:http_5xx:ratio_1h
+        expr: (sum(rate(http_server_requests_total{status_class="5xx"}[1h])) or vector(0)) / clamp_min(sum(rate(http_server_requests_total[1h])), 0.000000001)
+      - record: interview:http_5xx:ratio_30m
+        expr: (sum(rate(http_server_requests_total{status_class="5xx"}[30m])) or vector(0)) / clamp_min(sum(rate(http_server_requests_total[30m])), 0.000000001)
+      - record: interview:http_5xx:ratio_6h
+        expr: (sum(rate(http_server_requests_total{status_class="5xx"}[6h])) or vector(0)) / clamp_min(sum(rate(http_server_requests_total[6h])), 0.000000001)
+      - record: interview:http_5xx:ratio_30d
+        expr: (sum(increase(http_server_requests_total{status_class="5xx"}[30d])) or vector(0)) / clamp_min(sum(increase(http_server_requests_total[30d])), 1)
+      - alert: InterviewAPIAvailabilityFastBurn
+        expr: |
+          interview:http_5xx:ratio_1h > (14.4 * 0.001)
+          and interview:http_5xx:ratio_5m > (14.4 * 0.001)
+          and sum(increase(http_server_requests_total[1h])) >= 100
+          and sum(increase(http_server_requests_total[5m])) >= 10
+        for: 2m
+        labels:
+          severity: critical
+          slo: http-availability-99-9
+        annotations:
+          summary: API is exhausting its 30-day error budget rapidly
+          description: More than 14.4x burn across 1h and 5m; investigate 5xx.
+      - alert: InterviewAPIAvailabilitySlowBurn
+        expr: |
+          interview:http_5xx:ratio_6h > (6 * 0.001)
+          and interview:http_5xx:ratio_30m > (6 * 0.001)
+          and sum(increase(http_server_requests_total[6h])) >= 300
+          and sum(increase(http_server_requests_total[30m])) >= 30
+        for: 5m
+        labels:
+          severity: warning
+          slo: http-availability-99-9
+        annotations:
+          summary: API error budget burn is elevated
+          description: More than 6x burn across 6h and 30m; review error sources.
+      - alert: InterviewAPIExporterMissing
+        expr: absent_over_time(http_server_requests_total[15m])
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: HTTP request telemetry is absent for 15 minutes
+          description: Verify app activity and OTLP export before trusting SLO.
