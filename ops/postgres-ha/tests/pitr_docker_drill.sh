@@ -17,7 +17,14 @@ ci_password="ci-only-temporary-postgresql-password"
 
 cleanup() {
   docker rm -f "$source_name" "$restore_name" >/dev/null 2>&1 || true
-  rm -rf "$work"
+  # Docker's postgres user (uid inside container) owns the backup/PGDATA.
+  # Remove those files inside a disposable root container; never sudo-rm
+  # arbitrary host paths, and never mask the PITR assertion's exit status.
+  docker run --rm --entrypoint=/bin/sh -u 0 \
+    -v "$work:/work" postgres:16.16 \
+    -c 'rm -rf /work/source /work/base /work/archive /work/restored' \
+    >/dev/null 2>&1 || true
+  rm -rf "$work" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
 
