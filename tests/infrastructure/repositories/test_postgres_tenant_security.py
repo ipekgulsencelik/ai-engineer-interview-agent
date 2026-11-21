@@ -21,9 +21,6 @@ from src.evaluation.dataset.observability import (
     MonitoringStatus,
     ObservabilityStorageError,
 )
-from src.infrastructure.repositories.postgres_connection import (
-    PsycopgConnectionFactory,
-)
 from src.infrastructure.repositories.postgres_dataset_observability_repository import (
     PostgresDatasetObservabilityRepository,
 )
@@ -88,13 +85,14 @@ def tenants():
 
     def connect(key: str):
         login = names[key]
-        tenant_dsn = psycopg.conninfo.make_conninfo(
-            dsn, user=login, password=password
-        )
-        return PsycopgConnectionFactory(
-            dsn=tenant_dsn,
-            require_tls=False,  # disposable PostgreSQL CI localhost
-        )
+
+        def open_connection():
+            # psycopg's make_conninfo() returns keyword/value text rather
+            # than the URL expected by the production factory. Authenticate
+            # as the actual tenant login without weakening production checks.
+            return psycopg.connect(dsn, user=login, password=password)
+
+        return open_connection
 
     try:
         yield connect
