@@ -1,0 +1,165 @@
+name: Controlled Release Candidate Dry-Run (no publish)
+
+on:
+  push:
+    branches:
+      - "test/release-candidate-dryrun-20261122"
+
+# This workflow never publishes an image or deploys an environment.
+# Tags and manual dispatch both require all security gates to pass.
+permissions:
+  contents: read
+
+concurrency:
+  group: controlled-release-dryrun-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  source-integrity:
+    name: Version, source SHA, SBOM and repeatable bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RELEASE_TAG: v0.1.0
+
+    steps:
+      - name: Checkout immutable release commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify exact test commit SHA and current project version
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          # This is an unmerged test branch, not a protected release tag.
+          # Only skip ancestry/tag proof here; all artifact/security scans run.
+          python -m src.infrastructure.operations.release_cli verify-source \
+            --tag "$RELEASE_TAG" --sha "$RELEASE_SHA"
+
+      - name: Build and re-verify deterministic source tarball
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: bash ops/release/build_bundle.sh
+
+      - name: Install uv to generate runtime CycloneDX SBOM
+        run: python -m pip install "uv>=0.9,<1"
+
+      - name: Generate CycloneDX SBOM from existing lock
+        run: |
+          uv export --locked --no-dev --format cyclonedx1.5 \
+            --output-file dist/runtime-sbom.cdx.json
+          python -m json.tool dist/runtime-sbom.cdx.json >/dev/null
+          sha256sum dist/runtime-sbom.cdx.json > dist/runtime-sbom.sha256
+
+      - name: Upload verified source, checksum and SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-release-source
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+
+  dependency-audit:
+    name: Runtime dependency vulnerability gate
+    needs: source-integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install isolated uv and pip-audit
+        run: python -m pip install "uv>=0.9,<1" "pip-audit>=2.9,<3"
+
+      - name: Export pinned runtime dependencies
+        run: |
+          uv export --locked --no-dev --no-hashes --no-emit-project \
+            --format requirements.txt \
+            --output-file runtime-requirements.txt
+
+      - name: Fail release on known runtime dependency vulnerabilities
+        run: pip-audit --no-deps --strict -r runtime-requirements.txt
+
+  container-scan:
+    name: Build and scan production container, no registry publish
+    needs: source-integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build candidate image locally
+        run: |
+          docker build --pull -f Dockerfile.release \
+            -t "ai-interview-release-candidate:${GITHUB_SHA}" .
+
+      - name: Fail on HIGH/CRITICAL vulnerabilities in the built image
+        # This action is pinned to a verified post-incident source commit.
+        # Do not switch to mutable tags. Reviewed v0.36.0 commit:
+        # https://github.com/aquasecurity/trivy-action/commit/ed142fd0673e97e23eac54620cfb913e5ce36c25
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: "ai-interview-release-candidate:${{ github.sha }}"
+          format: table
+          exit-code: "1"
+          ignore-unfixed: false
+          severity: "CRITICAL,HIGH"
+          vuln-type: "os,library"
+          scanners: "vuln"
+
+      - name: Check container runs as an unprivileged numeric user
+        run: |
+          test "$(docker image inspect \
+            "ai-interview-release-candidate:${GITHUB_SHA}" \
+            --format '{{.Config.User}}')" = "10001:10001"
+
+  provenance:
+    name: Sign the release source provenance
+    needs: source-integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: Download exact bundle from source-integrity job
+        uses: actions/download-artifact@v4
+        with:
+          name: verified-release-source
+          path: dist/
+
+      - name: Generate GitHub artifact provenance attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-path: dist/*.tar.gz
+
+
+  dry-run-verified:
+    name: All actual security checks passed (no publish)
+    needs: [source-integrity, dependency-audit, container-scan, provenance]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Confirm controlled dry-run completion
+        run: |
+          echo "SBOM, dependency audit, container vulnerability scan and"
+          echo "signed source attestation passed. No tag, push or deployment."
