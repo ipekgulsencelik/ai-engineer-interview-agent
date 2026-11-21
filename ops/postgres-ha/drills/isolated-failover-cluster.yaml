@@ -1,0 +1,25 @@
+# Apply only in a disposable, three-zone Kubernetes staging environment.
+# This test namespace has no access to the production S3 object store.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: interview-db-drill
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: interview-db-drill
+  namespace: interview-db-drill
+spec:
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.16-system-trixie
+  instances: 3
+  minSyncReplicas: 1
+  maxSyncReplicas: 1
+  storage:
+    size: 5Gi
+  affinity:
+    enablePodAntiAffinity: true
+    podAntiAffinityType: required
+    topologyKey: topology.kubernetes.io/zone

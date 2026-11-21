@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: interview-db
+  labels:
+    app.kubernetes.io/part-of: ai-engineer-interview-agent
+    # Operators and admission policies are installed out of band.
+    pod-security.kubernetes.io/enforce: restricted
