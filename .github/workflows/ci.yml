@@ -83,7 +83,10 @@ jobs:
       - name: Verify PostgreSQL integration and concurrency
         env:
           POSTGRES_TEST_DSN: postgresql://interview:testpw@localhost:5432/interview_test
-        run: python -m pytest -q tests/infrastructure/repositories/test_postgres_monitoring_integration.py
+        run: >-
+          python -m pytest -q
+          tests/infrastructure/repositories/test_postgres_monitoring_integration.py
+          tests/infrastructure/repositories/test_postgres_tenant_security.py
 
   telemetry-sdk:
     name: OpenTelemetry SDK + Prometheus integration
