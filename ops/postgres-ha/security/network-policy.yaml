@@ -1,0 +1,53 @@
+# Opt-in. Apply only after verifying namespace labels, CNI enforcement,
+# CloudNativePG operator namespace, DB client names and Prometheus namespace.
+# Ingress only: DO NOT add blanket egress deny without testing DNS, CNPG
+# replication, Kubernetes API access, and external S3/WAL archive connectivity.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: interview-db-ingress
+  namespace: interview-db
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: interview-db-primary
+  policyTypes: [Ingress]
+  ingress:
+    # PostgreSQL streaming replication between primary and standbys.
+    - from:
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: interview-db-primary
+      ports:
+        - protocol: TCP
+          port: 5432
+    # CloudNativePG operator status endpoint; must be reachable for failover.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
+      ports:
+        - protocol: TCP
+          port: 8000
+    # Application clients admitted only from a specifically labeled namespace
+    # AND appropriately labeled workload; arbitrary namespaces cannot opt in
+    # unless the cluster administrator authorizes label changes.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              db-access.ai-interview/approved: "true"
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ai-engineer-interview-agent
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Metrics do not have built-in authentication. Limit scrape access to a
+    # centrally administered namespace, and verify actual collector topology.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9187

@@ -1,0 +1,38 @@
+# Namespace-scoped operational inspection ONLY. This is not an operator,
+# deployer or destructive drill role. No access to Secrets or DB credentials.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: interview-db-readiness-auditor
+  namespace: interview-db
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: interview-db-readiness-auditor
+  namespace: interview-db
+rules:
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources: ["clusters", "backups", "scheduledbackups"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["barmancloud.cnpg.io"]
+    resources: ["objectstores"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: interview-db-readiness-auditor
+  namespace: interview-db
+subjects:
+  - kind: ServiceAccount
+    name: interview-db-readiness-auditor
+    namespace: interview-db
+roleRef:
+  kind: Role
+  name: interview-db-readiness-auditor
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,59 @@
+# For a Kubernetes Prometheus instance scraping CNPG instance-manager
+# /metrics (port 9187). The existing local Docker Prometheus does NOT scrape
+# Kubernetes. Verify labels "namespace"/"cluster" in the actual target first.
+groups:
+  - name: interview-postgres-recovery
+    interval: 1m
+    rules:
+      - alert: InterviewPostgresBackupMetricMissing
+        expr: |
+          absent(barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace="interview-db",cluster="interview-db-primary"})
+        for: 20m
+        labels:
+          severity: warning
+          service: interview-db
+        annotations:
+          summary: Backup freshness cannot be determined
+          description: Check the Barman plugin metric and scrape availability.
+      - alert: InterviewPostgresBackupStale
+        expr: |
+          time() - max(barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace="interview-db",cluster="interview-db-primary"}) > 93600
+        for: 15m
+        labels:
+          severity: critical
+          service: interview-db
+        annotations:
+          summary: Last successful PostgreSQL backup is older than 26 hours
+          description: Inspect Barman backup status and object-store connectivity.
+      - alert: InterviewPostgresBackupFailedAfterSuccess
+        expr: |
+          max(barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp{namespace="interview-db",cluster="interview-db-primary"})
+          >
+          max(barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace="interview-db",cluster="interview-db-primary"})
+        for: 10m
+        labels:
+          severity: warning
+          service: interview-db
+        annotations:
+          summary: A backup failed after the last successful backup
+          description: Inspect backup jobs, operator events and Barman plugin logs.
+      - alert: InterviewPostgresReplicationMetricMissing
+        expr: |
+          absent(cnpg_pg_replication_streaming_replicas{namespace="interview-db",cluster="interview-db-primary"})
+        for: 15m
+        labels:
+          severity: warning
+          service: interview-db
+        annotations:
+          summary: Replication health metrics are missing
+          description: Restore CNPG scrape coverage before trusting the replica status.
+      - alert: InterviewPostgresInsufficientStreamingReplicas
+        expr: |
+          max(cnpg_pg_replication_streaming_replicas{namespace="interview-db",cluster="interview-db-primary"}) < 2
+        for: 5m
+        labels:
+          severity: critical
+          service: interview-db
+        annotations:
+          summary: Fewer than two streaming replicas are connected
+          description: Three-instance cluster may lack quorum or zone redundancy.
