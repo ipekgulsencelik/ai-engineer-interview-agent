@@ -1,21 +1,36 @@
+# Secrets and local-only environment files
+.env
+.env.*
+**/.env
+**/.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*.json
+
+# Build tool caches / test artifacts / repo administration
+.git/
+.github/
+.venv/
 __pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-.venv/
-.env
-
-.git/
-.gitignore
-
 .pytest_cache/
 .ruff_cache/
 .pyright/
-
-data/chroma/
-
 htmlcov/
 .coverage
+dist/
+build/
+tests/
+docs/
+ops/
 
+# Persisted local Chroma indices must never ship in a container.
+data/chroma/
+data/chroma_test/
+data/chroma_retrieval_test/
 streamlit/

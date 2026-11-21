@@ -1,0 +1,19 @@
+{
+  "version": "v0.1.0",
+  "source_sha": "REPLACE_WITH_VERIFIED_40_CHARACTER_GIT_SHA",
+  "image": "ghcr.io/ipekgulsencelik/ai-engineer-interview-agent@sha256:REPLACE_WITH_IMAGE_DIGEST",
+  "rollback_image": "ghcr.io/ipekgulsencelik/ai-engineer-interview-agent@sha256:REPLACE_WITH_PREVIOUS_GOOD_IMAGE_DIGEST",
+  "approvals": {
+    "security_reviewed": false,
+    "operations_approved": false,
+    "database_migration_reviewed": false
+  },
+  "evidence": {
+    "ci_green": false,
+    "dependency_audit_passed": false,
+    "container_scan_passed": false,
+    "sbom_recorded": false,
+    "backup_restore_tested": false,
+    "rollback_drill_verified": false
+  }
+}

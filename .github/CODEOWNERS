@@ -1,0 +1,8 @@
+# Effective only when branch protection / required CODEOWNERS reviews
+# are enabled in the GitHub repository settings.
+/.github/workflows/ @ipekgulsencelik
+/.github/dependabot.yml @ipekgulsencelik
+/Dockerfile.release @ipekgulsencelik
+/ops/release/ @ipekgulsencelik
+/db/postgres/ @ipekgulsencelik
+/ops/postgres-ha/ @ipekgulsencelik
