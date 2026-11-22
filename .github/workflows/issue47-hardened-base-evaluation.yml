@@ -25,8 +25,6 @@ jobs:
             image: gcr.io/distroless/cc-debian12:nonroot
           - label: distroless-cc-debian13-prerequisite-only
             image: gcr.io/distroless/cc-debian13:nonroot
-          - label: docker-hardened-python311-auth-check
-            image: dhi.io/python:3.11
 
     steps:
       - name: Pull candidate and record resolved digest
@@ -58,7 +56,7 @@ jobs:
           {
             echo ""
             echo "This is a diagnostic base-image scan, not a production-image approval."
-            echo "DHI registry access may require explicit docker login dhi.io."
+            echo "Authenticated DHI testing is handled separately by issue47-dhi-authenticated-evaluation.yml; never anonymously pull a credentialed registry."
             echo "Distroless cc has no Python interpreter; a compatible Python 3.11 runtime and native library test is mandatory."
             echo "Base images must be checked against the exact final image, including PyTorch/SQLite/OpenSSL imports, signed provenance, immutable digest and release gates."
             echo "Do not merge or publish PR #48, #49 or #50 based on this scan alone."
