@@ -1,6 +1,9 @@
-# Separate experimental verification of Debian's *signed* zlib fix.
-# The full Python/PyTorch production image is not approved for release.
-FROM python:3.11-slim-trixie
+# Controlled A/B experiment ONLY: same observed official Python base digest.
+# Digest provenance is from CI run 45054417181; NOT approved for production.
+ARG PYTHON_IMAGE=docker.io/library/python:3.11-slim-trixie@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535
+FROM ${PYTHON_IMAGE} AS baseline
+
+FROM baseline AS patched
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends --only-upgrade zlib1g; \
