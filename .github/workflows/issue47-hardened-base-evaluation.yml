@@ -1,0 +1,63 @@
+# Diagnostic-only branch: no builds are published, no security gate is relaxed.
+name: Issue 47 hardened base image evaluation
+
+on:
+  push:
+    branches:
+      - test/issue47-hardened-base-eval-20261122
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan-python-runtime-candidates:
+    name: Trivy base scan - ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: python311-trixie-control
+            image: python:3.11-slim-trixie
+          - label: distroless-cc-debian13-prerequisite-only
+            image: gcr.io/distroless/cc-debian13:nonroot
+          - label: docker-hardened-python311-auth-check
+            image: dhi.io/python:3.11
+
+    steps:
+      - name: Pull candidate and record resolved digest
+        env:
+          IMAGE_REF: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          echo "Image candidate: $IMAGE_REF" >> "$GITHUB_STEP_SUMMARY"
+          docker pull "$IMAGE_REF"
+          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$IMAGE_REF")"
+          printf 'Resolved image: `%s`\n' "$digest" >> "$GITHUB_STEP_SUMMARY"
+          echo "The digest is recorded for review; this diagnostic does not approve a release." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Block HIGH or CRITICAL findings in candidate image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: ${{ matrix.image }}
+          scan-type: image
+          scanners: vuln
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+
+      - name: Explain candidate scope
+        if: always()
+        env:
+          CANDIDATE_LABEL: ${{ matrix.label }}
+        run: |
+          {
+            echo ""
+            echo "This is a diagnostic base-image scan, not a production-image approval."
+            echo "DHI registry access may require explicit docker login dhi.io."
+            echo "Distroless cc has no Python interpreter; a compatible Python 3.11 runtime and native library test is mandatory."
+            echo "Base images must be checked against the exact final image, including PyTorch/SQLite/OpenSSL imports, signed provenance, immutable digest and release gates."
+            echo "Do not merge or publish PR #48, #49 or #50 based on this scan alone."
+          } >> "$GITHUB_STEP_SUMMARY"
