@@ -1,0 +1,22 @@
+# TEST ONLY: Scan real signed Debian package files with distroless base.
+# This intentionally does NOT hide or waive any OS/library vulnerability.
+FROM debian:bookworm-slim AS trusted-packages
+WORKDIR /patch
+RUN set -eux; \
+    apt-get update; \
+    apt-get download libssl3 zlib1g; \
+    set -- /patch/libssl3_*_amd64.deb; \
+    test "$#" -eq 1; \
+    dpkg --compare-versions "$(dpkg-deb -f "$1" Version)" ge "3.0.22-1~deb12u2"; \
+    dpkg-deb --extract "$1" /patch/root; \
+    dpkg-deb --field "$1" > /patch/libssl3.status; \
+    set -- /patch/zlib1g_*_amd64.deb; \
+    test "$#" -eq 1; \
+    dpkg-deb --extract "$1" /patch/root; \
+    dpkg-deb --field "$1" > /patch/zlib1g.status
+
+FROM gcr.io/distroless/cc-debian12:nonroot
+COPY --from=trusted-packages /patch/root/ /
+COPY --from=trusted-packages /patch/libssl3.status /var/lib/dpkg/status.d/libssl3
+COPY --from=trusted-packages /patch/zlib1g.status /var/lib/dpkg/status.d/zlib1g
+USER 65532:65532
