@@ -193,3 +193,11 @@ until dependency removal and clean independent security scans.
 On a new, empty index path, run `uv run python -m src.scripts.index_question_bank`.
 This command rebuilds from the project question JSON, never the old Chroma
 files. It refuses nonempty indexes to avoid stale question records.
+
+### Production image boundary
+
+`Dockerfile.release` uses separated dependency-build and nonroot runtime
+stages. Build-only uv and interpreter packaging tools are omitted from the
+final container, and SQLite index files are excluded from its build context.
+This **does not** waive known HIGH/CRITICAL OS vulnerabilities. See
+[production image hardening](docs/production-image-hardening.md).

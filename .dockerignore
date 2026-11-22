@@ -34,3 +34,12 @@ data/chroma/
 data/chroma_test/
 data/chroma_retrieval_test/
 streamlit/
+
+# Locally generated SQLite question vectors, WAL/SHM files and backups.
+# The image must be rebuilt from trusted source; never embed state.
+data/**/*.sqlite3
+data/**/*.sqlite3-*
+data/**/*.db
+data/**/*.db-*
+data/**/*.sqlite3.*
+data/**/*.db.*

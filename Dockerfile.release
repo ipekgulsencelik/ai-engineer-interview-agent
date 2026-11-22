@@ -1,28 +1,43 @@
-# Production image reference. Build is optional and never auto-deployed.
-# Pin Python base image to a reviewed SHA256 digest before actual production.
-FROM python:3.11-slim
+# Production candidate only. Never publish before all release security gates pass.
+# The Python image can be supplied by immutable approved digest at build time:
+# docker build --build-arg PYTHON_IMAGE=python@sha256:<reviewed-digest> ...
+# CI currently uses a mutable reference; digest pinning remains a release blocker.
+ARG PYTHON_IMAGE=python:3.11-slim
+
+# Build-only dependency tooling does not enter the deployed container.
+FROM ${PYTHON_IMAGE} AS builder
+
+WORKDIR /app
+
+ENV UV_NO_DEV=1 \
+    UV_FROZEN=1 \
+    UV_LINK_MODE=copy
+
+RUN python -m pip install --no-cache-dir "uv>=0.9,<1"
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --frozen --no-dev --no-install-project
+
+# Runtime uses the same Python distribution/ABI, but excludes uv and builders.
+FROM ${PYTHON_IMAGE} AS runtime
 
 WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    UV_NO_DEV=1 \
-    UV_FROZEN=1 \
-    UV_LINK_MODE=copy \
-    PATH="/app/.venv/bin:$PATH"
+    PATH="/app/.venv/bin:$PATH" \
+    HOME="/app/data"
 
-# Lock resolution is unchanged; no development dependencies are installed.
-RUN python -m pip install --no-cache-dir "uv>=0.9,<1"
-COPY pyproject.toml uv.lock README.md ./
-RUN uv sync --frozen --no-dev --no-install-project
-
+COPY --from=builder /app/.venv /app/.venv
 COPY . .
 
-# Create a dedicated unprivileged user and writable application-owned data.
-RUN groupadd --gid 10001 appgroup \
+# Remove interpreter-level packaging tools; application packages are in .venv.
+# Application code stays root-owned; only state directory is writable.
+RUN python -m pip uninstall --yes pip setuptools wheel \
+    && groupadd --gid 10001 appgroup \
     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin appuser \
     && mkdir -p /app/data \
-    && chown -R 10001:10001 /app/data
+    && chown 10001:10001 /app/data \
+    && chmod 0700 /app/data
 
 USER 10001:10001
 EXPOSE 8000

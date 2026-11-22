@@ -140,3 +140,32 @@ def test_release_build_script_has_syntax_and_reproducibility_checks() -> None:
     assert "create-manifest" in script
     assert "verify-manifest" in script
     assert "sha256sum" in script
+
+
+def test_release_image_has_separate_builder_and_nonroot_runtime() -> None:
+    """Build-only dependency tools and user-writable state are isolated."""
+    dockerfile = (ROOT / "Dockerfile.release").read_text(encoding="utf-8")
+    assert dockerfile.count("FROM ${PYTHON_IMAGE}") == 2
+    builder, runtime = dockerfile.split("FROM ${PYTHON_IMAGE} AS runtime")
+    assert "AS builder" in builder
+    assert "uv sync --frozen --no-dev --no-install-project" in builder
+    assert "pip install" in builder
+    assert "pip install" not in runtime
+    assert "COPY --from=builder /app/.venv /app/.venv" in runtime
+    assert "pip uninstall --yes pip setuptools wheel" in runtime
+    assert "chmod 0700 /app/data" in runtime
+    assert "USER 10001:10001" in runtime
+
+
+def test_production_image_context_rejects_local_sqlite_state() -> None:
+    """Secret/snapshot/index material must not enter the build context."""
+    ignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
+    for pattern in (
+        "data/**/*.sqlite3",
+        "data/**/*.sqlite3-*",
+        "data/**/*.sqlite3.*",
+        "data/**/*.db",
+        "data/**/*.db-*",
+        "data/**/*.db.*",
+    ):
+        assert pattern in ignore
