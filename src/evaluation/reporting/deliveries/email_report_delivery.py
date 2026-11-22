@@ -6,7 +6,7 @@ from src.evaluation.reporting.entities.report_artifact import (
 from src.evaluation.reporting.ports.email_sender import (
     EmailSender,
 )
-from src.evaluation.reporting.services.email_report_message_builder import (
+from src.evaluation.reporting.builders.email_report_message_builder import (
     EmailReportMessageBuilder,
 )
 from src.evaluation.reporting.resolvers.report_attachment_resolver import (

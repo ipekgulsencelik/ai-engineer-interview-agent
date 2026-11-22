@@ -9,13 +9,13 @@ from src.evaluation.reporting.entities.report_artifact import (
 from src.evaluation.reporting.ports.mlflow_client import (
     MLflowClient,
 )
-from src.evaluation.reporting.services.mlflow_artifact_path_resolver import (
+from src.evaluation.reporting.resolvers.mlflow_artifact_path_resolver import (
     MLflowArtifactPathResolver,
 )
-from src.evaluation.reporting.services.mlflow_delivery_result_factory import (
+from src.evaluation.reporting.factories.mlflow_delivery_result_factory import (
     MLflowDeliveryResultFactory,
 )
-from src.evaluation.reporting.services.mlflow_report_tag_logger import (
+from src.evaluation.reporting.loggers.mlflow_report_tag_logger import (
     MLflowReportTagLogger,
 )
 from src.evaluation.reporting.entities.report_delivery_result import (

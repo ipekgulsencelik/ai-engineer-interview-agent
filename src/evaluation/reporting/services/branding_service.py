@@ -12,7 +12,7 @@ from src.evaluation.reporting.builders.brand_inline_css_builder import (
 from src.evaluation.reporting.builders.branding_context_builder import (
     BrandingContextBuilder,
 )
-from src.evaluation.reporting.registry.brand_theme_registry import (
+from src.evaluation.reporting.registeries.brand_theme_registry import (
     BrandThemeRegistry,
 )
 from src.evaluation.reporting.validators.brand_theme_default_validator import (

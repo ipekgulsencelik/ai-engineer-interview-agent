@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from src.evaluation.reporting.entities.scheduled_report import (
+from src.evaluation.reporting.entities.schedule_report import (
     ScheduledReport,
 )
 

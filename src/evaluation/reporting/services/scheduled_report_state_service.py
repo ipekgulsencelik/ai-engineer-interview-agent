@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import datetime
 
-from src.evaluation.reporting.entities.scheduled_report import (
+from src.evaluation.reporting.entities.schedule_report import (
     ScheduledReport,
 )
 from src.evaluation.reporting.stores.scheduled_report_store import (

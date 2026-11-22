@@ -9,7 +9,7 @@ from src.evaluation.reporting.factories.dashboard_widget_factory import (
 from src.evaluation.reporting.entities.dashboard_layout import (
     DashboardLayout,
 )
-from src.evaluation.reporting.entities.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
 
