@@ -159,7 +159,9 @@ class GovernedDatasetCatalogReader:
             raise DatasetGovernanceError("revision must be DatasetRevision")
         principal = self._identity.current()
         if not isinstance(principal, VerifiedCatalogIdentity):
-            raise DatasetGovernanceError("trusted identity adapter returned invalid type")
+            raise DatasetGovernanceError(
+                "trusted identity adapter returned invalid type"
+            )
         now = self._clock.now()
         if (
             not isinstance(now, datetime)
