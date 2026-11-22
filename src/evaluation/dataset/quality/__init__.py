@@ -34,6 +34,14 @@ from src.evaluation.dataset.quality.rules import (
     SchemaConformanceRule,
     UniqueFieldRule,
 )
+from src.evaluation.dataset.quality.scoring import (
+    DatasetQualityScore,
+    DatasetQualityScoringError,
+    DatasetQualityScoringService,
+    QualityReportHistoryPort,
+    QualityScoreCalculator,
+    QualityScoringPolicy,
+)
 
 __all__ = [
     "AllowedValuesRule",
@@ -41,6 +49,9 @@ __all__ = [
     "DatasetQualityEngine",
     "DatasetQualityError",
     "DatasetQualityRule",
+    "DatasetQualityScore",
+    "DatasetQualityScoringError",
+    "DatasetQualityScoringService",
     "EvaluationDatasetQualityAdapter",
     "IssueSeverity",
     "NonEmptyStringRule",
@@ -50,10 +61,13 @@ __all__ = [
     "QualityIssue",
     "QualityPolicy",
     "QualityReport",
+    "QualityReportHistoryPort",
     "QualityReportSerializer",
     "QualityReportStorageError",
     "QualityReportStorePort",
     "QualityRuleExecutionError",
+    "QualityScoreCalculator",
+    "QualityScoringPolicy",
     "RecordQualityRule",
     "RequiredFieldRule",
     "SchemaConformanceRule",
