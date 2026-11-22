@@ -1,0 +1,58 @@
+name: Issue 47 distroless experimental Python 3.11 runtime
+
+on:
+  push:
+    branches:
+      - test/issue47-distroless-runtime-experiment-20261122
+
+permissions:
+  contents: read
+
+jobs:
+  compile-runtime:
+    name: Build and validate distroless CPython 3.11 + PyTorch
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build a local-only distroless runtime candidate
+        run: |
+          docker build --pull -f Dockerfile.distroless-experiment \
+            -t "ai-interview-distroless-test:${GITHUB_SHA}" .
+      - name: Runtime ABI and import tests (no network or deployment)
+        run: |
+          IMAGE="ai-interview-distroless-test:${GITHUB_SHA}"
+          test "$(docker image inspect --format '{{.Config.User}}' "$IMAGE")" = "10001:10001"
+          docker run --rm --network none --entrypoint /app/.venv/bin/python "$IMAGE" -c '
+          import importlib.util
+          import os
+          import sqlite3
+          import stat
+          import ssl
+          import sys
+
+          assert sys.version_info[:2] == (3, 11)
+          assert os.getuid() == 10001
+          assert stat.S_IMODE(os.stat("/app/data").st_mode) == 0o700
+          assert not os.path.exists("/app/data/question_vectors.sqlite3")
+          assert importlib.util.find_spec("pip") is None
+          assert importlib.util.find_spec("chromadb") is None
+          connection = sqlite3.connect(":memory:")
+          assert connection.execute("SELECT 1").fetchone()[0] == 1
+          import fastapi
+          import uvicorn
+          import torch
+          import sentence_transformers
+          import src.api.app
+          print("ABI_AND_IMPORT_SMOKE_PASS", torch.__version__)
+          '
+      - name: No waivers - block HIGH and CRITICAL from actual built image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: "ai-interview-distroless-test:${{ github.sha }}"
+          format: table
+          exit-code: "1"
+          ignore-unfixed: false
+          severity: "CRITICAL,HIGH"
+          vuln-type: "os,library"
+          scanners: "vuln"
