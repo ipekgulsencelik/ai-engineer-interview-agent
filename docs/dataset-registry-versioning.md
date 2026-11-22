@@ -80,7 +80,8 @@ assert catalog.list_by_tag(tag="training") == (result.entry,)
   one SQLite `BEGIN IMMEDIATE` transaction. Concurrent exact registration
   creates one event. Injected audit failures roll everything back.
 - Tag indexes are checked against canonical entry tags on every read;
-  stored JSON SHA-256 checksums and indexed numeric version fields are\n  verified before reconstruction.
+  stored JSON SHA-256 checksums and indexed numeric version fields are
+  verified before reconstruction.
 - Query bounds are explicit (1–1000). Validation is fail-closed.
 
 ## Limitations and separate next steps
