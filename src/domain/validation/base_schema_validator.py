@@ -26,10 +26,13 @@ class BaseSchemaValidator:
             ),
             nullable=bool(rules.get("nullable", False)),
             non_empty=bool(rules.get("non_empty", False)),
-            strip=bool(rules.get("strip", False)),
+            strip=bool(rules.get("strip", rules.get("non_empty", False))),
             allow_empty=bool(rules.get("allow_empty", True)),
             item_type=rules.get("item_type"),
-            strip_items=bool(rules.get("strip_items", False)),
+            strip_items=bool(
+                rules.get("strip_items", rules.get("non_empty_items", False))
+            ),
+            reject_bool_items=bool(rules.get("reject_bool_items", False)),
             reject_bool=bool(rules.get("reject_bool", False)),
             finite=bool(rules.get("finite", False)),
             min_value=rules.get("min_value"),
@@ -97,7 +100,12 @@ class BaseSchemaValidator:
             and rules.max_length is None
         ):
             return
-        candidate = value.strip() if rules.strip and isinstance(value, str) else value
+        candidate = (
+            value.strip()
+            if isinstance(value, str)
+            and (rules.strip or rules.non_empty or not rules.allow_empty)
+            else value
+        )
         if (rules.non_empty or not rules.allow_empty) and not candidate:
             raise ValueError(f"{field_name} cannot be empty.")
         if rules.min_length is not None or rules.max_length is not None:
@@ -143,6 +151,8 @@ class BaseSchemaValidator:
         if not isinstance(value, (tuple, list)):
             return
         for item in value:
+            if rules.reject_bool_items and isinstance(item, bool):
+                raise TypeError(f"{field_name} items cannot be bool.")
             if rules.item_type is not None and not isinstance(item, rules.item_type):
                 raise TypeError(f"{field_name} items have invalid type.")
             if rules.strip_items and isinstance(item, str) and not item.strip():

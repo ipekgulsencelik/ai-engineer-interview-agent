@@ -82,3 +82,82 @@ def test_legacy_mapping_rules_remain_supported_for_scoring_entities() -> None:
             value=True,
             rules={"type": (int, float), "reject_bool": True},
         )
+
+
+def test_legacy_evaluation_response_rejects_whitespace_only_text() -> None:
+    from src.ui.validators.evaluation_response_validator import (
+        EvaluationResponseValidator,
+    )
+
+    for field in ("feedback", "follow_up_question"):
+        validate = (
+            EvaluationResponseValidator._validate_string
+            if field == "feedback"
+            else EvaluationResponseValidator._validate_optional_string
+        )
+        for blank in ("", " ", "  \\t  "):
+            with pytest.raises(ValueError, match="cannot be empty"):
+                validate(field_name=field, value=blank)
+    EvaluationResponseValidator._validate_string(
+        field_name="feedback",
+        value="Relevant feedback",
+    )
+    EvaluationResponseValidator._validate_optional_string(
+        field_name="follow_up_question",
+        value=None,
+    )
+
+
+def test_legacy_evaluation_keywords_reject_blank_tuple_items() -> None:
+    from src.ui.validators.evaluation_response_validator import (
+        EvaluationResponseValidator,
+    )
+
+    for keywords in (("",), ("   ",), ("\\t",), ("Python", " ")):
+        with pytest.raises(ValueError, match="items cannot be empty"):
+            EvaluationResponseValidator._validate_string_tuple(value=keywords)
+    EvaluationResponseValidator._validate_string_tuple(
+        value=("Python", "RAG"),
+    )
+    EvaluationResponseValidator._validate_string_tuple(value=())
+
+
+def test_legacy_tuple_reject_bool_items_flag_is_not_discarded() -> None:
+    from src.domain.validation.base_schema_validator import BaseSchemaValidator
+
+    with pytest.raises(TypeError, match="items cannot be bool"):
+        BaseSchemaValidator.validate_tuple_items(
+            field_name="values",
+            value=(True,),
+            rules={
+                "type": tuple,
+                "item_type": (int, bool),
+                "reject_bool_items": True,
+            },
+        )
+    BaseSchemaValidator.validate_tuple_items(
+        field_name="values",
+        value=(7,),
+        rules={
+            "type": tuple,
+            "item_type": (int, bool),
+            "reject_bool_items": True,
+        },
+    )
+
+
+def test_typed_tuple_rule_preserves_explicit_bool_item_rejection() -> None:
+    from src.domain.validation.base_schema_validator import BaseSchemaValidator
+    from src.domain.validation.schema_rules import ValidationRule
+
+    rule = ValidationRule(
+        expected_type=tuple,
+        item_type=(int, bool),
+        reject_bool_items=True,
+    )
+    with pytest.raises(TypeError, match="items cannot be bool"):
+        BaseSchemaValidator.validate_tuple_items(
+            field_name="scores",
+            value=(False,),
+            rules=rule,
+        )
