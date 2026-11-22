@@ -213,7 +213,7 @@ def test_production_image_security_runs_for_every_pr_without_waivers() -> None:
     assert trivy["with"]["vuln-type"] == "os,library"
     assert trivy["with"]["ignore-unfixed"] is False
     assert trivy["with"]["scanners"] == "vuln"
-    assert "10001:10001" in str(scan)
+    assert "verify_container_runtime.sh" in str(scan)
     assert all("docker push" not in str(step) for step in scan)
 
 
