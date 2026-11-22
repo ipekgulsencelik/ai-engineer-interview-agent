@@ -106,8 +106,10 @@ def test_manifest_source_has_no_inline_secret_values() -> None:
 
 def test_real_pitr_drill_is_syntax_checked() -> None:
     script = BASE / "tests/pitr_docker_drill.sh"
+    # Passing normalized text to Bash avoids Windows path and CRLF issues.
     result = subprocess.run(
-        ["bash", "-n", str(script)],
+        ["bash", "-n", "-"],
+        input=script.read_text(encoding="utf-8"),
         capture_output=True,
         text=True,
         check=False,

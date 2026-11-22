@@ -7,3 +7,6 @@ data/chroma_retrieval_test/ export-ignore
 **/.env export-ignore
 **/.env.local export-ignore
 **/.env.production export-ignore
+
+# Keep shell scripts LF even with Git for Windows core.autocrlf=true.
+*.sh text eol=lf
