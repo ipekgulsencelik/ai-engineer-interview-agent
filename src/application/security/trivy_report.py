@@ -81,7 +81,9 @@ def summarize_trivy_report(payload: object) -> TrivyFindingSummary:
     identifiers: set[str] = set()
     for entry in results:
         item = _as_mapping(entry, "Results entry")
-        vulnerabilities = item.get("Vulnerabilities") or []
+        vulnerabilities = item.get("Vulnerabilities")
+        if vulnerabilities is None:
+            vulnerabilities = []
         if not isinstance(vulnerabilities, list):
             raise ValueError("Invalid Trivy JSON: Vulnerabilities must be an array")
         for raw_finding in vulnerabilities:
