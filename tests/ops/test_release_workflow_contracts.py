@@ -215,3 +215,30 @@ def test_production_image_security_runs_for_every_pr_without_waivers() -> None:
     assert trivy["with"]["scanners"] == "vuln"
     assert "10001:10001" in str(scan)
     assert all("docker push" not in str(step) for step in scan)
+
+
+def test_failed_image_scan_retains_machine_readable_evidence() -> None:
+    """Independent reviewers must get the exact blocking Trivy result."""
+    workflow = yaml.safe_load(
+        (ROOT / ".github/workflows/production-image-pr-security.yml").read_text(
+            encoding="utf-8"
+        )
+    )
+    steps = workflow["jobs"]["production-image-scan"]["steps"]
+    trivy = next(step for step in steps if "trivy-action@" in step.get("uses", ""))
+    assert trivy["with"]["format"] == "json"
+    assert trivy["with"]["output"] == "trivy-image-findings.json"
+    assert trivy["with"]["exit-code"] == "1"
+    assert trivy["with"]["ignore-unfixed"] is False
+    summary = next(
+        step for step in steps if step.get("name") == "Summarize unsuppressed vulnerability counts"
+    )
+    assert summary["if"] == "always()"
+    assert "GITHUB_STEP_SUMMARY" in summary["run"]
+    archive = next(
+        step for step in steps if step.get("name") == "Preserve exact Trivy report for independent review"
+    )
+    assert archive["if"] == "always()"
+    assert archive["with"]["path"] == "trivy-image-findings.json"
+    assert archive["with"]["retention-days"] == 30
+    assert archive["uses"].startswith("actions/upload-artifact@")

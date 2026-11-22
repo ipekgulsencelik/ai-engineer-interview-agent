@@ -94,3 +94,18 @@ names: `Locked production dependency audit` and
 and block force pushes/deletions. On 2026-11-22 `main` was not protected
 and the repository returned no active rulesets. These GitHub admin controls
 cannot be enforced merely by committing a workflow.
+
+
+## Issue #47 — independent CVE review and audit artifacts
+
+See [runtime CVE triage](security/issue-47-runtime-cve-triage.md) for
+version-specific evidence and the release-blocking Debian 12/13 advisories.
+In particular, a missing `gz_vacate()` symbol does not establish that
+the Bookworm zlib HIGH advisory is a false positive; Debian maintainers
+reported a related crash in older code.
+
+The PR security workflow stores `trivy-image-findings.json` as a
+30-day GitHub Actions artifact even when the scanner returns a failure.
+It also records the unsuppressed HIGH/CRITICAL totals in the run summary.
+The JSON report is audit evidence, not a waiver; scanner exit code 1 and
+all original mandatory release checks remain unchanged.
