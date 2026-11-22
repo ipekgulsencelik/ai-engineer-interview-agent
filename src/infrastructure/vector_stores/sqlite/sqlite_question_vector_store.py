@@ -11,9 +11,9 @@ from __future__ import annotations
 import json
 import math
 import sqlite3
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 
 from src.application.ports.question_vector_store import QuestionVectorStore
 from src.domain.entities.question import Question
@@ -30,7 +30,9 @@ class SqliteQuestionVectorStore(QuestionVectorStore):
     MAX_RECORDS = 50_000
     MAX_DIMENSIONS = 4_096
 
-    def __init__(self, *, database_path: str | Path = "data/question_vectors.sqlite3") -> None:
+    def __init__(
+        self, *, database_path: str | Path = "data/question_vectors.sqlite3"
+    ) -> None:
         self.database_path = Path(database_path)
         if str(database_path).strip() in {"", ":memory:"}:
             raise VectorStoreError("A persistent SQLite database path is required.")
@@ -54,7 +56,9 @@ class SqliteQuestionVectorStore(QuestionVectorStore):
                     "ON question_vectors (level, category, question_type, difficulty)"
                 )
         except sqlite3.Error as exc:
-            raise VectorStoreError("Failed to initialize question vector database.") from exc
+            raise VectorStoreError(
+                "Failed to initialize question vector database."
+            ) from exc
 
     @contextmanager
     def _connection(self) -> Iterator[sqlite3.Connection]:
@@ -78,8 +82,9 @@ class SqliteQuestionVectorStore(QuestionVectorStore):
         result = [float(v) for v in values]
         if not all(math.isfinite(v) for v in result):
             raise VectorStoreError(f"{name} must contain finite values only.")
-        if math.sqrt(sum(v * v for v in result)) == 0.0:
-            raise VectorStoreError(f"{name} must have nonzero magnitude.")
+        squared_magnitude = sum(v * v for v in result)
+        if not math.isfinite(squared_magnitude) or squared_magnitude == 0.0:
+            raise VectorStoreError(f"{name} must have a finite nonzero magnitude.")
         return result
 
     def index_questions(
@@ -104,14 +109,18 @@ class SqliteQuestionVectorStore(QuestionVectorStore):
                     "SELECT dimension FROM question_vectors LIMIT 1"
                 ).fetchone()
                 if stored is not None and stored[0] != len(vectors[0]):
-                    raise VectorStoreError("Embedding dimension differs from stored index.")
+                    raise VectorStoreError(
+                        "Embedding dimension differs from stored index."
+                    )
                 conn.executemany(
                     """INSERT INTO question_vectors
-                    (id, level, category, question_type, difficulty, payload, embedding, dimension)
+                    (id, level, category, question_type, difficulty,
+                     payload, embedding, dimension)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(id) DO UPDATE SET
                         level=excluded.level, category=excluded.category,
-                        question_type=excluded.question_type, difficulty=excluded.difficulty,
+                        question_type=excluded.question_type,
+                        difficulty=excluded.difficulty,
                         payload=excluded.payload, embedding=excluded.embedding,
                         dimension=excluded.dimension""",
                     [
@@ -174,13 +183,18 @@ class SqliteQuestionVectorStore(QuestionVectorStore):
         ranked: list[SearchResult] = []
         for payload, raw_embedding, dimension in rows:
             try:
-                stored = self._vector(json.loads(raw_embedding), name="stored embedding")
+                stored = self._vector(
+                    json.loads(raw_embedding), name="stored embedding"
+                )
                 if dimension != len(vector) or len(stored) != len(vector):
                     raise VectorStoreError("Query/index embedding dimension mismatch.")
                 dot = sum(a * b for a, b in zip(vector, stored, strict=True))
                 norm_query = math.sqrt(sum(a * a for a in vector))
                 norm_stored = math.sqrt(sum(b * b for b in stored))
-                similarity = max(-1.0, min(1.0, dot / (norm_query * norm_stored)))
+                cosine = dot / (norm_query * norm_stored)
+                if not math.isfinite(cosine):
+                    raise VectorStoreError("Nonfinite cosine similarity.")
+                similarity = max(-1.0, min(1.0, cosine))
                 distance = 1.0 - similarity
                 ranked.append(
                     SearchResult(
@@ -197,7 +211,9 @@ class SqliteQuestionVectorStore(QuestionVectorStore):
     def count(self) -> int:
         try:
             with self._connection() as conn:
-                record = conn.execute("SELECT COUNT(*) FROM question_vectors").fetchone()
+                record = conn.execute(
+                    "SELECT COUNT(*) FROM question_vectors"
+                ).fetchone()
                 return int(record[0]) if record is not None else 0
         except sqlite3.Error as exc:
             raise VectorStoreError("Failed to count indexed questions.") from exc

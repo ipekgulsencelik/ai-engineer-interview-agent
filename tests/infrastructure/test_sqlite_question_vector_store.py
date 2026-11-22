@@ -68,10 +68,14 @@ def test_atomic_upsert_and_reindex_idempotency(tmp_path) -> None:
     store.index_questions(questions=[question("a")], embeddings=[[1.0, 0.0]])
     store.index_questions(questions=[question("a")], embeddings=[[0.0, 1.0]])
     assert store.count() == 1
-    assert store.search_questions(query_embedding=[0.0, 1.0], top_k=1)[0].score == pytest.approx(1.0)
+    result = store.search_questions(query_embedding=[0.0, 1.0], top_k=1)
+    assert result[0].score == pytest.approx(1.0)
 
 
-@pytest.mark.parametrize("embedding", [[float("nan"), 1.0], [0.0, 0.0], [True, 1.0], [], [float("inf"), 1.0]])
+@pytest.mark.parametrize(
+    "embedding",
+    [[float("nan"), 1.0], [0.0, 0.0], [True, 1.0], [], [float("inf"), 1.0]],
+)
 def test_rejects_bad_embeddings_without_writing(tmp_path, embedding) -> None:
     store = SqliteQuestionVectorStore(database_path=tmp_path / "index.sqlite3")
     with pytest.raises(VectorStoreError):
@@ -120,7 +124,8 @@ def test_sql_metacharacters_are_data_not_queries(tmp_path) -> None:
     identifier = "abc'); DROP TABLE question_vectors; --"
     store.index_questions(questions=[question(identifier)], embeddings=[[1.0]])
     assert store.count() == 1
-    assert store.search_questions(query_embedding=[1.0], top_k=1)[0].question.id == identifier
+    result = store.search_questions(query_embedding=[1.0], top_k=1)
+    assert result[0].question.id == identifier
 
 
 def test_empty_index_and_invalid_k(tmp_path) -> None:
