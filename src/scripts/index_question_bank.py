@@ -21,7 +21,9 @@ from src.infrastructure.path_resolvers.question_bank_path_resolver import (
     QuestionBankPathResolver,
 )
 from src.infrastructure.readers.json_file_reader import JsonFileReader
-from src.infrastructure.repositories.json_question_repository import JsonQuestionRepository
+from src.infrastructure.repositories.json_question_repository import (
+    JsonQuestionRepository,
+)
 from src.infrastructure.vector_stores.sqlite.sqlite_question_vector_store import (
     SqliteQuestionVectorStore,
 )
