@@ -53,6 +53,19 @@ jobs:
                   assert digest == actual, name
                   checked.add(Path(name).name)
           assert checked == {"libssl.so.3", "libcrypto.so.3"}
+          zlib_md5sums = Path("/var/lib/dpkg/status.d/zlib1g.md5sums").read_text()
+          assert "Package: zlib1g" in Path(
+              "/var/lib/dpkg/status.d/zlib1g"
+          ).read_text()
+          zlib_checks = []
+          for line in zlib_md5sums.splitlines():
+              digest, name = line.split(maxsplit=1)
+              if name.endswith("/libz.so.1"):
+                  zlib_checks.append(name)
+                  assert digest == hashlib.md5(
+                      Path("/" + name).read_bytes()
+                  ).hexdigest()
+          assert len(zlib_checks) == 1
           assert sqlite3.connect(":memory:").execute("SELECT 1").fetchone()[0] == 1
           import fastapi
           import uvicorn
