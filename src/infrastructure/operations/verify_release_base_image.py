@@ -17,7 +17,10 @@ def main() -> int:
         )
     except ValueError:
         # Do not echo environment values into public CI logs.
-        print("Release blocked: approved immutable Python image required.", file=sys.stderr)
+        print(
+            "Release blocked: approved immutable Python image required.",
+            file=sys.stderr,
+        )
         return 1
     print("Python base-image digest reference format verified.")
     return 0
