@@ -113,9 +113,17 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Require approved immutable Python base-image digest
+        env:
+          APPROVED_PYTHON_BASE_IMAGE: ${{ vars.APPROVED_PYTHON_BASE_IMAGE }}
+        run: python -m src.infrastructure.operations.verify_release_base_image
+
       - name: Build candidate image locally
+        env:
+          APPROVED_PYTHON_BASE_IMAGE: ${{ vars.APPROVED_PYTHON_BASE_IMAGE }}
         run: |
           docker build --pull -f Dockerfile.release \
+            --build-arg "PYTHON_IMAGE=${APPROVED_PYTHON_BASE_IMAGE}" \
             -t "ai-interview-release-candidate:${GITHUB_SHA}" .
 
       - name: Fail on HIGH/CRITICAL vulnerabilities in the built image

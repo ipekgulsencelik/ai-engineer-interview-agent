@@ -36,9 +36,13 @@ workflow. CI must verify source provenance, dependencies and runtime health.
 
 ## Outstanding blockers
 
-- The base image reference is currently mutable. Pin a **reviewed,
-  verifiable, multi-platform SHA-256 manifest digest** in the release process.
-  Avoid inventing a digest or relying on a tag's name as an integrity check.
+- Ordinary PR CI still builds from a mutable base for development. The
+  **release-gate** now requires `APPROVED_PYTHON_BASE_IMAGE` to be a fully
+  qualified `docker.io/library/python:3.11-slim-trixie@sha256:<64-hex>`
+  GitHub Actions repository variable. If unset or malformed it fails before
+  building. Operations must independently verify upstream provenance, the
+  **multi-platform manifest digest**, current OS advisories and supported
+  architecture before setting the value. Syntax validation is not approval.
 - Debian/OS vulnerabilities may remain in the Python runtime layer even
   after removing the build tools. Do not waive Trivy findings.
 - Test actual container startup, embedded SQLite data access and
@@ -49,3 +53,21 @@ workflow. CI must verify source provenance, dependencies and runtime health.
   enforcement; Dockerfile configuration alone does not provide them.
 - Never deploy or publish directly from this PR. Keep all release security
   gates mandatory and require independent reviewer/operator approval.
+
+## Immutable release base-image control
+
+The production release workflow reads GitHub Actions repository variable
+`APPROVED_PYTHON_BASE_IMAGE`. Set it only to an independently verified
+official multi-platform digest reference of the form
+`docker.io/library/python:3.11-slim-trixie@sha256:<reviewed-64-hex>`.
+Do not use the example placeholders as values; an unauthorized or missing
+setting prevents the release container build.
+
+The policy is intentionally strict to detect tag-only, wrong-runtime,
+wrong-distribution and alternate-registry inputs. Existing PR CI continues to
+run without requiring this release approval variable. The release workflow
+passes the exact approved value to both image build stages.
+
+**This control does not certify the digest, solve HIGH/CRITICAL image
+vulnerabilities or authorize deployment.** Confirm signatures/provenance and
+blocking security scans independently.

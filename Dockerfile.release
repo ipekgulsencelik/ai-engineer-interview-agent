@@ -1,7 +1,7 @@
 # Production candidate only. Never publish before all release security gates pass.
-# The Python image can be supplied by immutable approved digest at build time:
-# docker build --build-arg PYTHON_IMAGE=python@sha256:<reviewed-digest> ...
-# CI currently uses a mutable reference; digest pinning remains a release blocker.
+# Release builds require APPROVED_PYTHON_BASE_IMAGE from the verified
+# immutable digest workflow policy. PR CI uses the mutable development default.
+# Never promote a PR CI image to production without the release gate.
 ARG PYTHON_IMAGE=python:3.11-slim
 
 # Build-only dependency tooling does not enter the deployed container.

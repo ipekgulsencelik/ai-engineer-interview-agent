@@ -261,6 +261,7 @@ jobs:
           python -m pytest -q
           tests/ops/test_enterprise_release_readiness.py
           tests/ops/test_release_workflow_contracts.py
+          tests/ops/test_approved_python_base_image_policy.py
 
       - name: Verify reproducible release archive and checksums
         run: |

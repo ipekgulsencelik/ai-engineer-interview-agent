@@ -169,3 +169,19 @@ def test_production_image_context_rejects_local_sqlite_state() -> None:
         "data/**/*.db.*",
     ):
         assert pattern in ignore
+
+
+
+def test_release_build_requires_explicit_immutable_base_image_digest() -> None:
+    workflow = _release_workflow()
+    steps = workflow["jobs"]["container-scan"]["steps"]
+    names = [step.get("name", "") for step in steps]
+    require_index = names.index("Require approved immutable Python base-image digest")
+    build_index = names.index("Build candidate image locally")
+    assert require_index < build_index
+    assert "verify_release_base_image" in str(steps[require_index]["run"])
+    build = str(steps[build_index])
+    assert "APPROVED_PYTHON_BASE_IMAGE" in build
+    assert "--build-arg" in build
+    assert "PYTHON_IMAGE=" in build
+    assert "vars.APPROVED_PYTHON_BASE_IMAGE" in build
