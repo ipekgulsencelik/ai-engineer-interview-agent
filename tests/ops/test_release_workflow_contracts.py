@@ -245,4 +245,7 @@ def test_failed_image_scan_retains_machine_readable_evidence() -> None:
     assert archive["if"] == "always()"
     assert archive["with"]["path"] == "trivy-image-findings.json"
     assert archive["with"]["retention-days"] == 30
-    assert archive["uses"].startswith("actions/upload-artifact@")
+    assert re.fullmatch(
+        r"actions/upload-artifact@[a-f0-9]{40}",
+        archive["uses"].split()[0],
+    ) is not None
