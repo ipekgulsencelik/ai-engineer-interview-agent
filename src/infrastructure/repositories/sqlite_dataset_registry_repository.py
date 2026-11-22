@@ -131,9 +131,9 @@ class SQLiteDatasetRegistryRepository:
     @staticmethod
     def _decode(
         conn: sqlite3.Connection,
-        row: tuple[str, str, str, str],
+        row: tuple[str, str, int, int, int, str, str],
     ) -> DatasetCatalogEntry:
-        dataset_id, version, content, digest = row
+        dataset_id, version, major, minor, patch, content, digest = row
         if _checksum(content) != digest:
             raise DatasetRegistryStorageError(
                 "dataset registry checksum mismatch"
@@ -159,6 +159,8 @@ class SQLiteDatasetRegistryRepository:
                 tags=tuple(raw_tags),
                 description=payload["description"],
             )
+            if (major, minor, patch) != parse_schema_version(version):
+                raise ValueError("stored semantic version index differs")
             if entry.revision.dataset_id != dataset_id:
                 raise ValueError("stored dataset identity differs")
             if entry.revision.version != version:
@@ -193,7 +195,8 @@ class SQLiteDatasetRegistryRepository:
                 conn.execute("BEGIN IMMEDIATE")
                 existing = conn.execute(
                     """
-                    SELECT dataset_id, version, entry_json, checksum
+                    SELECT dataset_id, version, version_major, version_minor,
+                           version_patch, entry_json, checksum
                     FROM dataset_registry_entries
                     WHERE dataset_id = ? AND version = ?
                     """,
@@ -267,7 +270,8 @@ class SQLiteDatasetRegistryRepository:
             with closing(self._connect()) as conn:
                 row = conn.execute(
                     """
-                    SELECT dataset_id, version, entry_json, checksum
+                    SELECT dataset_id, version, version_major, version_minor,
+                           version_patch, entry_json, checksum
                     FROM dataset_registry_entries
                     WHERE dataset_id = ? AND version = ?
                     """,
@@ -288,7 +292,8 @@ class SQLiteDatasetRegistryRepository:
             with closing(self._connect()) as conn:
                 rows = conn.execute(
                     """
-                    SELECT dataset_id, version, entry_json, checksum
+                    SELECT dataset_id, version, version_major, version_minor,
+                           version_patch, entry_json, checksum
                     FROM dataset_registry_entries WHERE dataset_id = ?
                     ORDER BY version_major DESC, version_minor DESC,
                              version_patch DESC LIMIT ?
@@ -311,7 +316,9 @@ class SQLiteDatasetRegistryRepository:
             with closing(self._connect()) as conn:
                 rows = conn.execute(
                     """
-                    SELECT r.dataset_id, r.version, r.entry_json, r.checksum
+                    SELECT r.dataset_id, r.version, r.version_major,
+                           r.version_minor, r.version_patch,
+                           r.entry_json, r.checksum
                     FROM dataset_registry_entries AS r
                     JOIN dataset_registry_tags AS t
                       ON t.dataset_id = r.dataset_id AND t.version = r.version

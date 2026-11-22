@@ -198,3 +198,20 @@ def test_non_file_sqlite_and_bad_timeout_are_rejected(tmp_path) -> None:
             SQLiteDatasetRegistryRepository(
                 tmp_path / "registry.sqlite", timeout=timeout
             )
+
+
+def test_version_index_corruption_is_not_silently_trusted(tmp_path) -> None:
+    path = tmp_path / "registry.sqlite"
+    repo = SQLiteDatasetRegistryRepository(path)
+    entry = _entry("1.5.0")
+    repo.register(entry=entry)
+    with sqlite3.connect(path) as conn:
+        conn.execute(
+            "UPDATE dataset_registry_entries SET version_minor = 999 "
+            "WHERE dataset_id = ?",
+            (entry.revision.dataset_id,),
+        )
+    with pytest.raises(DatasetRegistryStorageError, match="invalid"):
+        repo.get(revision=entry.revision)
+    with pytest.raises(DatasetRegistryStorageError, match="invalid"):
+        repo.list_versions(dataset_id=entry.revision.dataset_id)
