@@ -1,4 +1,4 @@
-name: Issue 47 official Debian13 zlib upgrade candidate
+name: Issue 47 official Debian13 zlib matched-base A/B
 
 on:
   push:
@@ -9,38 +9,59 @@ permissions:
   contents: read
 
 jobs:
-  trixie-zlib-vendor-recheck:
-    name: Test signed zlib fix and block on other HIGH/CRITICAL
+  matched-base-vulnerability-comparison:
+    name: Strict Trivy from same official base (${{ matrix.variant }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline, patched]
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Build no-publish official Debian 13 zlib candidate
+      - name: Build pinned provenance comparison image without publishing
+        env:
+          VARIANT: ${{ matrix.variant }}
         run: |
           docker build --pull -f Dockerfile.trixie-zlib-vendor-test \
-            -t "ai-interview-zlib-preflight:${GITHUB_SHA}" .
-      - name: Confirm real Python zlib binding and installed package
+            --target "$VARIANT" \
+            -t "ai-interview-zlib-ab:${GITHUB_SHA}-$VARIANT" .
+      - name: Confirm signed vendor package and actual Python binding
+        if: matrix.variant == 'patched'
         run: |
           docker run --rm --network none \
-            "ai-interview-zlib-preflight:${GITHUB_SHA}" \
-            python -c 'import zlib; print("ZLIB_UPGRADE_SMOKE_PASS", zlib.ZLIB_RUNTIME_VERSION)'
-      - name: Strict OS/library Trivy - no exceptions
+            "ai-interview-zlib-ab:${GITHUB_SHA}-patched" \
+            /bin/sh -ec '
+              installed="$(dpkg-query --show --showformat="${Version}" zlib1g)"
+              dpkg --compare-versions "$installed" ge \
+                "1:1.3.dfsg+really1.3.1-1+deb13u1"
+              python -c "import zlib; print(zlib.ZLIB_RUNTIME_VERSION)"
+            '
+      - name: Strict HIGH CRITICAL Trivy without suppressions
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
-          image-ref: "ai-interview-zlib-preflight:${{ github.sha }}"
+          image-ref: "ai-interview-zlib-ab:${{ github.sha }}-${{ matrix.variant }}"
           format: json
-          output: trixie-zlib-vendor-findings.json
+          output: trivy-zlib-ab.json
           exit-code: "1"
           ignore-unfixed: false
           severity: "CRITICAL,HIGH"
           vuln-type: "os,library"
           scanners: "vuln"
-      - name: Summarize remaining full-base vulnerabilities
+      - name: Count unique CVEs and known fixed package versions
         if: always()
         run: |
-          if test -s trixie-zlib-vendor-findings.json; then
+          if test -s trivy-zlib-ab.json; then
             python -m src.infrastructure.operations.summarize_trivy_image_scan \
-              --input trixie-zlib-vendor-findings.json
+              --input trivy-zlib-ab.json
           fi
+      - name: Save exact vulnerability list for matching-base comparison
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: zlib-ab-${{ matrix.variant }}-${{ github.sha }}
+          path: trivy-zlib-ab.json
+          if-no-files-found: warn
+          retention-days: 7
