@@ -17,12 +17,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       DHI_RUNTIME: dhi.io/python:3.11-debian13
       DHI_BUILDER: dhi.io/python:3.11-debian13-dev
     steps:
       - name: Require read-only Docker registry credentials
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
@@ -32,6 +33,9 @@ jobs:
           fi
 
       - name: Authenticate to dhi.io without printing credentials
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
