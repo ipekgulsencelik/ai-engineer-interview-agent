@@ -185,3 +185,33 @@ def test_release_build_requires_explicit_immutable_base_image_digest() -> None:
     assert "--build-arg" in build
     assert "PYTHON_IMAGE=" in build
     assert "vars.APPROVED_PYTHON_BASE_IMAGE" in build
+
+
+def test_production_image_security_runs_for_every_pr_without_waivers() -> None:
+    """Security gate must be blocking on normal PRs, not only release tags."""
+    workflow = yaml.safe_load(
+        (ROOT / ".github/workflows/production-image-pr-security.yml").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert workflow["permissions"] == {"contents": "read"}
+    triggers = workflow.get("on", workflow.get(True))
+    assert set(triggers["pull_request"]["branches"]) == {"main", "develop"}
+    assert "paths" not in triggers["pull_request"]
+    jobs = workflow["jobs"]
+    assert set(jobs) == {"locked-runtime-audit", "production-image-scan"}
+    audit = str(jobs["locked-runtime-audit"]["steps"])
+    assert "uv export --locked --no-dev" in audit
+    assert "pip-audit --no-deps --strict" in audit
+    assert "chromadb" in audit
+    scan = jobs["production-image-scan"]["steps"]
+    assert "Dockerfile.release" in str(scan)
+    trivy = next(step for step in scan if "trivy-action@" in step.get("uses", ""))
+    assert re.search(r"aquasecurity/trivy-action@[a-f0-9]{40}", trivy["uses"])
+    assert trivy["with"]["exit-code"] == "1"
+    assert trivy["with"]["severity"] == "CRITICAL,HIGH"
+    assert trivy["with"]["vuln-type"] == "os,library"
+    assert trivy["with"]["ignore-unfixed"] is False
+    assert trivy["with"]["scanners"] == "vuln"
+    assert "10001:10001" in str(scan)
+    assert all("docker push" not in str(step) for step in scan)

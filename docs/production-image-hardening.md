@@ -71,3 +71,26 @@ passes the exact approved value to both image build stages.
 **This control does not certify the digest, solve HIGH/CRITICAL image
 vulnerabilities or authorize deployment.** Confirm signatures/provenance and
 blocking security scans independently.
+
+
+## Continuous pull-request vulnerability gate
+
+The separate `.github/workflows/production-image-pr-security.yml` runs on
+every pull request targeting `main` or `develop`, not only on a release
+tag. It blocks on known production dependency advisories using locked
+`pip-audit --strict` and on HIGH/CRITICAL OS and library advisories in the
+**actual** `Dockerfile.release` built image using Trivy. There are no
+`ignore-unfixed` exemptions or auto-publish steps.
+
+**Important:** Even a green application CI does not imply a releasable
+container. Until the 51 HIGH CVE findings in the existing production image
+are remediated, this new security check is expected to fail deliberately.
+
+A GitHub repository administrator must configure branch protection or a
+ruleset for `main` and `develop` requiring both checks by their exact
+names: `Locked production dependency audit` and
+`Production image HIGH/CRITICAL gate`. Also require the existing
+`Ruff + Pyright + Pytest` check, an approving review, up-to-date branches,
+and block force pushes/deletions. On 2026-11-22 `main` was not protected
+and the repository returned no active rulesets. These GitHub admin controls
+cannot be enforced merely by committing a workflow.
