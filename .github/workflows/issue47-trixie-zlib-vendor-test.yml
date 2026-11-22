@@ -1,0 +1,46 @@
+name: Issue 47 official Debian13 zlib upgrade candidate
+
+on:
+  push:
+    branches:
+      - test/issue47-trixie-signed-zlib-upgrade-20261122
+
+permissions:
+  contents: read
+
+jobs:
+  trixie-zlib-vendor-recheck:
+    name: Test signed zlib fix and block on other HIGH/CRITICAL
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build no-publish official Debian 13 zlib candidate
+        run: |
+          docker build --pull -f Dockerfile.trixie-zlib-vendor-test \
+            -t "ai-interview-zlib-preflight:${GITHUB_SHA}" .
+      - name: Confirm real Python zlib binding and installed package
+        run: |
+          docker run --rm --network none \
+            "ai-interview-zlib-preflight:${GITHUB_SHA}" \
+            python -c 'import zlib; print("ZLIB_UPGRADE_SMOKE_PASS", zlib.ZLIB_RUNTIME_VERSION)'
+      - name: Strict OS/library Trivy - no exceptions
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: "ai-interview-zlib-preflight:${{ github.sha }}"
+          format: json
+          output: trixie-zlib-vendor-findings.json
+          exit-code: "1"
+          ignore-unfixed: false
+          severity: "CRITICAL,HIGH"
+          vuln-type: "os,library"
+          scanners: "vuln"
+      - name: Summarize remaining full-base vulnerabilities
+        if: always()
+        run: |
+          if test -s trixie-zlib-vendor-findings.json; then
+            python -m src.infrastructure.operations.summarize_trivy_image_scan \
+              --input trixie-zlib-vendor-findings.json
+          fi
