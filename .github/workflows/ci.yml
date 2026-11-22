@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - feat/phase2-registry-quality-gate
   pull_request:
     branches:
       - main
