@@ -1,44 +1,1730 @@
 [
   {
-    "id": "rag_jr_001",
-    "text": "What is Retrieval-Augmented Generation?",
-    "category": "RAG",
+    "id": "llm_jr_001",
+    "text": "What is a token in a large language model, and why does the context window size matter in practice?",
+    "category": "llm_fundamentals",
     "level": "JR",
     "question_type": "conceptual",
-    "difficulty": 3,
+    "difficulty": 1,
     "expected_points": [
-      "retrieval",
-      "generation",
-      "embedding"
+      "text is split into subword tokens",
+      "context window limits input plus output tokens",
+      "cost and latency scale with tokens",
+      "long inputs must be truncated or chunked"
     ],
     "keywords": [
-      "retrieval",
-      "generation",
-      "embedding"
+      "token",
+      "tokenizer",
+      "context window",
+      "truncation"
     ],
-    "followup": "How would you improve retrieval quality?",
-    "ideal_answer_hint": "RAG combines retrieval with generation.",
+    "followup": "How would you handle a document that is larger than the model's context window?",
+    "ideal_answer_hint": "Tokens are subword units; the window bounds prompt + completion, driving truncation, chunking, cost and latency.",
     "market_weight": 0.8,
     "followup_allowed": true
   },
   {
-    "id": "vector_mid_001",
-    "text": "How do vector databases support semantic search?",
-    "category": "Vector DB",
+    "id": "llm_jr_002",
+    "text": "Explain what temperature and top-p control during text generation.",
+    "category": "llm_fundamentals",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "sampling from the next-token distribution",
+      "temperature scales the distribution sharpness",
+      "top-p restricts sampling to a probability mass",
+      "low values for deterministic tasks"
+    ],
+    "keywords": [
+      "temperature",
+      "top-p",
+      "sampling",
+      "determinism"
+    ],
+    "followup": "Which settings would you use for structured JSON extraction, and why?",
+    "ideal_answer_hint": "Both shape sampling; low temperature/top-p for factual or structured output, higher for creative variety.",
+    "market_weight": 0.8,
+    "followup_allowed": true
+  },
+  {
+    "id": "llm_jr_003",
+    "text": "What is the difference between a base (pretrained) model and an instruction-tuned chat model?",
+    "category": "llm_fundamentals",
+    "level": "JR",
+    "question_type": "comparison",
+    "difficulty": 1,
+    "expected_points": [
+      "base model predicts next tokens on raw text",
+      "instruction tuning with supervised examples",
+      "preference tuning such as RLHF or DPO",
+      "chat models follow instructions and formats"
+    ],
+    "keywords": [
+      "pretraining",
+      "instruction tuning",
+      "RLHF",
+      "chat template"
+    ],
+    "followup": "When might you still choose a base model?",
+    "ideal_answer_hint": "Base models continue text; instruction/preference tuning teaches them to follow instructions and dialogue formats.",
+    "market_weight": 0.8,
+    "followup_allowed": true
+  },
+  {
+    "id": "llm_mid_001",
+    "text": "Explain self-attention in a transformer and why its cost grows with sequence length.",
+    "category": "llm_fundamentals",
     "level": "MID",
+    "question_type": "conceptual",
+    "difficulty": 2,
+    "expected_points": [
+      "queries keys and values",
+      "attention weights from scaled dot products",
+      "quadratic cost in sequence length",
+      "KV cache during decoding"
+    ],
+    "keywords": [
+      "self-attention",
+      "query key value",
+      "quadratic",
+      "KV cache"
+    ],
+    "followup": "How does a KV cache change inference cost during generation?",
+    "ideal_answer_hint": "Each token attends to all others via QK^T softmax V, giving O(n^2) compute/memory; KV cache avoids recomputation when decoding.",
+    "market_weight": 0.8,
+    "followup_allowed": true
+  },
+  {
+    "id": "llm_mid_002",
+    "text": "Your LLM feature confidently returns wrong facts. What causes hallucinations and how would you reduce them in production?",
+    "category": "llm_fundamentals",
+    "level": "MID",
+    "question_type": "scenario",
+    "difficulty": 2,
+    "expected_points": [
+      "models generate plausible tokens not verified facts",
+      "grounding with retrieval",
+      "constrain output and allow abstention",
+      "evaluate with faithfulness checks"
+    ],
+    "keywords": [
+      "hallucination",
+      "grounding",
+      "abstention",
+      "faithfulness"
+    ],
+    "followup": "How would you measure whether your mitigation actually worked?",
+    "ideal_answer_hint": "Hallucinations come from likelihood-driven generation; mitigate with RAG grounding, citations, refusal paths and measured faithfulness.",
+    "market_weight": 0.8,
+    "followup_allowed": true
+  },
+  {
+    "id": "llm_mid_003",
+    "text": "Compare using a hosted LLM API with self-hosting an open-weight model.",
+    "category": "llm_fundamentals",
+    "level": "MID",
+    "question_type": "comparison",
+    "difficulty": 2,
+    "expected_points": [
+      "cost model per token versus infrastructure",
+      "latency and throughput control",
+      "data privacy and compliance",
+      "operational burden and model quality"
+    ],
+    "keywords": [
+      "API",
+      "open-weight",
+      "self-hosting",
+      "privacy"
+    ],
+    "followup": "At what usage level would self-hosting start to make financial sense?",
+    "ideal_answer_hint": "Trade off per-token cost, privacy, latency control and quality against GPU cost and operational complexity.",
+    "market_weight": 0.8,
+    "followup_allowed": true
+  },
+  {
+    "id": "llm_senior_001",
+    "text": "Design an LLM serving setup that handles bursty traffic with a p95 latency budget of two seconds.",
+    "category": "llm_fundamentals",
+    "level": "SENIOR",
+    "question_type": "system_design",
+    "difficulty": 3,
+    "expected_points": [
+      "continuous batching",
+      "streaming responses",
+      "autoscaling with warm capacity",
+      "fallback models and rate limiting"
+    ],
+    "keywords": [
+      "batching",
+      "streaming",
+      "autoscaling",
+      "p95 latency"
+    ],
+    "followup": "Which metrics would you alert on first?",
+    "ideal_answer_hint": "Use continuous batching, streaming, queue-aware autoscaling with headroom, caching and degraded fallbacks under load.",
+    "market_weight": 0.8,
+    "followup_allowed": true
+  },
+  {
+    "id": "llm_senior_002",
+    "text": "Your monthly LLM bill tripled after launch. How do you cut cost without degrading quality?",
+    "category": "llm_fundamentals",
+    "level": "SENIOR",
+    "question_type": "scenario",
+    "difficulty": 3,
+    "expected_points": [
+      "measure cost per request and per feature",
+      "prompt and context reduction",
+      "caching and model routing",
+      "evaluate quality before and after"
+    ],
+    "keywords": [
+      "cost optimization",
+      "caching",
+      "model routing",
+      "prompt compression"
+    ],
+    "followup": "How would you prove quality did not regress?",
+    "ideal_answer_hint": "Attribute spend, trim context, cache, route easy requests to smaller models, and gate changes on an evaluation set.",
+    "market_weight": 0.8,
+    "followup_allowed": true
+  },
+  {
+    "id": "llm_senior_003",
+    "text": "What are the trade-offs of quantizing a model to 8-bit or 4-bit for inference?",
+    "category": "llm_fundamentals",
+    "level": "SENIOR",
     "question_type": "conceptual",
     "difficulty": 3,
     "expected_points": [
+      "lower memory and higher throughput",
+      "possible accuracy loss",
+      "hardware and kernel support",
+      "validate on task-specific evaluation"
+    ],
+    "keywords": [
+      "quantization",
+      "int8",
+      "4-bit",
+      "accuracy"
+    ],
+    "followup": "How would you detect a quality drop caused by quantization?",
+    "ideal_answer_hint": "Quantization saves memory and speeds inference but can degrade accuracy; verify on task evals and hardware support.",
+    "market_weight": 0.8,
+    "followup_allowed": true
+  },
+  {
+    "id": "prompt_jr_001",
+    "text": "What is the difference between zero-shot and few-shot prompting?",
+    "category": "prompt_engineering",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "zero-shot gives only instructions",
+      "few-shot adds examples",
+      "examples steer format and style",
+      "examples consume context tokens"
+    ],
+    "keywords": [
+      "zero-shot",
+      "few-shot",
+      "examples",
+      "in-context learning"
+    ],
+    "followup": "How do you choose good few-shot examples?",
+    "ideal_answer_hint": "Few-shot adds input/output examples for in-context learning; it improves format adherence at token cost.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "prompt_jr_002",
+    "text": "What is a system prompt, and what should you put in it?",
+    "category": "prompt_engineering",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "sets role and behavior",
+      "rules and constraints",
+      "output format",
+      "kept separate from user input"
+    ],
+    "keywords": [
+      "system prompt",
+      "role",
+      "instructions",
+      "format"
+    ],
+    "followup": "What should never be placed in a system prompt?",
+    "ideal_answer_hint": "The system prompt defines role, rules and output format; it must not contain secrets.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "prompt_jr_003",
+    "text": "How would you make an LLM reliably return valid JSON that your code can parse?",
+    "category": "prompt_engineering",
+    "level": "JR",
+    "question_type": "coding",
+    "difficulty": 1,
+    "expected_points": [
+      "explicit schema in the prompt",
+      "structured output or JSON mode",
+      "validate and parse the response",
+      "retry or repair on failure"
+    ],
+    "keywords": [
+      "JSON",
+      "schema",
+      "structured output",
+      "validation"
+    ],
+    "followup": "What do you do when validation still fails after retries?",
+    "ideal_answer_hint": "Specify a schema, use structured output features, validate with a schema library and retry or fall back.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "prompt_mid_001",
+    "text": "What is prompt injection, and how would you defend a RAG application against it?",
+    "category": "prompt_engineering",
+    "level": "MID",
+    "question_type": "scenario",
+    "difficulty": 2,
+    "expected_points": [
+      "untrusted text overrides instructions",
+      "separate instructions from data",
+      "least privilege for tools",
+      "output filtering and monitoring"
+    ],
+    "keywords": [
+      "prompt injection",
+      "untrusted input",
+      "least privilege",
+      "guardrails"
+    ],
+    "followup": "How would you test your defenses?",
+    "ideal_answer_hint": "Injected instructions in user or retrieved text hijack the model; isolate data, limit tool permissions, filter outputs and red-team.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "prompt_mid_002",
+    "text": "When does chain-of-thought or step-by-step reasoning help, and what are its costs?",
+    "category": "prompt_engineering",
+    "level": "MID",
+    "question_type": "comparison",
+    "difficulty": 2,
+    "expected_points": [
+      "helps multi-step reasoning",
+      "more output tokens and latency",
+      "reasoning may not be faithful",
+      "can be hidden from end users"
+    ],
+    "keywords": [
+      "chain-of-thought",
+      "reasoning",
+      "latency",
+      "tokens"
+    ],
+    "followup": "Would you show the reasoning to end users? Why?",
+    "ideal_answer_hint": "It helps on multi-step problems but adds tokens and latency, and the stated reasoning is not guaranteed faithful.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "prompt_mid_003",
+    "text": "How do you version and test prompts as they change over time?",
+    "category": "prompt_engineering",
+    "level": "MID",
+    "question_type": "scenario",
+    "difficulty": 2,
+    "expected_points": [
+      "prompts stored in version control",
+      "regression evaluation set",
+      "compare outputs before release",
+      "pin the model version"
+    ],
+    "keywords": [
+      "prompt versioning",
+      "regression test",
+      "evaluation set",
+      "model pinning"
+    ],
+    "followup": "What would trigger a prompt rollback?",
+    "ideal_answer_hint": "Treat prompts as code: version them, pin models and gate changes on a regression evaluation set.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "prompt_senior_001",
+    "text": "Design a prompt management system for a team with many LLM features in production.",
+    "category": "prompt_engineering",
+    "level": "SENIOR",
+    "question_type": "system_design",
+    "difficulty": 3,
+    "expected_points": [
+      "central registry with versions",
+      "evaluation gates in CI",
+      "A/B or canary rollout",
+      "observability per prompt version"
+    ],
+    "keywords": [
+      "prompt registry",
+      "CI",
+      "canary",
+      "observability"
+    ],
+    "followup": "How do you keep prompt changes from silently breaking downstream parsers?",
+    "ideal_answer_hint": "Versioned registry, schema contracts, CI evaluation gates, gradual rollout and per-version metrics.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "prompt_senior_002",
+    "text": "A prompt works with one model but degrades when you switch providers. How do you approach portability?",
+    "category": "prompt_engineering",
+    "level": "SENIOR",
+    "question_type": "scenario",
+    "difficulty": 3,
+    "expected_points": [
+      "model-specific behavior and templates",
+      "provider-neutral abstraction",
+      "per-model evaluation",
+      "structured outputs over free text"
+    ],
+    "keywords": [
+      "portability",
+      "abstraction",
+      "evaluation",
+      "model migration"
+    ],
+    "followup": "How would you decide which model a request should go to?",
+    "ideal_answer_hint": "Abstract the provider, keep per-model prompt variants, rely on structured outputs and evaluate every model change.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "prompt_senior_003",
+    "text": "When should a team stop iterating on prompts and consider fine-tuning or a different architecture instead?",
+    "category": "prompt_engineering",
+    "level": "SENIOR",
+    "question_type": "conceptual",
+    "difficulty": 3,
+    "expected_points": [
+      "plateau on the evaluation set",
+      "need for consistent style or format",
+      "latency or cost limits from long prompts",
+      "enough quality training data"
+    ],
+    "keywords": [
+      "prompt plateau",
+      "fine-tuning",
+      "cost",
+      "evaluation"
+    ],
+    "followup": "What evidence would you collect before making that call?",
+    "ideal_answer_hint": "Move on when evals plateau, prompts become too long or costly, and enough labeled data exists to justify training.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "rag_jr_001",
+    "text": "What is Retrieval-Augmented Generation and what problem does it solve?",
+    "category": "rag",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "retrieve relevant documents",
+      "inject them into the prompt",
+      "grounds answers in current or private data",
+      "reduces hallucination"
+    ],
+    "keywords": [
+      "retrieval",
+      "generation",
+      "grounding",
+      "context"
+    ],
+    "followup": "How would you improve retrieval quality?",
+    "ideal_answer_hint": "RAG retrieves relevant context and adds it to the prompt so answers are grounded in up-to-date or private data.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "rag_jr_002",
+    "text": "What is chunking in a RAG pipeline, and why does chunk size matter?",
+    "category": "rag",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "documents split into pieces",
+      "too large dilutes relevance",
+      "too small loses context",
+      "overlap preserves continuity"
+    ],
+    "keywords": [
+      "chunking",
+      "chunk size",
+      "overlap",
+      "context"
+    ],
+    "followup": "How would you pick a chunk size for technical documentation?",
+    "ideal_answer_hint": "Chunks trade precision for context; tune size and overlap per corpus and measure retrieval quality.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "rag_jr_003",
+    "text": "Walk through the indexing and query steps of a basic RAG pipeline.",
+    "category": "rag",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "load and chunk documents",
+      "embed and store vectors",
+      "embed the query and retrieve top-k",
+      "generate with retrieved context"
+    ],
+    "keywords": [
+      "indexing",
       "embedding",
-      "similarity",
-      "vector"
+      "top-k",
+      "vector store"
+    ],
+    "followup": "Where would you add metadata filtering?",
+    "ideal_answer_hint": "Index: load, chunk, embed, store. Query: embed, retrieve top-k, build prompt, generate.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "rag_mid_001",
+    "text": "Users say your RAG answers are often wrong. How do you tell whether retrieval or generation is the problem?",
+    "category": "rag",
+    "level": "MID",
+    "question_type": "scenario",
+    "difficulty": 2,
+    "expected_points": [
+      "inspect retrieved contexts",
+      "retrieval metrics like recall and precision",
+      "faithfulness of the answer to context",
+      "build a labeled evaluation set"
+    ],
+    "keywords": [
+      "retrieval failure",
+      "context recall",
+      "faithfulness",
+      "evaluation set"
+    ],
+    "followup": "Which metric would you track first, and why?",
+    "ideal_answer_hint": "Separate the stages: measure context recall/precision for retrieval and faithfulness for generation on a labeled set.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "rag_mid_002",
+    "text": "Compare dense, sparse (BM25) and hybrid retrieval.",
+    "category": "rag",
+    "level": "MID",
+    "question_type": "comparison",
+    "difficulty": 2,
+    "expected_points": [
+      "dense captures semantics",
+      "sparse matches exact terms",
+      "hybrid combines both scores",
+      "rank fusion"
+    ],
+    "keywords": [
+      "dense retrieval",
+      "BM25",
+      "hybrid search",
+      "reciprocal rank fusion"
+    ],
+    "followup": "When does BM25 beat embeddings?",
+    "ideal_answer_hint": "Dense handles paraphrase, BM25 handles exact terms and identifiers; hybrid with rank fusion usually wins.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "rag_mid_003",
+    "text": "What is reranking in RAG, and when is it worth the extra latency?",
+    "category": "rag",
+    "level": "MID",
+    "question_type": "conceptual",
+    "difficulty": 2,
+    "expected_points": [
+      "retrieve a larger candidate set",
+      "cross-encoder scores query and passage together",
+      "improves precision of top results",
+      "adds latency and cost"
+    ],
+    "keywords": [
+      "reranking",
+      "cross-encoder",
+      "precision",
+      "latency"
+    ],
+    "followup": "How many candidates would you rerank?",
+    "ideal_answer_hint": "A cross-encoder rescores retrieved candidates for better top-k precision at extra latency.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "rag_senior_001",
+    "text": "Design a RAG system over a million documents that change daily and have per-user access permissions.",
+    "category": "rag",
+    "level": "SENIOR",
+    "question_type": "system_design",
+    "difficulty": 3,
+    "expected_points": [
+      "incremental indexing pipeline",
+      "permission filtering at retrieval time",
+      "freshness and deletion handling",
+      "evaluation and monitoring"
+    ],
+    "keywords": [
+      "incremental indexing",
+      "access control",
+      "freshness",
+      "scalability"
+    ],
+    "followup": "How do you make sure a deleted document never appears in answers?",
+    "ideal_answer_hint": "Incremental ingestion with change detection, ACL metadata filters at query time, deletion propagation and continuous evaluation.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "rag_senior_002",
+    "text": "Multi-hop questions fail in your RAG system. How would you redesign it?",
+    "category": "rag",
+    "level": "SENIOR",
+    "question_type": "scenario",
+    "difficulty": 3,
+    "expected_points": [
+      "query decomposition",
+      "iterative or agentic retrieval",
+      "knowledge graph or structured data",
+      "evaluate on multi-hop examples"
+    ],
+    "keywords": [
+      "multi-hop",
+      "query decomposition",
+      "iterative retrieval",
+      "knowledge graph"
+    ],
+    "followup": "How would you bound latency in an iterative design?",
+    "ideal_answer_hint": "Decompose questions, retrieve iteratively or use structured/graph sources, and evaluate on multi-hop cases.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "rag_senior_003",
+    "text": "When would you choose long-context prompting over RAG, and when not?",
+    "category": "rag",
+    "level": "SENIOR",
+    "question_type": "comparison",
+    "difficulty": 3,
+    "expected_points": [
+      "small stable corpora fit in context",
+      "cost and latency of long prompts",
+      "lost-in-the-middle effects",
+      "RAG for large or changing data"
+    ],
+    "keywords": [
+      "long context",
+      "RAG",
+      "cost",
+      "lost in the middle"
+    ],
+    "followup": "Can the two be combined?",
+    "ideal_answer_hint": "Long context suits small bounded corpora; RAG scales to large, changing data at lower cost per request.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "vector_jr_001",
+    "text": "How do vector databases support semantic search?",
+    "category": "vector_databases",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "store embeddings",
+      "similarity between vectors",
+      "nearest neighbor search",
+      "metadata alongside vectors"
     ],
     "keywords": [
       "embedding",
       "similarity",
+      "nearest neighbor",
       "vector"
     ],
+    "followup": "Which similarity metric would you use for normalized embeddings?",
+    "ideal_answer_hint": "Text is embedded into vectors; the database returns nearest neighbors by a similarity metric.",
+    "market_weight": 0.75,
+    "followup_allowed": true
+  },
+  {
+    "id": "vector_jr_002",
+    "text": "Compare cosine similarity, dot product and Euclidean distance for embeddings.",
+    "category": "vector_databases",
+    "level": "JR",
+    "question_type": "comparison",
+    "difficulty": 1,
+    "expected_points": [
+      "cosine ignores magnitude",
+      "dot product includes magnitude",
+      "Euclidean measures distance",
+      "equivalent rankings for normalized vectors"
+    ],
+    "keywords": [
+      "cosine",
+      "dot product",
+      "Euclidean",
+      "normalization"
+    ],
+    "followup": "Why do many embedding models output normalized vectors?",
+    "ideal_answer_hint": "With normalized vectors all three give the same ranking; otherwise magnitude changes dot product and distance.",
+    "market_weight": 0.75,
+    "followup_allowed": true
+  },
+  {
+    "id": "vector_jr_003",
+    "text": "What is metadata filtering in a vector store, and why is it useful?",
+    "category": "vector_databases",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "attributes stored with each vector",
+      "filter by category, date or owner",
+      "narrows search space",
+      "enables access control"
+    ],
+    "keywords": [
+      "metadata",
+      "filtering",
+      "where clause",
+      "access control"
+    ],
+    "followup": "What is the difference between pre-filtering and post-filtering?",
+    "ideal_answer_hint": "Metadata filters restrict results by attributes, improving relevance and enforcing permissions.",
+    "market_weight": 0.75,
+    "followup_allowed": true
+  },
+  {
+    "id": "vector_mid_001",
+    "text": "How does approximate nearest neighbor search such as HNSW work, and what are its trade-offs?",
+    "category": "vector_databases",
+    "level": "MID",
+    "question_type": "conceptual",
+    "difficulty": 2,
+    "expected_points": [
+      "graph-based index",
+      "approximate rather than exact",
+      "recall versus latency parameters",
+      "memory cost of the index"
+    ],
+    "keywords": [
+      "ANN",
+      "HNSW",
+      "recall",
+      "latency"
+    ],
+    "followup": "Which parameters would you tune to improve recall?",
+    "ideal_answer_hint": "HNSW navigates a layered graph for fast approximate search, trading recall against latency and memory via ef/M.",
+    "market_weight": 0.75,
+    "followup_allowed": true
+  },
+  {
+    "id": "vector_mid_002",
+    "text": "You need to switch to a new embedding model. How do you migrate the vector index safely?",
+    "category": "vector_databases",
+    "level": "MID",
+    "question_type": "scenario",
+    "difficulty": 2,
+    "expected_points": [
+      "vectors from different models are incompatible",
+      "re-embed the corpus",
+      "build a new index in parallel",
+      "evaluate before switching traffic"
+    ],
+    "keywords": [
+      "re-embedding",
+      "migration",
+      "index versioning",
+      "evaluation"
+    ],
+    "followup": "How would you minimize downtime during the switch?",
+    "ideal_answer_hint": "Embeddings are not comparable across models; re-embed into a new index, evaluate, then switch atomically.",
+    "market_weight": 0.75,
+    "followup_allowed": true
+  },
+  {
+    "id": "vector_mid_003",
+    "text": "When would you use a dedicated vector database versus pgvector in an existing PostgreSQL?",
+    "category": "vector_databases",
+    "level": "MID",
+    "question_type": "comparison",
+    "difficulty": 2,
+    "expected_points": [
+      "scale and query volume",
+      "operational simplicity",
+      "transactional consistency with app data",
+      "filtering and feature needs"
+    ],
+    "keywords": [
+      "pgvector",
+      "vector database",
+      "operations",
+      "scale"
+    ],
+    "followup": "What would make you move off pgvector later?",
+    "ideal_answer_hint": "pgvector keeps one system and transactions; dedicated stores win at large scale or specialized features.",
+    "market_weight": 0.75,
+    "followup_allowed": true
+  },
+  {
+    "id": "vector_senior_001",
+    "text": "Design a multi-tenant vector search service with strict tenant isolation.",
+    "category": "vector_databases",
+    "level": "SENIOR",
+    "question_type": "system_design",
+    "difficulty": 3,
+    "expected_points": [
+      "namespace or collection per tenant",
+      "mandatory tenant filter",
+      "per-tenant quotas",
+      "audit and testing of isolation"
+    ],
+    "keywords": [
+      "multi-tenant",
+      "isolation",
+      "namespaces",
+      "quotas"
+    ],
+    "followup": "How do you prevent one large tenant from hurting others?",
+    "ideal_answer_hint": "Isolate by namespace or index, enforce tenant filters server-side, apply quotas and test isolation continuously.",
+    "market_weight": 0.75,
+    "followup_allowed": true
+  },
+  {
+    "id": "vector_senior_002",
+    "text": "Your vector search p99 latency is high at 100 million vectors. How do you investigate and fix it?",
+    "category": "vector_databases",
+    "level": "SENIOR",
+    "question_type": "scenario",
+    "difficulty": 3,
+    "expected_points": [
+      "profile query path",
+      "index parameters and quantization",
+      "sharding and replicas",
+      "filter selectivity effects"
+    ],
+    "keywords": [
+      "p99 latency",
+      "sharding",
+      "quantization",
+      "index tuning"
+    ],
+    "followup": "What recall loss would you accept for lower latency?",
+    "ideal_answer_hint": "Profile first, then tune index parameters, use vector quantization, shard and replicate, and watch filter selectivity.",
+    "market_weight": 0.75,
+    "followup_allowed": true
+  },
+  {
+    "id": "vector_senior_003",
+    "text": "How would you measure and monitor retrieval quality of a vector index over time?",
+    "category": "vector_databases",
+    "level": "SENIOR",
+    "question_type": "conceptual",
+    "difficulty": 3,
+    "expected_points": [
+      "labeled query set",
+      "recall at k against exact search",
+      "drift in query distribution",
+      "alerts on regression"
+    ],
+    "keywords": [
+      "recall@k",
+      "evaluation set",
+      "drift",
+      "monitoring"
+    ],
+    "followup": "How often would you re-run the evaluation?",
+    "ideal_answer_hint": "Track recall@k versus exact search on a labeled set, monitor query drift and alert on regressions.",
+    "market_weight": 0.75,
+    "followup_allowed": true
+  },
+  {
+    "id": "agents_jr_001",
+    "text": "What is an LLM agent, and how does it differ from a fixed chain?",
+    "category": "langchain_agents",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "model decides next action",
+      "uses tools",
+      "loop until done",
+      "chain has a fixed sequence"
+    ],
+    "keywords": [
+      "agent",
+      "tool use",
+      "loop",
+      "chain"
+    ],
+    "followup": "What risks does letting the model choose actions introduce?",
+    "ideal_answer_hint": "A chain runs fixed steps; an agent lets the model choose tools in a loop until it reaches an answer.",
     "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "agents_jr_002",
+    "text": "What is tool or function calling, and how does the application execute a tool?",
+    "category": "langchain_agents",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "tool described with a schema",
+      "model returns tool name and arguments",
+      "application executes the function",
+      "result is sent back to the model"
+    ],
+    "keywords": [
+      "function calling",
+      "tool schema",
+      "arguments",
+      "execution"
+    ],
+    "followup": "How would you validate the arguments the model produces?",
+    "ideal_answer_hint": "The model emits a structured call; the application validates, executes and returns the result to the model.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "agents_jr_003",
+    "text": "What is memory in a conversational agent, and what kinds are commonly used?",
+    "category": "langchain_agents",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "conversation history",
+      "summarization of older turns",
+      "long-term memory store",
+      "token limits"
+    ],
+    "keywords": [
+      "memory",
+      "conversation history",
+      "summarization",
+      "context window"
+    ],
+    "followup": "How would you keep memory within the context window?",
+    "ideal_answer_hint": "Memory keeps relevant history via buffers, summaries or retrieval from a long-term store within token limits.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "agents_mid_001",
+    "text": "Explain state, nodes and edges in LangGraph. How would you model the state of an agent?",
+    "category": "langchain_agents",
+    "level": "MID",
+    "question_type": "conceptual",
+    "difficulty": 2,
+    "expected_points": [
+      "typed shared state",
+      "nodes are functions that update state",
+      "conditional edges route control",
+      "checkpointing"
+    ],
+    "keywords": [
+      "LangGraph",
+      "state",
+      "nodes",
+      "conditional edges"
+    ],
+    "followup": "How would you implement human-in-the-loop approval?",
+    "ideal_answer_hint": "State is a typed object; nodes return updates; conditional edges pick the next node; checkpoints enable resume.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "agents_mid_002",
+    "text": "Your agent sometimes loops forever calling the same tool. How do you prevent it?",
+    "category": "langchain_agents",
+    "level": "MID",
+    "question_type": "scenario",
+    "difficulty": 2,
+    "expected_points": [
+      "step or iteration limits",
+      "detect repeated actions",
+      "better tool descriptions and errors",
+      "fallback or escalation"
+    ],
+    "keywords": [
+      "infinite loop",
+      "max iterations",
+      "tool errors",
+      "fallback"
+    ],
+    "followup": "How would you detect this in production?",
+    "ideal_answer_hint": "Cap steps, detect repeated calls, return informative tool errors and fall back or escalate.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "agents_mid_003",
+    "text": "When would you use a ReAct-style agent versus a plan-and-execute design?",
+    "category": "langchain_agents",
+    "level": "MID",
+    "question_type": "comparison",
+    "difficulty": 2,
+    "expected_points": [
+      "ReAct interleaves reasoning and actions",
+      "plan-and-execute plans first",
+      "cost and latency differences",
+      "robustness on long tasks"
+    ],
+    "keywords": [
+      "ReAct",
+      "plan-and-execute",
+      "planning",
+      "latency"
+    ],
+    "followup": "How would you recover when a plan step fails?",
+    "ideal_answer_hint": "ReAct adapts step by step; plan-and-execute is more structured for long tasks but needs replanning on failure.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "agents_senior_001",
+    "text": "Design a multi-agent system for a complex workflow. How do you coordinate agents and avoid conflicts?",
+    "category": "langchain_agents",
+    "level": "SENIOR",
+    "question_type": "system_design",
+    "difficulty": 3,
+    "expected_points": [
+      "supervisor or orchestrator",
+      "clear responsibilities per agent",
+      "shared state and contracts",
+      "observability and termination"
+    ],
+    "keywords": [
+      "multi-agent",
+      "orchestration",
+      "supervisor",
+      "contracts"
+    ],
+    "followup": "When is a single agent better than many?",
+    "ideal_answer_hint": "Use an orchestrator with narrow agents, explicit handoff contracts, shared state, tracing and termination rules.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "agents_senior_002",
+    "text": "How do you secure an agent that can call internal APIs on behalf of users?",
+    "category": "langchain_agents",
+    "level": "SENIOR",
+    "question_type": "scenario",
+    "difficulty": 3,
+    "expected_points": [
+      "least privilege per user",
+      "approval for risky actions",
+      "input and output validation",
+      "audit logging"
+    ],
+    "keywords": [
+      "security",
+      "least privilege",
+      "approval",
+      "audit"
+    ],
+    "followup": "Which actions would always require human approval?",
+    "ideal_answer_hint": "Scope credentials to the user, gate destructive actions, validate all tool I/O and log every call.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "agents_senior_003",
+    "text": "How would you evaluate an agent, not just its final answers?",
+    "category": "langchain_agents",
+    "level": "SENIOR",
+    "question_type": "conceptual",
+    "difficulty": 3,
+    "expected_points": [
+      "task success rate",
+      "trajectory and tool-call correctness",
+      "cost and step count",
+      "regression suites from traces"
+    ],
+    "keywords": [
+      "agent evaluation",
+      "trajectory",
+      "success rate",
+      "traces"
+    ],
+    "followup": "How would you build the evaluation dataset?",
+    "ideal_answer_hint": "Measure task success plus trajectory quality, tool accuracy, cost and steps, using suites built from real traces.",
+    "market_weight": 0.9,
+    "followup_allowed": true
+  },
+  {
+    "id": "mlops_jr_001",
+    "text": "Why do teams put LLM applications in Docker containers?",
+    "category": "mlops",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "reproducible environment",
+      "same image from dev to production",
+      "dependency isolation",
+      "easy deployment and scaling"
+    ],
+    "keywords": [
+      "Docker",
+      "container",
+      "reproducibility",
+      "deployment"
+    ],
+    "followup": "How would you keep secrets out of the image?",
+    "ideal_answer_hint": "Containers package code and dependencies for reproducible, portable deployment; secrets come from the runtime.",
+    "market_weight": 0.65,
+    "followup_allowed": true
+  },
+  {
+    "id": "mlops_jr_002",
+    "text": "What should you log for each LLM request in production?",
+    "category": "mlops",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "inputs and outputs with privacy care",
+      "latency and token counts",
+      "model and prompt version",
+      "errors and user feedback"
+    ],
+    "keywords": [
+      "logging",
+      "latency",
+      "tokens",
+      "prompt version"
+    ],
+    "followup": "What data must you avoid logging?",
+    "ideal_answer_hint": "Log versions, latency, tokens, errors and feedback while redacting personal or secret data.",
+    "market_weight": 0.65,
+    "followup_allowed": true
+  },
+  {
+    "id": "mlops_jr_003",
+    "text": "What is CI/CD, and what checks would you run for an LLM project?",
+    "category": "mlops",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "automated tests on each change",
+      "lint and type checks",
+      "evaluation regression",
+      "automated deployment"
+    ],
+    "keywords": [
+      "CI/CD",
+      "tests",
+      "evaluation",
+      "deployment"
+    ],
+    "followup": "Would you run LLM calls in CI? What are the trade-offs?",
+    "ideal_answer_hint": "CI runs lint, types, tests and eval regressions on every change; CD deploys passing builds automatically.",
+    "market_weight": 0.65,
+    "followup_allowed": true
+  },
+  {
+    "id": "mlops_mid_001",
+    "text": "How would you monitor an LLM application for quality drift after deployment?",
+    "category": "mlops",
+    "level": "MID",
+    "question_type": "scenario",
+    "difficulty": 2,
+    "expected_points": [
+      "online metrics and user feedback",
+      "sampled evaluation of outputs",
+      "input distribution drift",
+      "alerts and dashboards"
+    ],
+    "keywords": [
+      "monitoring",
+      "drift",
+      "feedback",
+      "sampling"
+    ],
+    "followup": "What would you do when an alert fires?",
+    "ideal_answer_hint": "Combine feedback signals, sampled LLM or human evaluation and input drift detection with alerting.",
+    "market_weight": 0.65,
+    "followup_allowed": true
+  },
+  {
+    "id": "mlops_mid_002",
+    "text": "How do you safely roll out a new model or prompt version?",
+    "category": "mlops",
+    "level": "MID",
+    "question_type": "scenario",
+    "difficulty": 2,
+    "expected_points": [
+      "offline evaluation first",
+      "canary or shadow traffic",
+      "compare metrics",
+      "fast rollback"
+    ],
+    "keywords": [
+      "canary",
+      "shadow deployment",
+      "rollback",
+      "A/B test"
+    ],
+    "followup": "Which metrics decide promotion?",
+    "ideal_answer_hint": "Gate on offline evals, then canary or shadow traffic, compare key metrics and keep instant rollback.",
+    "market_weight": 0.65,
+    "followup_allowed": true
+  },
+  {
+    "id": "mlops_mid_003",
+    "text": "An upstream LLM provider has an outage. How should your application behave?",
+    "category": "mlops",
+    "level": "MID",
+    "question_type": "scenario",
+    "difficulty": 2,
+    "expected_points": [
+      "timeouts and retries with backoff",
+      "fallback provider or model",
+      "graceful degradation",
+      "circuit breaker"
+    ],
+    "keywords": [
+      "outage",
+      "fallback",
+      "retry",
+      "circuit breaker"
+    ],
+    "followup": "How would you test the fallback path?",
+    "ideal_answer_hint": "Use timeouts, bounded retries, circuit breakers and a fallback model, degrading gracefully instead of failing.",
+    "market_weight": 0.65,
+    "followup_allowed": true
+  },
+  {
+    "id": "mlops_senior_001",
+    "text": "Design an end-to-end LLMOps platform for several product teams.",
+    "category": "mlops",
+    "level": "SENIOR",
+    "question_type": "system_design",
+    "difficulty": 3,
+    "expected_points": [
+      "model gateway",
+      "prompt and dataset versioning",
+      "evaluation pipelines",
+      "observability, cost tracking and governance"
+    ],
+    "keywords": [
+      "LLMOps",
+      "gateway",
+      "evaluation pipeline",
+      "governance"
+    ],
+    "followup": "What would you build first, and why?",
+    "ideal_answer_hint": "Central gateway with auth, routing and cost tracking, versioned prompts/datasets, eval pipelines and tracing.",
+    "market_weight": 0.65,
+    "followup_allowed": true
+  },
+  {
+    "id": "mlops_senior_002",
+    "text": "How would you handle personal data and compliance such as GDPR in an LLM product?",
+    "category": "mlops",
+    "level": "SENIOR",
+    "question_type": "scenario",
+    "difficulty": 3,
+    "expected_points": [
+      "data minimization and redaction",
+      "provider data retention terms",
+      "deletion requests",
+      "access control and audit"
+    ],
+    "keywords": [
+      "GDPR",
+      "PII",
+      "retention",
+      "redaction"
+    ],
+    "followup": "How do you handle a deletion request when data is in a vector index?",
+    "ideal_answer_hint": "Minimize and redact PII, choose providers with suitable retention, support deletion across stores and audit access.",
+    "market_weight": 0.65,
+    "followup_allowed": true
+  },
+  {
+    "id": "mlops_senior_003",
+    "text": "Which SLOs would you define for an LLM-backed service, and how would you measure them?",
+    "category": "mlops",
+    "level": "SENIOR",
+    "question_type": "conceptual",
+    "difficulty": 3,
+    "expected_points": [
+      "availability",
+      "latency percentiles",
+      "quality score from evaluation",
+      "error budget"
+    ],
+    "keywords": [
+      "SLO",
+      "latency",
+      "availability",
+      "error budget"
+    ],
+    "followup": "How do you handle a quality SLO, not just latency?",
+    "ideal_answer_hint": "Define availability, p95 latency and a measured quality metric with error budgets that gate releases.",
+    "market_weight": 0.65,
+    "followup_allowed": true
+  },
+  {
+    "id": "eval_jr_001",
+    "text": "Why is evaluating LLM outputs harder than evaluating a classifier?",
+    "category": "evaluation",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "open-ended outputs",
+      "multiple valid answers",
+      "no single exact-match metric",
+      "need human or model judgment"
+    ],
+    "keywords": [
+      "evaluation",
+      "open-ended",
+      "ground truth",
+      "judgment"
+    ],
+    "followup": "What simple metric could you start with?",
+    "ideal_answer_hint": "Generated text has many valid forms, so exact accuracy fails; you need rubrics, references or judges.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "eval_jr_002",
+    "text": "What is LLM-as-a-judge, and what are its limitations?",
+    "category": "evaluation",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "a model scores outputs with a rubric",
+      "cheaper than human labels",
+      "position and verbosity bias",
+      "must be validated against humans"
+    ],
+    "keywords": [
+      "LLM-as-a-judge",
+      "rubric",
+      "bias",
+      "human agreement"
+    ],
+    "followup": "How would you check whether the judge can be trusted?",
+    "ideal_answer_hint": "A model grades outputs by rubric; it scales but has biases and must be calibrated against human labels.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "eval_jr_003",
+    "text": "What is a golden or reference test set, and why do you need one?",
+    "category": "evaluation",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "curated inputs with expected outputs",
+      "repeatable comparisons",
+      "regression detection",
+      "covers important cases"
+    ],
+    "keywords": [
+      "golden set",
+      "test set",
+      "regression",
+      "reference"
+    ],
+    "followup": "How large should it be at the start?",
+    "ideal_answer_hint": "A fixed curated set of inputs and expected outputs enables repeatable comparisons and catches regressions.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "eval_mid_001",
+    "text": "Explain faithfulness, answer relevancy and context precision for RAG evaluation.",
+    "category": "evaluation",
+    "level": "MID",
+    "question_type": "conceptual",
+    "difficulty": 2,
+    "expected_points": [
+      "faithfulness: claims supported by context",
+      "answer relevancy: addresses the question",
+      "context precision: relevant chunks ranked high",
+      "separates retrieval from generation"
+    ],
+    "keywords": [
+      "faithfulness",
+      "answer relevancy",
+      "context precision",
+      "RAGAS"
+    ],
+    "followup": "Which one would catch hallucinations?",
+    "ideal_answer_hint": "Faithfulness checks grounding, relevancy checks focus, context precision checks retrieval ranking.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "eval_mid_002",
+    "text": "How do you measure agreement between human raters and between humans and an LLM judge?",
+    "category": "evaluation",
+    "level": "MID",
+    "question_type": "conceptual",
+    "difficulty": 2,
+    "expected_points": [
+      "Cohen's kappa for categorical agreement",
+      "Pearson or Spearman correlation for scores",
+      "chance-corrected agreement",
+      "inter-rater reliability first"
+    ],
+    "keywords": [
+      "Cohen's kappa",
+      "Pearson",
+      "inter-rater agreement",
+      "correlation"
+    ],
+    "followup": "What would you do if humans disagree with each other?",
+    "ideal_answer_hint": "Use kappa for chance-corrected agreement and correlation for scores; establish human reliability first.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "eval_mid_003",
+    "text": "How would you set up offline evaluation so that prompt changes cannot silently regress quality?",
+    "category": "evaluation",
+    "level": "MID",
+    "question_type": "scenario",
+    "difficulty": 2,
+    "expected_points": [
+      "fixed evaluation dataset",
+      "automated scoring in CI",
+      "thresholds as quality gates",
+      "track results over time"
+    ],
+    "keywords": [
+      "offline evaluation",
+      "CI",
+      "quality gate",
+      "regression"
+    ],
+    "followup": "How do you keep the dataset from going stale?",
+    "ideal_answer_hint": "Run a fixed dataset with automated metrics in CI and block merges that fall below thresholds.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "eval_senior_001",
+    "text": "Design an evaluation framework for an LLM product that covers offline and online quality.",
+    "category": "evaluation",
+    "level": "SENIOR",
+    "question_type": "system_design",
+    "difficulty": 3,
+    "expected_points": [
+      "offline datasets and metrics",
+      "online feedback and A/B tests",
+      "human review sampling",
+      "dashboards and release gates"
+    ],
+    "keywords": [
+      "evaluation framework",
+      "A/B testing",
+      "human review",
+      "release gates"
+    ],
+    "followup": "How do offline and online results feed back into each other?",
+    "ideal_answer_hint": "Combine offline suites as release gates with online A/B metrics, feedback and sampled human review.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "eval_senior_002",
+    "text": "Your LLM judge and your human raters disagree on 30% of cases. What do you do?",
+    "category": "evaluation",
+    "level": "SENIOR",
+    "question_type": "scenario",
+    "difficulty": 3,
+    "expected_points": [
+      "analyze disagreement categories",
+      "improve the rubric",
+      "calibrate or change the judge",
+      "measure agreement again"
+    ],
+    "keywords": [
+      "judge calibration",
+      "rubric",
+      "disagreement analysis",
+      "kappa"
+    ],
+    "followup": "When would you stop trusting the judge entirely?",
+    "ideal_answer_hint": "Classify disagreements, refine the rubric and judge prompt or model, and re-measure agreement before relying on it.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "eval_senior_003",
+    "text": "How do you decide whether a measured improvement in your evaluation is real?",
+    "category": "evaluation",
+    "level": "SENIOR",
+    "question_type": "conceptual",
+    "difficulty": 3,
+    "expected_points": [
+      "sample size and variance",
+      "confidence intervals or significance tests",
+      "repeated runs for nondeterminism",
+      "practical significance"
+    ],
+    "keywords": [
+      "statistical significance",
+      "confidence interval",
+      "variance",
+      "sample size"
+    ],
+    "followup": "How many evaluation samples would you need?",
+    "ideal_answer_hint": "Account for variance and nondeterminism with repeated runs, confidence intervals and adequate sample sizes.",
+    "market_weight": 0.7,
+    "followup_allowed": true
+  },
+  {
+    "id": "ft_jr_001",
+    "text": "What is fine-tuning, and when should you use it instead of prompting or RAG?",
+    "category": "fine_tuning",
+    "level": "JR",
+    "question_type": "comparison",
+    "difficulty": 1,
+    "expected_points": [
+      "further training on task data",
+      "teaches style, format or behavior",
+      "RAG for knowledge",
+      "prompting is the first step"
+    ],
+    "keywords": [
+      "fine-tuning",
+      "RAG",
+      "prompting",
+      "training data"
+    ],
+    "followup": "Can fine-tuning add new factual knowledge reliably?",
+    "ideal_answer_hint": "Fine-tuning adapts behavior and format; use RAG for changing knowledge and try prompting first.",
+    "market_weight": 0.5,
+    "followup_allowed": true
+  },
+  {
+    "id": "ft_jr_002",
+    "text": "What does a supervised fine-tuning dataset look like?",
+    "category": "fine_tuning",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "input and target output pairs",
+      "consistent formatting",
+      "quality over quantity",
+      "train and validation split"
+    ],
+    "keywords": [
+      "dataset",
+      "instruction pairs",
+      "validation split",
+      "data quality"
+    ],
+    "followup": "How would you clean noisy examples?",
+    "ideal_answer_hint": "Pairs of prompts and ideal responses in a consistent chat format, deduplicated and split for validation.",
+    "market_weight": 0.5,
+    "followup_allowed": true
+  },
+  {
+    "id": "ft_jr_003",
+    "text": "What is overfitting in fine-tuning, and how do you detect it?",
+    "category": "fine_tuning",
+    "level": "JR",
+    "question_type": "conceptual",
+    "difficulty": 1,
+    "expected_points": [
+      "memorizing training data",
+      "validation loss rises",
+      "worse generalization",
+      "early stopping"
+    ],
+    "keywords": [
+      "overfitting",
+      "validation loss",
+      "generalization",
+      "early stopping"
+    ],
+    "followup": "Which hyperparameters help reduce overfitting?",
+    "ideal_answer_hint": "Watch validation loss and held-out evals; stop early, reduce epochs or add data.",
+    "market_weight": 0.5,
+    "followup_allowed": true
+  },
+  {
+    "id": "ft_mid_001",
+    "text": "Explain how LoRA works and why it is cheaper than full fine-tuning.",
+    "category": "fine_tuning",
+    "level": "MID",
+    "question_type": "conceptual",
+    "difficulty": 2,
+    "expected_points": [
+      "freezes base weights",
+      "trains low-rank adapter matrices",
+      "far fewer trainable parameters",
+      "adapters can be swapped"
+    ],
+    "keywords": [
+      "LoRA",
+      "low-rank",
+      "adapters",
+      "parameter-efficient"
+    ],
+    "followup": "How would you choose the rank?",
+    "ideal_answer_hint": "LoRA freezes weights and learns low-rank updates, cutting memory and storage while allowing swappable adapters.",
+    "market_weight": 0.5,
+    "followup_allowed": true
+  },
+  {
+    "id": "ft_mid_002",
+    "text": "What is QLoRA, and what are the trade-offs compared with LoRA?",
+    "category": "fine_tuning",
+    "level": "MID",
+    "question_type": "comparison",
+    "difficulty": 2,
+    "expected_points": [
+      "4-bit quantized base model",
+      "LoRA adapters on top",
+      "fits larger models on smaller GPUs",
+      "slower training and small quality risk"
+    ],
+    "keywords": [
+      "QLoRA",
+      "4-bit",
+      "quantization",
+      "GPU memory"
+    ],
+    "followup": "Which GPU would you need for a 7B model with QLoRA?",
+    "ideal_answer_hint": "QLoRA trains LoRA adapters on a 4-bit base model, saving memory at some speed and small quality cost.",
+    "market_weight": 0.5,
+    "followup_allowed": true
+  },
+  {
+    "id": "ft_mid_003",
+    "text": "How would you evaluate a fine-tuned model against the base model?",
+    "category": "fine_tuning",
+    "level": "MID",
+    "question_type": "scenario",
+    "difficulty": 2,
+    "expected_points": [
+      "same held-out test set",
+      "task-specific metrics",
+      "check regressions on general skills",
+      "human or judge comparison"
+    ],
+    "keywords": [
+      "evaluation",
+      "baseline",
+      "held-out set",
+      "regression"
+    ],
+    "followup": "What is catastrophic forgetting, and how do you check for it?",
+    "ideal_answer_hint": "Compare both on the same held-out task set plus general benchmarks to catch regressions.",
+    "market_weight": 0.5,
+    "followup_allowed": true
+  },
+  {
+    "id": "ft_senior_001",
+    "text": "Design a pipeline that continuously improves a model from production feedback.",
+    "category": "fine_tuning",
+    "level": "SENIOR",
+    "question_type": "system_design",
+    "difficulty": 3,
+    "expected_points": [
+      "collect and filter feedback",
+      "data labeling and quality control",
+      "periodic training and evaluation gates",
+      "versioned deployment and rollback"
+    ],
+    "keywords": [
+      "data flywheel",
+      "feedback loop",
+      "evaluation gate",
+      "model registry"
+    ],
+    "followup": "How do you avoid training on bad or adversarial feedback?",
+    "ideal_answer_hint": "Build a data flywheel with filtered, labeled feedback, scheduled training, eval gates and versioned rollouts.",
+    "market_weight": 0.5,
+    "followup_allowed": true
+  },
+  {
+    "id": "ft_senior_002",
+    "text": "Compare RLHF and DPO for aligning a model with preferences.",
+    "category": "fine_tuning",
+    "level": "SENIOR",
+    "question_type": "comparison",
+    "difficulty": 3,
+    "expected_points": [
+      "both use preference pairs",
+      "RLHF trains a reward model and uses RL",
+      "DPO optimizes directly on preferences",
+      "stability and cost differences"
+    ],
+    "keywords": [
+      "RLHF",
+      "DPO",
+      "preference data",
+      "reward model"
+    ],
+    "followup": "When would you still choose RLHF?",
+    "ideal_answer_hint": "RLHF needs a reward model and RL; DPO optimizes preferences directly, which is simpler and more stable.",
+    "market_weight": 0.5,
+    "followup_allowed": true
+  },
+  {
+    "id": "ft_senior_003",
+    "text": "Your fine-tuned model scores better on your test set but users complain. What went wrong, and how do you fix it?",
+    "category": "fine_tuning",
+    "level": "SENIOR",
+    "question_type": "scenario",
+    "difficulty": 3,
+    "expected_points": [
+      "test set not representative",
+      "data leakage",
+      "metric does not match user value",
+      "lost general capabilities"
+    ],
+    "keywords": [
+      "data leakage",
+      "distribution shift",
+      "metric mismatch",
+      "forgetting"
+    ],
+    "followup": "How would you rebuild the evaluation set?",
+    "ideal_answer_hint": "Check for leakage, unrepresentative tests and metric mismatch; rebuild evals from real usage and recheck general skills.",
+    "market_weight": 0.5,
     "followup_allowed": true
   }
 ]
