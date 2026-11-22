@@ -1,0 +1,12 @@
+# Separate experimental verification of Debian's *signed* zlib fix.
+# The full Python/PyTorch production image is not approved for release.
+FROM python:3.11-slim-trixie
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends --only-upgrade zlib1g; \
+    installed="$(dpkg-query --show --showformat='${Version}' zlib1g)"; \
+    echo "SIGNED_TRIXIE_ZLIB_VERSION=$installed"; \
+    dpkg --compare-versions "$installed" ge "1:1.3.dfsg+really1.3.1-1+deb13u1"; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
+CMD ["python", "-c", "import zlib; print(zlib.ZLIB_RUNTIME_VERSION)"]
