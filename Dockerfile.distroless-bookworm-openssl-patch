@@ -64,7 +64,7 @@ COPY --from=patched-openssl /patch/control/md5sums /var/lib/dpkg/status.d/libssl
 
 # Python's binascii imports libz.so.1. Include the real signed zlib package
 # and matching scanner metadata; omitting metadata would hide potential CVEs.
-COPY --from=patched-openssl /patch/root/usr/lib/x86_64-linux-gnu/libz.so.1 /usr/lib/x86_64-linux-gnu/libz.so.1
+COPY --from=patched-openssl /patch/root/usr/lib/x86_64-linux-gnu/libz.so.* /usr/lib/x86_64-linux-gnu/
 COPY --from=patched-openssl /patch/zlib1g.status /var/lib/dpkg/status.d/zlib1g
 COPY --from=patched-openssl /patch/zlib-control/md5sums /var/lib/dpkg/status.d/zlib1g.md5sums
 
