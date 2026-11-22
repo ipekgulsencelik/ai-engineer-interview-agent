@@ -1,0 +1,72 @@
+name: Issue 47 multistage image security recheck
+
+on:
+  push:
+    branches:
+      - test/issue47-multistage-image-recheck-20261122
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-dependency-audit:
+    name: Strict production dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install uv and pip-audit
+        run: python -m pip install "uv>=0.9,<1" "pip-audit>=2.9,<3"
+      - name: Export exact locked production dependencies
+        run: |
+          uv export --locked --no-dev --no-hashes --no-emit-project \
+            --format requirements-txt > runtime-requirements.txt
+          if grep -Ei '^chromadb([=<> ]|$)' runtime-requirements.txt; then
+            echo "ChromaDB remains in runtime export" >&2
+            exit 1
+          fi
+      - name: Fail on known runtime vulnerabilities
+        run: pip-audit --no-deps --strict -r runtime-requirements.txt
+
+  image-smoke-and-scan:
+    name: Build, exercise and scan nonroot production candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build with production Dockerfile, no image publish
+        run: |
+          docker build --pull -f Dockerfile.release \
+            -t "ai-interview-multistage:${GITHUB_SHA}" .
+      - name: Check container identity, absent tooling, and state permissions
+        run: |
+          IMAGE="ai-interview-multistage:${GITHUB_SHA}"
+          test "$(docker image inspect --format '{{.Config.User}}' "$IMAGE")" = "10001:10001"
+          docker run --rm --entrypoint /app/.venv/bin/python "$IMAGE" -c '
+          import importlib.util
+          import os
+          import stat
+
+          assert os.getuid() == 10001
+          assert stat.S_IMODE(os.stat("/app/data").st_mode) == 0o700
+          assert not os.path.exists("/app/data/question_vectors.sqlite3")
+          assert importlib.util.find_spec("pip") is None
+          assert importlib.util.find_spec("chromadb") is None
+          import fastapi
+          import uvicorn
+          import torch
+          import src.api.app
+          '
+      - name: Fail on HIGH and CRITICAL OS/library vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: "ai-interview-multistage:${{ github.sha }}"
+          format: table
+          exit-code: "1"
+          ignore-unfixed: false
+          severity: "CRITICAL,HIGH"
+          vuln-type: "os,library"
+          scanners: "vuln"
