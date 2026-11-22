@@ -34,8 +34,10 @@ jobs:
           set -euo pipefail
           docker pull "$BUILDER_IMAGE"
           docker pull "$RUNTIME_IMAGE"
-          echo "Builder: `$(docker image inspect --format '{{index .RepoDigests 0}}' "$BUILDER_IMAGE")`" >> "$GITHUB_STEP_SUMMARY"
-          echo "Runtime: `$(docker image inspect --format '{{index .RepoDigests 0}}' "$RUNTIME_IMAGE")`" >> "$GITHUB_STEP_SUMMARY"
+          builder_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$BUILDER_IMAGE")"
+          runtime_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$RUNTIME_IMAGE")"
+          printf 'Builder: `%s`\n' "$builder_digest" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Runtime: `%s`\n' "$runtime_digest" >> "$GITHUB_STEP_SUMMARY"
           docker build --pull -f Dockerfile.distroless-experiment \
             --build-arg "BUILDER_PYTHON_IMAGE=$BUILDER_IMAGE" \
             --build-arg "RUNTIME_BASE_IMAGE=$RUNTIME_IMAGE" \
