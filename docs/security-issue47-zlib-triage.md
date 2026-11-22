@@ -18,6 +18,16 @@
 | CVE-2023-45853 (MiniZip) | Debian's Bookworm tracker note says `contrib/minizip` was not built from this `zlib` source version and no affected binary was shipped from it. The tracker nonetheless labels the source package vulnerable. | **Candidate for evidence-based not-affected disposition**, subject to validating exact runtime contents, bill of materials, and independent security reviewer. Do not silently suppress the scanner warning. |
 | CVE-2026-85091 (zlib gz_write) | Debian Security Tracker lists Bookworm `1:1.2.13.dfsg-1` as **vulnerable** without a fixed Bookworm package. Debian's DSA-6613-1 lists the fixed Trixie package `1:1.3.dfsg+really1.3.1-1+deb13u1`. Some historical advisories describe a narrower affected range, but the Debian tracker and reproduced vulnerability discussions explicitly include 1.2.13. | **Unresolved security blocker**. Do not assert it is a false positive or bypass Trivy. |
 
+### Reviewed Debian security-team discussion
+
+The published Debian tracker still marks Bookworm `zlib 1:1.2.13.dfsg-1` as vulnerable to `CVE-2026-85091`. Although a third-party October report argued the `gz_vacate()` routine did not exist in old versions, Debian security maintainers explicitly **declined to mark Bookworm/Trixie not affected** on 5 October 2026. On 11 October a Debian contributor reported a crashing reproducer on the old non-nonblocking code path, with the crash eliminated by the upstream fix. Therefore the absence of `gz_vacate()` alone cannot justify a not-affected disposition or a scanner exclusion. Follow the vendor's official tracking disposition and require signed source remediation or independent security review.
+
+The signed Bookworm vendor candidate prerequisite in `.github/workflows/issue47-bookworm-signed-openssl-patch.yml` checks the newest signed `zlib1g` candidate **before** expensive image builds. A package version bump merely permits additional tests; it is not proof of remediation, and the final-image Trivy job remains strictly blocking.
+
+References:
+- https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1146895 (5 October response and 11 October reproducer)
+- https://security-tracker.debian.org/tracker/CVE-2026-85091
+
 Evidence:
 - https://security-tracker.debian.org/tracker/CVE-2023-45853
 - https://security-tracker.debian.org/tracker/CVE-2026-85091
