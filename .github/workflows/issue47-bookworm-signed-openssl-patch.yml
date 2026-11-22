@@ -36,8 +36,20 @@ jobs:
 
           assert sys.version_info[:2] == (3, 11)
           assert os.getuid() == 10001
-          assert ssl.OPENSSL_VERSION_INFO[:3] >= (3, 0, 22)
-          assert ssl.OPENSSL_VERSION_INFO[0:2] == (3, 0)
+          print("RUNTIME_OPENSSL", ssl.OPENSSL_VERSION, ssl.OPENSSL_VERSION_INFO, flush=True)
+          print("RUNTIME_OPENSSL_LIBRARY_PATHS", [
+              str(path) + " -> " + str(path.resolve())
+              for path in (
+                  Path("/usr/local/lib/libssl.so.3"),
+                  Path("/usr/lib/x86_64-linux-gnu/libssl.so.3"),
+                  Path("/lib/x86_64-linux-gnu/libssl.so.3"),
+              )
+              if path.exists()
+          ], flush=True)
+          assert ssl.OPENSSL_VERSION_INFO[:3] >= (3, 0, 22), (
+              "loaded OpenSSL runtime is below the patched minimum: " + ssl.OPENSSL_VERSION
+          )
+          assert ssl.OPENSSL_VERSION_INFO[0:2] == (3, 0), ssl.OPENSSL_VERSION
           assert importlib.util.find_spec("chromadb") is None
           assert importlib.util.find_spec("pip") is None
           assert not Path("/app/data/question_vectors.sqlite3").exists()
