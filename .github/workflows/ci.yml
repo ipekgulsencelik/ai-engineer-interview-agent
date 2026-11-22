@@ -33,7 +33,7 @@ jobs:
 
       - name: Verify locked runtime dependency export excludes legacy Chroma
         run: |
-          uv export --locked --no-dev --no-hashes --no-emit-project \\
+          uv export --locked --no-dev --no-hashes --no-emit-project \
             --format requirements-txt > /tmp/interview-runtime-requirements.txt
           if grep -Ei '^chromadb([=<> ]|$)' /tmp/interview-runtime-requirements.txt; then
             echo "Legacy ChromaDB leaked into production dependencies" >&2
