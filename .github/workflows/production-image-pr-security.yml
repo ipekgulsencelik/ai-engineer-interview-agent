@@ -65,28 +65,8 @@ jobs:
         if: always()
         run: |
           if test -s trivy-image-findings.json; then
-            python - <<'PY'
-          import collections
-          import json
-          import os
-          from pathlib import Path
-
-          data = json.loads(Path("trivy-image-findings.json").read_text())
-          counts = collections.Counter(
-              issue.get("Severity")
-              for result in data.get("Results", [])
-              for issue in result.get("Vulnerabilities", []) or []
-          )
-          summary = (
-              "### Production image Trivy findings (blocking)\n"
-              f"HIGH: {counts['HIGH']}\n"
-              f"CRITICAL: {counts['CRITICAL']}\n"
-              "The security job fails for any HIGH or CRITICAL finding.\n"
-          )
-          print(summary)
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
-              f.write(summary)
-          PY
+            python -m src.infrastructure.operations.summarize_trivy_image_scan \
+              --input trivy-image-findings.json
           fi
       - name: Preserve exact Trivy report for independent review
         if: always()

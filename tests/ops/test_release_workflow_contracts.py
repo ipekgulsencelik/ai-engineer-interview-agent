@@ -236,7 +236,7 @@ def test_failed_image_scan_retains_machine_readable_evidence() -> None:
         if step.get("name") == "Summarize unsuppressed vulnerability counts"
     )
     assert summary["if"] == "always()"
-    assert "GITHUB_STEP_SUMMARY" in summary["run"]
+    assert "summarize_trivy_image_scan" in summary["run"]
     archive = next(
         step
         for step in steps
