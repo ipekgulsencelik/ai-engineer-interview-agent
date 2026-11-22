@@ -35,7 +35,10 @@ headers, or user-supplied role lists.
 `CatalogAccessAuditEvent` records (event ID, opaque principal ID, tenant ID,
 dataset revision, timestamp, reason code, allowed). SHA-256 checksums detect
 accidental payload changes and check the indexed row against the canonical
-payload. Duplicate event IDs fail rather than replacing records.
+payload. Duplicate event IDs fail rather than replacing records. The SQLite sort key
+normalizes timestamps to UTC with a fixed microsecond precision, ensuring
+correct bounded ordering across timezone offsets; original event timestamps
+remain in the canonical checksummed JSON payload.
 
 **This is not a tamper-proof audit store.** Administrators with write access
 to local SQLite can rewrite both payloads and checksums. Production-grade
