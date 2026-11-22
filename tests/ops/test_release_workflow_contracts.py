@@ -318,3 +318,26 @@ def test_container_runtime_smoke_is_independently_blocking() -> None:
         assert required in smoke_script
     assert "docker rm -f" in smoke_script
     assert "trap cleanup EXIT" in smoke_script
+
+
+def test_final_release_uses_same_real_runtime_smoke_before_strict_scan() -> None:
+    """Fail closed: a tag cannot bypass the PR's read-only/offline test."""
+    workflow = _release_workflow()
+    steps = workflow["jobs"]["container-scan"]["steps"]
+    names = [step.get("name", "") for step in steps]
+    build_name = "Build candidate image locally"
+    check_name = "Validate production candidate in an isolated read-only container"
+    trivy_name = "Fail on HIGH/CRITICAL vulnerabilities in the built image"
+    assert names.index(build_name) < names.index(check_name)
+    assert names.index(check_name) < names.index(trivy_name)
+    assert steps[names.index(build_name)]["id"] == "build_image"
+    check = steps[names.index(check_name)]
+    assert "ops/release/verify_container_runtime.sh" in check["run"]
+    assert "ai-interview-release-candidate:" in check["run"]
+    assert "continue-on-error" not in check
+    trivy = steps[names.index(trivy_name)]
+    assert trivy["if"] == "always() && steps.build_image.outcome == 'success'"
+    assert trivy["with"]["exit-code"] == "1"
+    assert trivy["with"]["ignore-unfixed"] is False
+    assert "CRITICAL,HIGH" == trivy["with"]["severity"]
+    assert "os,library" == trivy["with"]["vuln-type"]

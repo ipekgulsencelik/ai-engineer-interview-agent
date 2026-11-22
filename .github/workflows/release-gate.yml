@@ -119,6 +119,7 @@ jobs:
         run: python -m src.infrastructure.operations.verify_release_base_image
 
       - name: Build candidate image locally
+        id: build_image
         env:
           APPROVED_PYTHON_BASE_IMAGE: ${{ vars.APPROVED_PYTHON_BASE_IMAGE }}
         run: |
@@ -126,7 +127,13 @@ jobs:
             --build-arg "PYTHON_IMAGE=${APPROVED_PYTHON_BASE_IMAGE}" \
             -t "ai-interview-release-candidate:${GITHUB_SHA}" .
 
+      - name: Validate production candidate in an isolated read-only container
+        run: |
+          bash ops/release/verify_container_runtime.sh \
+            "ai-interview-release-candidate:${GITHUB_SHA}"
+
       - name: Fail on HIGH/CRITICAL vulnerabilities in the built image
+        if: always() && steps.build_image.outcome == 'success'
         # This action is pinned to a verified post-incident source commit.
         # Do not switch to mutable tags. Reviewed v0.36.0 commit:
         # https://github.com/aquasecurity/trivy-action/commit/ed142fd0673e97e23eac54620cfb913e5ce36c25

@@ -139,3 +139,19 @@ establishes the update's specific effect. The release candidate must be
 rescanned. 52 remaining HIGH findings still block any release. Signed
 repository packages are not a substitute for immutable final-image
 provenance, reproducibility review, or a clean full-image security gate.
+
+
+## Exact offline container health verification in release gate
+
+`Verified Release Candidate` now reuses
+`ops/release/verify_container_runtime.sh` after its **immutably approved
+base-image build**, before its strict Trivy scan. It exercises the
+**actual** release Docker image with network disabled, a read-only root,
+dropped capabilities, no-new-privileges, limited memory and processes,
+UID/GID 10001, SQLite and a real localhost HTTP /api/v1/health/ response.
+
+The independent image Trivy action is still run when the image build
+succeeds, even if the runtime smoke fails, so vulnerability evidence
+cannot be concealed by the first failing step. The release job is
+successful **only when both runtime and vulnerability gates pass**.
+This workflow continues to never publish or deploy an image.
