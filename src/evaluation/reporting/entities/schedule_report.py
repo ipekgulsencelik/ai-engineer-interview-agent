@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 
 from src.evaluation.reporting.validators.scheduled_report_validator import (
     ScheduledReportValidator,
@@ -205,10 +205,15 @@ class ScheduledReport:
         if self.next_run_at is None:
             return False
 
-        return (
-            datetime.utcnow()
-            >= self.next_run_at
-        )
+        # An aware deadline must be compared against an aware clock.
+        # Preserve UTC semantics for legacy naive deadlines.
+        current = datetime.now(UTC)
+        if (
+            self.next_run_at.tzinfo is None
+            or self.next_run_at.utcoffset() is None
+        ):
+            current = current.replace(tzinfo=None)
+        return current >= self.next_run_at
 
     @property
     def never_executed(

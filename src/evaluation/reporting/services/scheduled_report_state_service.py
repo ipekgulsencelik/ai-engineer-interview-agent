@@ -3,6 +3,10 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import datetime
 
+from src.evaluation.domain.errors.evaluation_validation_error import (
+    EvaluationValidationError,
+)
+
 from src.evaluation.reporting.entities.schedule_report import (
     ScheduledReport,
 )
@@ -35,6 +39,7 @@ class ScheduledReportStateService:
                 scheduled_report.execution_count + 1
             ),
             last_run_at=now,
+            next_run_at=self._pending_next_run(scheduled_report, now),
             last_error=None,
         )
 
@@ -61,6 +66,7 @@ class ScheduledReportStateService:
             ),
             last_error=error,
             last_run_at=now,
+            next_run_at=self._pending_next_run(scheduled_report, now),
         )
 
         self._store.update(
@@ -68,3 +74,23 @@ class ScheduledReportStateService:
         )
 
         return failed_schedule
+    @staticmethod
+    def _pending_next_run(
+        scheduled_report: ScheduledReport,
+        now: datetime,
+    ) -> datetime | None:
+        """Never persist an elapsed deadline as a future execution time.
+
+        No cron calculation occurs here: the scheduling policy must provide
+        the next upcoming run separately before another execution.
+        """
+        next_run = scheduled_report.next_run_at
+        if next_run is None:
+            return None
+
+        try:
+            return next_run if next_run > now else None
+        except TypeError as exc:
+            raise EvaluationValidationError(
+                "next_run_at and now must have compatible time zones."
+            ) from exc
