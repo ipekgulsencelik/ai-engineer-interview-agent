@@ -7,7 +7,10 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from src.evaluation.dataset.lineage.models import DatasetRevision
+from src.evaluation.dataset.lineage.models import (
+    DatasetLineageNode,
+    DatasetRevision,
+)
 from src.evaluation.dataset.quality.models import (
     IssueSeverity,
     QualityIssue,
@@ -20,10 +23,17 @@ from src.evaluation.dataset.quality.scoring import (
     QualityScoreCalculator,
     QualityScoringPolicy,
 )
+from src.evaluation.dataset.registry import DatasetRegistryService
 from src.evaluation.dataset.registry.models import DatasetCatalogEntry
 from src.evaluation.dataset.schema_evolution.models import parse_schema_version
+from src.infrastructure.repositories.sqlite_dataset_lineage_repository import (
+    SQLiteDatasetLineageRepository,
+)
 from src.infrastructure.repositories.sqlite_dataset_quality_report_repository import (
     SQLiteDatasetQualityReportRepository,
+)
+from src.infrastructure.repositories.sqlite_dataset_registry_repository import (
+    SQLiteDatasetRegistryRepository,
 )
 
 
@@ -324,3 +334,36 @@ def test_durable_sqlite_reports_support_scoring_after_restart(tmp_path) -> None:
     ]
     assert not scores[-1].passed
     assert scores[-1].reason_codes == ("quality_regression",)
+
+
+
+def test_real_registry_lineage_and_persisted_quality_history(tmp_path) -> None:
+    lineage = SQLiteDatasetLineageRepository(tmp_path / "lineage.sqlite")
+    catalog = SQLiteDatasetRegistryRepository(tmp_path / "catalog.sqlite")
+    reports = SQLiteDatasetQualityReportRepository(tmp_path / "quality.sqlite")
+    publisher = DatasetRegistryService(lineage=lineage, registry=catalog)
+
+    for version, content in (("1.0.0", b"v1"), ("1.1.0", b"v2")):
+        node = DatasetLineageNode.from_artifact(
+            revision=DatasetRevision(dataset_id="interview-qa", version=version),
+            content=content,
+            producer="integration-test",
+            created_at=datetime(2026, 11, 1, tzinfo=UTC),
+        )
+        lineage.register(node=node, parents=())
+        publisher.register(
+            node=node, name="Interview QA", owner_id="test-team"
+        )
+
+    reports.save(report=_report("1.0.0", run_id="first", day=1))
+    reports.save(report=_report("1.1.0", run_id="second", day=2, bad=True))
+    service = DatasetQualityScoringService(
+        history=SQLiteDatasetQualityReportRepository(tmp_path / "quality.sqlite"),
+        registry=SQLiteDatasetRegistryRepository(tmp_path / "catalog.sqlite"),
+        policy=QualityScoringPolicy(min_score=0),
+    )
+    scores = service.score_versions(dataset_id="interview-qa")
+    assert len(scores) == 2
+    assert scores[0].passed
+    assert scores[1].baseline_version == "1.0.0"
+    assert scores[1].reason_codes == ("quality_regression",)
