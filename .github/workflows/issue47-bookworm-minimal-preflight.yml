@@ -1,0 +1,34 @@
+name: Issue 47 minimal signed-package CVE preflight
+
+on:
+  push:
+    branches:
+      - test/issue47-bookworm-minimal-cve-preflight-20261122
+
+permissions:
+  contents: read
+
+jobs:
+  minimal-cve-trivy:
+    name: Bookworm distroless and signed OpenSSL/zlib HIGH/CRITICAL
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build small signed-package image, never publish
+        run: |
+          docker build --pull \
+            -f Dockerfile.bookworm-security-preflight \
+            -t "bookworm-security-preflight:${GITHUB_SHA}" .
+      - name: Blocking scan of exact package records, no CVE waivers
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: "bookworm-security-preflight:${{ github.sha }}"
+          format: table
+          exit-code: "1"
+          ignore-unfixed: false
+          severity: "CRITICAL,HIGH"
+          vuln-type: "os,library"
+          scanners: "vuln"
