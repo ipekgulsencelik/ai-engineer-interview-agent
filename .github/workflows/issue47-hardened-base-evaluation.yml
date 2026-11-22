@@ -21,6 +21,8 @@ jobs:
         include:
           - label: python311-trixie-control
             image: python:3.11-slim-trixie
+          - label: distroless-cc-debian12-prerequisite-only
+            image: gcr.io/distroless/cc-debian12:nonroot
           - label: distroless-cc-debian13-prerequisite-only
             image: gcr.io/distroless/cc-debian13:nonroot
           - label: docker-hardened-python311-auth-check
