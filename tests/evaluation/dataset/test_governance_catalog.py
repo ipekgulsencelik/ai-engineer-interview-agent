@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
 from src.evaluation.dataset.governance import (
+    CatalogAccessAuditEvent,
     CatalogAccessPolicy,
     CatalogRole,
     DatasetCatalogAccessDenied,
@@ -296,3 +297,38 @@ def test_real_lineage_registry_read_through_governance(tmp_path):
     assert entry.content_sha256 == node.content_sha256
     assert not hasattr(entry, "content")
     assert audit.list_events(dataset_id="interview-qa")[0].allowed
+
+
+
+def test_audit_limit_sorts_mixed_timezones_in_actual_utc_order(tmp_path):
+    store = SQLiteDatasetGovernanceAuditRepository(
+        tmp_path / "mixed-offsets.sqlite"
+    )
+    common = {
+        "principal_id": "opaque-actor",
+        "tenant_id": "tenant-a",
+        "dataset_id": "interview-qa",
+        "version": "1.0.0",
+        "allowed": True,
+        "reason_code": "allowed",
+    }
+    old = CatalogAccessAuditEvent(
+        event_id="old",
+        occurred_at=datetime(
+            2026, 11, 23, 10, tzinfo=timezone(timedelta(hours=2))
+        ),  # 08:00 UTC
+        **common,
+    )
+    newest = CatalogAccessAuditEvent(
+        event_id="new",
+        occurred_at=datetime(2026, 11, 23, 9, tzinfo=UTC),  # 09:00 UTC
+        **common,
+    )
+    assert store.append(event=old)
+    assert store.append(event=newest)
+    assert [e.event_id for e in store.list_events(
+        dataset_id="interview-qa", limit=1
+    )] == ["new"]
+    assert [e.event_id for e in store.list_events(
+        dataset_id="interview-qa", limit=2
+    )] == ["new", "old"]
