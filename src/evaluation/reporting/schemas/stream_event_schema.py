@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Final
 
 from src.domain.validation.common_rules import (
-    DATETIME_RULE,
+    DATETIME_OBJECT_RULE,
     DICT_RULE,
     NON_EMPTY_STRING_RULE,
     NON_NEGATIVE_NUMBER_RULE,
@@ -20,7 +20,7 @@ STREAM_EVENT_SCHEMA: Final[
     "event_id": NON_EMPTY_STRING_RULE,
     "stream_id": NON_EMPTY_STRING_RULE,
     "event_type": NON_EMPTY_STRING_RULE,
-    "occurred_at": DATETIME_RULE,
+    "occurred_at": DATETIME_OBJECT_RULE,
     "source": NON_EMPTY_STRING_RULE,
     "sequence_number": NON_NEGATIVE_NUMBER_RULE,
     "payload": DICT_RULE,

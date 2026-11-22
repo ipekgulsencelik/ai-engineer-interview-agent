@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from dataclasses import replace
+from typing import cast
 
 import pytest
 
@@ -81,4 +83,34 @@ def test_schema_rejects_missing_required_artifact_id() -> None:
             destination="reports@example.invalid",
             success=True,
             delivered_at=datetime(2026, 11, 22, tzinfo=UTC),
+        )
+
+
+@pytest.mark.parametrize("invalid_type", ["unknown", "", "not-a-channel"])
+def test_delivery_dto_rejects_unsupported_type(invalid_type: str) -> None:
+    schema = ReportDeliveryResultMapper.to_schema(_valid_delivery())
+    with pytest.raises(EvaluationValidationError):
+        replace(schema, delivery_type=invalid_type)
+
+
+def test_failed_delivery_dto_requires_error_and_success_disallows_error() -> None:
+    schema = ReportDeliveryResultMapper.to_schema(_valid_delivery())
+    with pytest.raises(EvaluationValidationError, match="error_message"):
+        replace(schema, success=False, error_message=None)
+    with pytest.raises(EvaluationValidationError, match="error_message"):
+        replace(schema, success=True, error_message="unexpected")
+    with pytest.raises(EvaluationValidationError, match="status_code"):
+        replace(schema, status_code=99)
+
+
+@pytest.mark.parametrize(
+    "invalid_metadata",
+    [[], 0, False, {"": "value"}, {"key": 1}],
+)
+def test_delivery_dto_rejects_malformed_metadata(invalid_metadata: object) -> None:
+    schema = ReportDeliveryResultMapper.to_schema(_valid_delivery())
+    with pytest.raises(EvaluationValidationError):
+        replace(
+            schema,
+            metadata=cast(dict[str, str] | None, invalid_metadata),
         )

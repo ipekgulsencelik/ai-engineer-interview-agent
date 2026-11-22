@@ -66,7 +66,7 @@ class ReportDeliveryResultValidator:
                 "status_code": status_code,
                 "error_message": error_message,
                 "retry_count": retry_count,
-                "metadata": metadata or {},
+                "metadata": {} if metadata is None else metadata,
             },
             schema=REPORT_DELIVERY_RESULT_SCHEMA,
             error_factory=EvaluationValidationError,
