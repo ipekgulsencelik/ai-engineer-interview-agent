@@ -95,7 +95,7 @@ def test_legacy_evaluation_response_rejects_whitespace_only_text() -> None:
             if field == "feedback"
             else EvaluationResponseValidator._validate_optional_string
         )
-        for blank in ("", " ", "  \\t  "):
+        for blank in ("", " ", "  \t  "):
             with pytest.raises(ValueError, match="cannot be empty"):
                 validate(field_name=field, value=blank)
     EvaluationResponseValidator._validate_string(
@@ -113,7 +113,7 @@ def test_legacy_evaluation_keywords_reject_blank_tuple_items() -> None:
         EvaluationResponseValidator,
     )
 
-    for keywords in (("",), ("   ",), ("\\t",), ("Python", " ")):
+    for keywords in (("",), ("   ",), ("\t",), ("Python", " ")):
         with pytest.raises(ValueError, match="items cannot be empty"):
             EvaluationResponseValidator._validate_string_tuple(value=keywords)
     EvaluationResponseValidator._validate_string_tuple(
