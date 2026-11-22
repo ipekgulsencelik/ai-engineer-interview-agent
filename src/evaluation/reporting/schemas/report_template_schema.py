@@ -4,7 +4,7 @@ from typing import Final
 
 from src.domain.validation.common_rules import (
     BOOLEAN_RULE,
-    DATETIME_RULE,
+    DATETIME_OBJECT_RULE,
     NON_EMPTY_STRING_RULE,
     OPTIONAL_DICT_RULE,
     OPTIONAL_STRING_RULE,
@@ -19,7 +19,7 @@ REPORT_TEMPLATE_SCHEMA: Final[SchemaDefinition] = {
     "template_format": NON_EMPTY_STRING_RULE,
     "template_content": NON_EMPTY_STRING_RULE,
     "version": NON_EMPTY_STRING_RULE,
-    "created_at": DATETIME_RULE,
+    "created_at": DATETIME_OBJECT_RULE,
     "created_by": NON_EMPTY_STRING_RULE,
     "title": OPTIONAL_STRING_RULE,
     "description": OPTIONAL_STRING_RULE,

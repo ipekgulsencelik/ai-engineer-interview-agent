@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Final
 
 from src.domain.validation.common_rules import (
-    DATETIME_RULE,
+    DATETIME_OBJECT_RULE,
     DICT_RULE,
     NON_EMPTY_STRING_RULE,
     OPTIONAL_STRING_RULE,
@@ -21,7 +21,7 @@ TELEMETRY_METRIC_SCHEMA: Final[
     "metric_value": NON_EMPTY_STRING_RULE,
     "unit": NON_EMPTY_STRING_RULE,
     "source": NON_EMPTY_STRING_RULE,
-    "recorded_at": DATETIME_RULE,
+    "recorded_at": DATETIME_OBJECT_RULE,
     "labels": DICT_RULE,
     "tenant_id": OPTIONAL_STRING_RULE,
     "experiment_id": OPTIONAL_STRING_RULE,

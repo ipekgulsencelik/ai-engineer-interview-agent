@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from src.evaluation.reporting.utc_datetime import as_utc
 from src.domain.validation.schema_validator import (
     SchemaValidator,
 )
@@ -78,14 +79,8 @@ class ScheduledReportValidator:
                 "benchmark_id": benchmark_id,
                 "model_name": model_name,
                 "generated_by": generated_by,
-                "last_run_at": (
-                    last_run_at
-                    or datetime.min
-                ),
-                "next_run_at": (
-                    next_run_at
-                    or datetime.max
-                ),
+                "last_run_at": last_run_at,
+                "next_run_at": next_run_at,
                 "execution_count": execution_count,
                 "failure_count": failure_count,
                 "last_error": last_error,
@@ -122,7 +117,7 @@ class ScheduledReportValidator:
         if (
             last_run_at is not None
             and next_run_at is not None
-            and next_run_at < last_run_at
+            and as_utc(next_run_at) < as_utc(last_run_at)
         ):
             raise EvaluationValidationError(
                 "next_run_at cannot be before last_run_at."

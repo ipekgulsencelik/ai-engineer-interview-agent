@@ -17,10 +17,10 @@ from src.evaluation.reporting.services.report_export_service import (
 from src.evaluation.reporting.builders.report_path_builder import (
     ReportPathBuilder,
 )
-from src.evaluation.tracking.value_objects.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
-from src.evaluation.tracking.value_objects.experiment_trend_result import (
+from src.evaluation.tracking.entities.experiment_trend_result import (
     ExperimentTrendResult,
 )
 

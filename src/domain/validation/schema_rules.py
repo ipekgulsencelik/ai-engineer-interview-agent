@@ -28,6 +28,7 @@ class ValidationRule:
 
     item_type: type | tuple[type, ...] | None = None
     strip_items: bool = False
+    reject_bool_items: bool = False
 
     reject_bool: bool = False
     finite: bool = False

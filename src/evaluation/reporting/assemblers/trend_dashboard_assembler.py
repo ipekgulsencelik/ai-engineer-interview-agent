@@ -12,7 +12,7 @@ from src.evaluation.reporting.entities.chart_data import (
 from src.evaluation.reporting.entities.dashboard_layout import (
     DashboardLayout,
 )
-from src.evaluation.reporting.entities.experiment_trend_result import (
+from src.evaluation.tracking.entities.experiment_trend_result import (
     ExperimentTrendResult,
 )
 

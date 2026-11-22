@@ -24,10 +24,10 @@ from src.evaluation.reporting.entities.dashboard_layout import (
 from src.evaluation.reporting.entities.dashboard_widget import (
     DashboardWidget,
 )
-from src.evaluation.reporting.entities.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
-from src.evaluation.reporting.entities.experiment_trend_result import (
+from src.evaluation.tracking.entities.experiment_trend_result import (
     ExperimentTrendResult,
 )
 

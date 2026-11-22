@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Final
 
 from src.domain.validation.common_rules import (
-    DATETIME_RULE,
+    DATETIME_OBJECT_RULE,
     NON_EMPTY_STRING_RULE,
     OPTIONAL_STRING_RULE,
     OPTIONAL_TUPLE_RULE,
@@ -34,7 +34,7 @@ REPORT_ARTIFACT_SCHEMA: Final[
     "size_bytes": OPTIONAL_NON_NEGATIVE_NUMBER_RULE,
     "checksum": OPTIONAL_STRING_RULE,
     "generated_by": OPTIONAL_STRING_RULE,
-    "created_at": DATETIME_RULE,
+    "created_at": DATETIME_OBJECT_RULE,
     "description": OPTIONAL_STRING_RULE,
     "tags": OPTIONAL_TUPLE_RULE,
     "metadata": OPTIONAL_DICT_RULE,

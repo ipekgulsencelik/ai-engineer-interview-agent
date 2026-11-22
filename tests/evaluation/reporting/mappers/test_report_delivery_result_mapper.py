@@ -1,14 +1,13 @@
 from __future__ import annotations
 
+import importlib
 import inspect
-
-import pytest
 
 MODULE_UNDER_TEST = "src.evaluation.reporting.mappers.report_delivery_result_mapper"
 
 
 def test_module_imports_and_exposes_public_api() -> None:
-    module = pytest.importorskip(MODULE_UNDER_TEST, exc_type=ImportError)
+    module = importlib.import_module(MODULE_UNDER_TEST)
 
     public_members = {
         name: value for name, value in vars(module).items() if not name.startswith("_")
@@ -22,7 +21,7 @@ def test_module_imports_and_exposes_public_api() -> None:
 
 
 def test_public_callables_are_documented_or_named_explicitly() -> None:
-    module = pytest.importorskip(MODULE_UNDER_TEST, exc_type=ImportError)
+    module = importlib.import_module(MODULE_UNDER_TEST)
 
     public_callables = [
         value

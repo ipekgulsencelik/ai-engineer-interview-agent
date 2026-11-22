@@ -12,7 +12,7 @@ from src.evaluation.reporting.entities.executive_summary import (
 from src.evaluation.reporting.entities.report_artifact import (
     ReportArtifact,
 )
-from src.evaluation.reporting.entities.scheduled_report import (
+from src.evaluation.reporting.entities.schedule_report import (
     ScheduledReport,
 )
 from src.evaluation.reporting.orchestrators.report_artifact_orchestrator import (

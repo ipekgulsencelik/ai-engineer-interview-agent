@@ -3,7 +3,9 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import datetime
 
-from src.evaluation.reporting.entities.scheduled_report import (
+from src.evaluation.reporting.utc_datetime import as_utc
+
+from src.evaluation.reporting.entities.schedule_report import (
     ScheduledReport,
 )
 from src.evaluation.reporting.stores.scheduled_report_store import (
@@ -34,7 +36,8 @@ class ScheduledReportStateService:
             execution_count=(
                 scheduled_report.execution_count + 1
             ),
-            last_run_at=now,
+            last_run_at=as_utc(now),
+            next_run_at=self._pending_next_run(scheduled_report, now),
             last_error=None,
         )
 
@@ -60,7 +63,8 @@ class ScheduledReportStateService:
                 scheduled_report.failure_count + 1
             ),
             last_error=error,
-            last_run_at=now,
+            last_run_at=as_utc(now),
+            next_run_at=self._pending_next_run(scheduled_report, now),
         )
 
         self._store.update(
@@ -68,3 +72,19 @@ class ScheduledReportStateService:
         )
 
         return failed_schedule
+    @staticmethod
+    def _pending_next_run(
+        scheduled_report: ScheduledReport,
+        now: datetime,
+    ) -> datetime | None:
+        """Never persist an elapsed deadline as a future execution time.
+
+        No cron calculation occurs here: the scheduling policy must provide
+        the next upcoming run separately before another execution.
+        """
+        next_run = scheduled_report.next_run_at
+        if next_run is None:
+            return None
+
+        normalized = as_utc(next_run)
+        return normalized if normalized > as_utc(now) else None

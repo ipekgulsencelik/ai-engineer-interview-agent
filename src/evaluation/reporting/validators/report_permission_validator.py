@@ -94,10 +94,7 @@ class ReportPermissionValidator:
                 "created_by": created_by,
                 "tenant_id": tenant_id,
                 "resource_type": resource_type,
-                "expires_at": (
-                    expires_at
-                    or datetime.max
-                ),
+                "expires_at": expires_at,
                 "reason": reason,
                 "metadata": metadata or {},
             },

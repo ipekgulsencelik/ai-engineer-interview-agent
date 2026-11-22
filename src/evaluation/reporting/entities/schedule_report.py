@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
+
+from src.evaluation.reporting.utc_datetime import as_utc
 
 from src.evaluation.reporting.validators.scheduled_report_validator import (
     ScheduledReportValidator,
@@ -205,10 +207,7 @@ class ScheduledReport:
         if self.next_run_at is None:
             return False
 
-        return (
-            datetime.utcnow()
-            >= self.next_run_at
-        )
+        return datetime.now(UTC) >= as_utc(self.next_run_at)
 
     @property
     def never_executed(
