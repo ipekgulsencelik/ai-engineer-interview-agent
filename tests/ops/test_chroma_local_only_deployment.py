@@ -110,3 +110,24 @@ def test_default_retrieval_embedding_provider_is_fully_wired(monkeypatch) -> Non
     assert provider.embed_text(text="RAG question") == [1.0, 0.0]
     loader.assert_called_once_with(model_name=settings.EMBEDDING_MODEL_NAME)
     model.encode.assert_called_once()
+
+
+def test_chromadb_is_dev_only_not_a_runtime_requirement() -> None:
+    import tomllib
+
+    project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+    runtime = project["project"]["dependencies"]
+    dev = project["dependency-groups"]["dev"]
+    assert not any(dep.startswith("chromadb") for dep in runtime)
+    assert any(dep.startswith("chromadb") for dep in dev)
+
+    lock = tomllib.loads(Path("uv.lock").read_text(encoding="utf-8"))
+    root = next(
+        package for package in lock["package"]
+        if package["name"] == "ai-engineer-interview-agent"
+    )
+    assert not any(dep["name"] == "chromadb" for dep in root["dependencies"])
+    assert any(
+        dep["name"] == "chromadb"
+        for dep in root["dev-dependencies"]["dev"]
+    )

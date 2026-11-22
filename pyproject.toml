@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.11"
 
 dependencies = [
-    "chromadb>=1.5.9",
     "fastapi>=0.136.1",
     "groq>=1.2.0",
     "langgraph>=1.2.1",
@@ -24,6 +23,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "chromadb>=1.5.9",
     "pyright>=1.1.409",
     "pytest>=9.0.3",
     "ruff>=0.15.12",

@@ -183,5 +183,7 @@ question-vector adapter via `QUESTION_VECTOR_DB_PATH`. ChromaDB is legacy-only,
 and its constructors reject staging/production. SQLite indexes must be rebuilt
 from the trusted question bank; old Chroma index files are never auto-read.
 See [residual security risks](docs/security-chromadb-residual-risk.md).
-**The vulnerable ChromaDB runtime package and image advisories still block
-release** until dependency removal and clean independent security scans.
+**ChromaDB is now development-only and excluded from the production
+runtime dependency set. Production release remains blocked pending
+independent runtime pip-audit and built-image Trivy approval.**
+until dependency removal and clean independent security scans.

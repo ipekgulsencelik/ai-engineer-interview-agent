@@ -74,10 +74,13 @@ checks for the new local database before production rollout.
 
 Legacy Chroma constructors now refuse staging/production environments. They
 remain for isolated development/test compatibility, not remote service use.
-**This change does not yet remove ChromaDB from the locked runtime dependency
-set or resolve the OS-level Trivy findings. Release security gates remain
-blocking** until dependency isolation, lockfile regeneration, independent
-`pip-audit` and image scanning succeed.
+**ChromaDB is now isolated in the development dependency group**, and
+production uv export / Docker build explicitly excludes dev dependencies.
+The 1.5.9 package remains in the overall uv lock for development/test only;
+it must never appear in a production dependency export or image.
+The release remains **blocked** until the updated runtime dependency export
+passes an independent pip-audit and the built-image Trivy HIGH/CRITICAL scan
+passes; OS-level findings were not fixed by this change.
 
 The legacy environment guard is **opt-in, default disabled**:
 `LEGACY_CHROMA_ENABLED=false` is the default in all environments.
