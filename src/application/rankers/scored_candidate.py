@@ -304,7 +304,7 @@ class ScoredCandidate:
             - breakdown geçerli mi?
         """
 
-        from src.application.validators.scored_candidate_validator import (
+        from src.domain.validators.scored_candidate_validator import (
             ScoredCandidateValidator,
         )
 

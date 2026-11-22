@@ -174,3 +174,30 @@ uv run pyright
 - Projede `pytest` için `pythonpath = ["."]` ayarı bulunuyor.
 - API için önerilen giriş noktası `src.api.app:app`.
 - Ortam değişkenlerini düzenlerken `src/config/settings.py` ile uyumlu değerler verin.
+
+
+### ChromaDB security isolation (staged)
+
+The FastAPI question retrieval composition root selects a local SQLite
+question-vector adapter via `QUESTION_VECTOR_DB_PATH`. ChromaDB is legacy-only,
+and its constructors reject staging/production. SQLite indexes must be rebuilt
+from the trusted question bank; old Chroma index files are never auto-read.
+See [residual security risks](docs/security-chromadb-residual-risk.md).
+**ChromaDB is now development-only and excluded from the production
+runtime dependency set. Production release remains blocked pending
+independent runtime pip-audit and built-image Trivy approval.**
+until dependency removal and clean independent security scans.
+
+### Trusted SQLite question-bank indexing
+
+On a new, empty index path, run `uv run python -m src.scripts.index_question_bank`.
+This command rebuilds from the project question JSON, never the old Chroma
+files. It refuses nonempty indexes to avoid stale question records.
+
+### Production image boundary
+
+`Dockerfile.release` uses separated dependency-build and nonroot runtime
+stages. Build-only uv and interpreter packaging tools are omitted from the
+final container, and SQLite index files are excluded from its build context.
+This **does not** waive known HIGH/CRITICAL OS vulnerabilities. See
+[production image hardening](docs/production-image-hardening.md).

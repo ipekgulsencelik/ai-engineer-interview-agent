@@ -7,3 +7,6 @@ data/chroma_retrieval_test/ export-ignore
 **/.env export-ignore
 **/.env.local export-ignore
 **/.env.production export-ignore
+
+# Shell scripts must retain LF endings on Windows (Git autocrlf can otherwise break Bash).
+*.sh text eol=lf

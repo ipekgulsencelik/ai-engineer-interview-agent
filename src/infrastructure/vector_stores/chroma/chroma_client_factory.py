@@ -8,6 +8,9 @@ from src.infrastructure.errors.chroma_client_error import (
 from src.infrastructure.validators.chroma_client_config_validator import (
     ChromaClientConfigValidator,
 )
+from src.infrastructure.vector_stores.chroma.local_only_policy import (
+    LegacyChromaPolicy,
+)
 from src.infrastructure.vector_stores.chroma.chroma_protocols import (
     ChromaClientProtocol,
 )
@@ -17,6 +20,7 @@ def create_chroma_client(
     *,
     persist_directory: str,
 ) -> ChromaClientProtocol:
+    LegacyChromaPolicy.require_safe_environment()
     ChromaClientConfigValidator.validate_persist_directory(
         persist_directory=persist_directory,
     )

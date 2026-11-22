@@ -31,6 +31,15 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      - name: Verify locked runtime dependency export excludes legacy Chroma
+        run: |
+          uv export --locked --no-dev --no-hashes --no-emit-project \
+            --format requirements-txt > /tmp/interview-runtime-requirements.txt
+          if grep -Ei '^chromadb([=<> ]|$)' /tmp/interview-runtime-requirements.txt; then
+            echo "Legacy ChromaDB leaked into production dependencies" >&2
+            exit 1
+          fi
+
       - name: Ruff (required)
         run: uv run ruff check .
 
@@ -38,7 +47,7 @@ jobs:
         run: uv run pyright
 
       - name: Pytest (required)
-        run: uv run pytest -q
+        run: uv run pytest -q -rs
 
   postgres-integration:
     name: PostgreSQL + Alembic integration
@@ -84,9 +93,24 @@ jobs:
         env:
           POSTGRES_TEST_DSN: postgresql://interview:testpw@localhost:5432/interview_test
         run: >-
-          python -m pytest -q
+          python -m pytest -q -rs --junitxml=postgres-integration.xml
           tests/infrastructure/repositories/test_postgres_monitoring_integration.py
           tests/infrastructure/repositories/test_postgres_tenant_security.py
+
+      - name: Fail if any required PostgreSQL integration was skipped
+        if: always()
+        run: >-
+          python -m src.infrastructure.operations.verify_integration_test_coverage
+          --report postgres-integration.xml
+
+      - name: Archive PostgreSQL execution evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: postgres-integration-junit
+          path: postgres-integration.xml
+          if-no-files-found: error
+          retention-days: 14
 
   telemetry-sdk:
     name: OpenTelemetry SDK + Prometheus integration
@@ -110,12 +134,27 @@ jobs:
 
       - name: Run real SDK and bounded telemetry tests
         run: >-
-          python -m pytest -q
+          python -m pytest -q -rs --junitxml=telemetry-integration.xml
           tests/infrastructure/telemetry/test_otel_dataset_telemetry_sdk.py
           tests/infrastructure/telemetry/test_otel_http_server_telemetry_sdk.py
           tests/infrastructure/telemetry/test_otlp_runtime_sdk.py
           tests/evaluation/dataset/observability/test_telemetry_instrumentation.py
           tests/api/test_http_dashboard_assets.py
+
+      - name: Fail if any required telemetry integration was skipped
+        if: always()
+        run: >-
+          python -m src.infrastructure.operations.verify_integration_test_coverage
+          --report telemetry-integration.xml
+
+      - name: Archive telemetry execution evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: telemetry-integration-junit
+          path: telemetry-integration.xml
+          if-no-files-found: error
+          retention-days: 14
 
   observability-stack:
     name: Collector + Prometheus + Alertmanager config and SLO rules
@@ -252,6 +291,7 @@ jobs:
           python -m pytest -q
           tests/ops/test_enterprise_release_readiness.py
           tests/ops/test_release_workflow_contracts.py
+          tests/ops/test_approved_python_base_image_policy.py
 
       - name: Verify reproducible release archive and checksums
         run: |

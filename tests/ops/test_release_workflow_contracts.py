@@ -96,6 +96,8 @@ def test_container_runs_as_numeric_nonroot_and_excludes_secrets() -> None:
     attributes = (ROOT / ".gitattributes").read_text()
     assert "data/chroma/" in attributes
     assert "export-ignore" in attributes
+    assert "*.sh text eol=lf" in attributes
+
 
 
 def test_dependabot_targets_uv_lockfile_and_immutable_review_paths() -> None:
@@ -129,10 +131,14 @@ def test_example_release_plan_is_explicitly_not_approved() -> None:
 def test_release_build_script_has_syntax_and_reproducibility_checks() -> None:
     path = ROOT / "ops/release/build_bundle.sh"
     result = subprocess.run(
-        ["bash", "-n", str(path)],
-        check=False, capture_output=True, text=True,
+        ["bash", "-n", "-"],
+        # Bytes, not text: on Windows text-mode stdin rewrites "\n" as "\r\n".
+        input=path.read_bytes(),
+        capture_output=True,
+        check=False,
     )
-    assert result.returncode == 0, result.stderr
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+    assert b"\r" not in path.read_bytes(), "shell script has CRLF line endings"
     script = path.read_text(encoding="utf-8")
     assert "git archive" in script
     assert "gzip -n" in script
@@ -140,3 +146,206 @@ def test_release_build_script_has_syntax_and_reproducibility_checks() -> None:
     assert "create-manifest" in script
     assert "verify-manifest" in script
     assert "sha256sum" in script
+
+
+def test_release_image_has_separate_builder_and_nonroot_runtime() -> None:
+    """Build-only dependency tools and user-writable state are isolated."""
+    dockerfile = (ROOT / "Dockerfile.release").read_text(encoding="utf-8")
+    assert dockerfile.count("FROM ${PYTHON_IMAGE}") == 2
+    builder, runtime = dockerfile.split("FROM ${PYTHON_IMAGE} AS runtime")
+    assert "AS builder" in builder
+    assert "uv sync --frozen --no-dev --no-install-project" in builder
+    assert "pip install" in builder
+    assert "pip install" not in runtime
+    assert "COPY --from=builder /app/.venv /app/.venv" in runtime
+    assert "pip uninstall --yes pip setuptools wheel" in runtime
+    assert "chmod 0700 /app/data" in runtime
+    assert "USER 10001:10001" in runtime
+
+
+def test_production_image_context_rejects_local_sqlite_state() -> None:
+    """Secret/snapshot/index material must not enter the build context."""
+    ignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
+    for pattern in (
+        "data/**/*.sqlite3",
+        "data/**/*.sqlite3-*",
+        "data/**/*.sqlite3.*",
+        "data/**/*.db",
+        "data/**/*.db-*",
+        "data/**/*.db.*",
+    ):
+        assert pattern in ignore
+
+
+
+def test_release_build_requires_explicit_immutable_base_image_digest() -> None:
+    workflow = _release_workflow()
+    steps = workflow["jobs"]["container-scan"]["steps"]
+    names = [step.get("name", "") for step in steps]
+    require_index = names.index("Require approved immutable Python base-image digest")
+    build_index = names.index("Build candidate image locally")
+    assert require_index < build_index
+    assert "verify_release_base_image" in str(steps[require_index]["run"])
+    build = str(steps[build_index])
+    assert "APPROVED_PYTHON_BASE_IMAGE" in build
+    assert "--build-arg" in build
+    assert "PYTHON_IMAGE=" in build
+    assert "vars.APPROVED_PYTHON_BASE_IMAGE" in build
+
+
+def test_production_image_security_runs_for_every_pr_without_waivers() -> None:
+    """Security gate must be blocking on normal PRs, not only release tags."""
+    workflow = yaml.safe_load(
+        (ROOT / ".github/workflows/production-image-pr-security.yml").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert workflow["permissions"] == {"contents": "read"}
+    triggers = workflow.get("on", workflow.get(True))
+    assert set(triggers["pull_request"]["branches"]) == {"main", "develop"}
+    assert "paths" not in triggers["pull_request"]
+    jobs = workflow["jobs"]
+    assert set(jobs) == {"locked-runtime-audit", "production-image-scan"}
+    audit = str(jobs["locked-runtime-audit"]["steps"])
+    assert "uv export --locked --no-dev" in audit
+    assert "pip-audit --no-deps --strict" in audit
+    assert "chromadb" in audit
+    scan = jobs["production-image-scan"]["steps"]
+    assert "Dockerfile.release" in str(scan)
+    trivy = next(step for step in scan if "trivy-action@" in step.get("uses", ""))
+    assert re.search(r"aquasecurity/trivy-action@[a-f0-9]{40}", trivy["uses"])
+    assert trivy["with"]["exit-code"] == "1"
+    assert trivy["with"]["severity"] == "CRITICAL,HIGH"
+    assert trivy["with"]["vuln-type"] == "os,library"
+    assert trivy["with"]["ignore-unfixed"] is False
+    assert trivy["with"]["scanners"] == "vuln"
+    assert "verify_container_runtime.sh" in str(scan)
+    assert all("docker push" not in str(step) for step in scan)
+
+
+def test_failed_image_scan_retains_machine_readable_evidence() -> None:
+    """Independent reviewers must get the exact blocking Trivy result."""
+    workflow = yaml.safe_load(
+        (ROOT / ".github/workflows/production-image-pr-security.yml").read_text(
+            encoding="utf-8"
+        )
+    )
+    steps = workflow["jobs"]["production-image-scan"]["steps"]
+    trivy = next(step for step in steps if "trivy-action@" in step.get("uses", ""))
+    assert trivy["with"]["format"] == "json"
+    assert trivy["with"]["output"] == "trivy-image-findings.json"
+    assert trivy["with"]["exit-code"] == "1"
+    assert trivy["with"]["ignore-unfixed"] is False
+    summary = next(
+        step
+        for step in steps
+        if step.get("name") == "Summarize unsuppressed vulnerability counts"
+    )
+    assert summary["if"] == "always()"
+    assert "summarize_trivy_image_scan" in summary["run"]
+    archive = next(
+        step
+        for step in steps
+        if step.get("name") == "Preserve exact Trivy report for independent review"
+    )
+    assert archive["if"] == "always()"
+    assert archive["with"]["path"] == "trivy-image-findings.json"
+    assert archive["with"]["retention-days"] == 30
+    assert re.fullmatch(
+        r"actions/upload-artifact@[a-f0-9]{40}",
+        archive["uses"].split()[0],
+    ) is not None
+
+
+def test_release_runtime_requires_signed_vendor_zlib_security_fix() -> None:
+    """No vulnerable Debian 13 zlib image may pass the Docker build."""
+    dockerfile = (ROOT / "Dockerfile.release").read_text(encoding="utf-8")
+    runtime = dockerfile.split("FROM ${PYTHON_IMAGE} AS runtime", maxsplit=1)[1]
+    assert "apt-get update" in runtime
+    assert "--only-upgrade zlib1g" in runtime
+    assert "dpkg-query --show" in runtime
+    assert "dpkg --compare-versions" in runtime
+    assert "1:1.3.dfsg+really1.3.1-1+deb13u1" in runtime
+    assert "rm -rf /var/lib/apt/lists/*" in runtime
+    assert runtime.index("--only-upgrade zlib1g") < runtime.index("USER 10001:10001")
+    assert "ignore-unfixed" not in runtime
+
+
+def test_container_runtime_smoke_is_independently_blocking() -> None:
+    """Runtime must be exercised even when Trivy inevitably blocks release."""
+    import subprocess
+
+    workflow = yaml.safe_load(
+        (ROOT / ".github/workflows/production-image-pr-security.yml").read_text(
+            encoding="utf-8"
+        )
+    )
+    steps = workflow["jobs"]["production-image-scan"]["steps"]
+    names = [step.get("name", "") for step in steps]
+    build_name = "Build actual production Dockerfile without publishing"
+    runtime_name = (
+        "Validate isolated nonroot read-only-root runtime and HTTP health"
+    )
+    trivy_name = "Fail closed on HIGH or CRITICAL OS and library advisories"
+    assert names.index(build_name) < names.index(runtime_name)
+    assert names.index(runtime_name) < names.index(trivy_name)
+    build = steps[names.index(build_name)]
+    runtime = steps[names.index(runtime_name)]
+    trivy = steps[names.index(trivy_name)]
+    assert build["id"] == "build_image"
+    assert "verify_container_runtime.sh" in runtime["run"]
+    assert "continue-on-error" not in runtime
+    assert trivy["if"] == (
+        "always() && steps.build_image.outcome == 'success'"
+    )
+    assert trivy["with"]["exit-code"] == "1"
+    script_path = ROOT / "ops/release/verify_container_runtime.sh"
+    result = subprocess.run(
+        ["bash", "-n", "-"],
+        # Bytes, not text: on Windows text-mode stdin rewrites "\n" as "\r\n".
+        input=script_path.read_bytes(),
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+    assert b"\r" not in script_path.read_bytes(), "shell script has CRLF line endings"
+    smoke_script = script_path.read_text(encoding="utf-8")
+    for required in (
+        "--network none",
+        "--read-only",
+        "--cap-drop ALL",
+        "--security-opt no-new-privileges",
+        "--pids-limit 256",
+        "--memory 4g",
+        "--tmpfs /app/data:",
+        "10001:10001",
+        'docker exec "$cid"',
+        "ISOLATED_NONROOT_READONLY_HEALTH_PASS",
+        "/api/v1/health/",
+    ):
+        assert required in smoke_script
+    assert "docker rm -f" in smoke_script
+    assert "trap cleanup EXIT" in smoke_script
+
+
+def test_final_release_uses_same_real_runtime_smoke_before_strict_scan() -> None:
+    """Fail closed: a tag cannot bypass the PR's read-only/offline test."""
+    workflow = _release_workflow()
+    steps = workflow["jobs"]["container-scan"]["steps"]
+    names = [step.get("name", "") for step in steps]
+    build_name = "Build candidate image locally"
+    check_name = "Validate production candidate in an isolated read-only container"
+    trivy_name = "Fail on HIGH/CRITICAL vulnerabilities in the built image"
+    assert names.index(build_name) < names.index(check_name)
+    assert names.index(check_name) < names.index(trivy_name)
+    assert steps[names.index(build_name)]["id"] == "build_image"
+    check = steps[names.index(check_name)]
+    assert "ops/release/verify_container_runtime.sh" in check["run"]
+    assert "ai-interview-release-candidate:" in check["run"]
+    assert "continue-on-error" not in check
+    trivy = steps[names.index(trivy_name)]
+    assert trivy["if"] == "always() && steps.build_image.outcome == 'success'"
+    assert trivy["with"]["exit-code"] == "1"
+    assert trivy["with"]["ignore-unfixed"] is False
+    assert "CRITICAL,HIGH" == trivy["with"]["severity"]
+    assert "os,library" == trivy["with"]["vuln-type"]
