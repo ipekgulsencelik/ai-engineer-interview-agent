@@ -106,13 +106,17 @@ def test_manifest_source_has_no_inline_secret_values() -> None:
 
 def test_real_pitr_drill_is_syntax_checked() -> None:
     script = BASE / "tests/pitr_docker_drill.sh"
+    # Feed raw bytes on stdin: a Windows path may not resolve inside WSL bash,
+    # and text-mode stdin on Windows rewrites "\n" to "\r\n", which bash
+    # rejects. Bytes also make a CRLF checkout fail loudly instead of hiding.
     result = subprocess.run(
-        ["bash", "-n", str(script)],
+        ["bash", "-n", "-"],
+        input=script.read_bytes(),
         capture_output=True,
-        text=True,
         check=False,
     )
-    assert result.returncode == 0, result.stderr
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+    assert b"\r" not in script.read_bytes(), "shell script has CRLF line endings"
     text = script.read_text(encoding="utf-8")
     assert "pg_verifybackup" in text
     assert "pg_create_restore_point" in text

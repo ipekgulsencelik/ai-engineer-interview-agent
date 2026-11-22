@@ -128,11 +128,17 @@ def test_example_release_plan_is_explicitly_not_approved() -> None:
 
 def test_release_build_script_has_syntax_and_reproducibility_checks() -> None:
     path = ROOT / "ops/release/build_bundle.sh"
+    # Feed raw bytes on stdin: a Windows path may not resolve inside WSL bash,
+    # and text-mode stdin on Windows rewrites "\n" to "\r\n", which bash
+    # rejects. Bytes also make a CRLF checkout fail loudly instead of hiding.
     result = subprocess.run(
-        ["bash", "-n", str(path)],
-        check=False, capture_output=True, text=True,
+        ["bash", "-n", "-"],
+        input=path.read_bytes(),
+        capture_output=True,
+        check=False,
     )
-    assert result.returncode == 0, result.stderr
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+    assert b"\r" not in path.read_bytes(), "shell script has CRLF line endings"
     script = path.read_text(encoding="utf-8")
     assert "git archive" in script
     assert "gzip -n" in script
