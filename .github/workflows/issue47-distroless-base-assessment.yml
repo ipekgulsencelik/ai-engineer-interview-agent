@@ -1,0 +1,34 @@
+name: Issue 47 distroless base security assessment
+
+on:
+  push:
+    branches:
+      - test/issue47-distroless-base-assessment-20261122
+
+permissions:
+  contents: read
+
+jobs:
+  scan-supported-minimal-bases:
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - gcr.io/distroless/cc-debian13:nonroot
+          - gcr.io/distroless/python3-debian13:nonroot
+    name: Strict Trivy ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Pull upstream candidate
+        run: docker pull "${{ matrix.image }}"
+      - name: Audit image without ignoring unfixed HIGH/CRITICAL
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: "${{ matrix.image }}"
+          format: table
+          exit-code: "1"
+          ignore-unfixed: false
+          severity: "CRITICAL,HIGH"
+          vuln-type: "os,library"
+          scanners: "vuln"
