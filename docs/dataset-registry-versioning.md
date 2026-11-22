@@ -42,7 +42,7 @@ from src.infrastructure.repositories.sqlite_dataset_registry_repository import (
     SQLiteDatasetRegistryRepository,
 )
 
-lineage = SQLiteDatasetLineageRepository(Path("data/lineage.sqlite"))
+Path("data").mkdir(parents=True, exist_ok=True)\nlineage = SQLiteDatasetLineageRepository(Path("data/lineage.sqlite"))
 registry = SQLiteDatasetRegistryRepository(Path("data/registry.sqlite"))
 
 node = DatasetLineageNode.from_artifact(
@@ -79,14 +79,14 @@ assert catalog.list_by_tag(tag="training") == (result.entry,)
 - The metadata row, tag projection, and registration audit event commit in
   one SQLite `BEGIN IMMEDIATE` transaction. Concurrent exact registration
   creates one event. Injected audit failures roll everything back.
-- Tag indexes are checked against canonical entry tags on every read;
+- Tag projections, numeric SemVer indexes and the audit event are checked\n  against canonical metadata on every read and before version admission;
   stored JSON SHA-256 checksums and indexed numeric version fields are
   verified before reconstruction.
-- Query bounds are explicit (1–1000). Validation is fail-closed.
+- Result limits are explicit (1–1000). Validation is fail-closed.
 
 ## Limitations and separate next steps
 
-- Local SQLite is not PostgreSQL high availability or an immutable,
+- Fail-closed integrity checks scan catalog rows before version admission\n  and tagged/limited queries (O(N) validation). This is suitable for a\n  bounded local catalog, not a large multi-tenant distributed index.\n- Local SQLite is not PostgreSQL high availability or an immutable,
   independently signed audit store.
 - Lineage and registry files are separate transaction boundaries: they
   cannot atomically commit together. Register lineage first, then catalog.

@@ -215,3 +215,58 @@ def test_version_index_corruption_is_not_silently_trusted(tmp_path) -> None:
         repo.get(revision=entry.revision)
     with pytest.raises(DatasetRegistryStorageError, match="invalid"):
         repo.list_versions(dataset_id=entry.revision.dataset_id)
+
+
+def test_missing_tag_index_is_detected_before_tag_lookup(tmp_path) -> None:
+    path = tmp_path / "registry.sqlite"
+    repo = SQLiteDatasetRegistryRepository(path)
+    entry = _entry("1.0.0", tags=("training", "curated"))
+    repo.register(entry=entry)
+    with sqlite3.connect(path) as conn:
+        conn.execute(
+            "DELETE FROM dataset_registry_tags WHERE tag = ?",
+            ("training",),
+        )
+    with pytest.raises(DatasetRegistryStorageError, match="invalid"):
+        repo.list_by_tag(tag="training")
+    with pytest.raises(DatasetRegistryStorageError, match="invalid"):
+        repo.list_by_tag(tag="curated")
+
+
+def test_invalid_version_projection_blocks_new_version_admission(tmp_path) -> None:
+    path = tmp_path / "registry.sqlite"
+    repo = SQLiteDatasetRegistryRepository(path)
+    repo.register(entry=_entry("2.0.0"))
+    with sqlite3.connect(path) as conn:
+        conn.execute(
+            "UPDATE dataset_registry_entries SET version_major = 0 "
+            "WHERE dataset_id = ?",
+            ("evaluation",),
+        )
+    with pytest.raises(DatasetRegistryStorageError, match="invalid"):
+        repo.register(entry=_entry("1.0.0"))
+    with pytest.raises(DatasetRegistryStorageError, match="invalid"):
+        repo.list_versions(dataset_id="evaluation", limit=1)
+    with sqlite3.connect(path) as conn:
+        count = conn.execute("SELECT COUNT(*) FROM dataset_registry_entries").fetchone()
+        assert count == (1,)
+
+
+@pytest.mark.parametrize("mode", ["missing", "wrong-digest"])
+def test_replay_and_read_reject_missing_or_invalid_audit(tmp_path, mode: str) -> None:
+    path = tmp_path / "registry.sqlite"
+    repo = SQLiteDatasetRegistryRepository(path)
+    entry = _entry("1.0.0")
+    repo.register(entry=entry)
+    with sqlite3.connect(path) as conn:
+        if mode == "missing":
+            conn.execute("DELETE FROM dataset_registry_audit")
+        else:
+            conn.execute(
+                "UPDATE dataset_registry_audit SET content_sha256 = ?",
+                ("0" * 64,),
+            )
+    with pytest.raises(DatasetRegistryStorageError, match="invalid"):
+        repo.register(entry=entry)
+    with pytest.raises(DatasetRegistryStorageError, match="invalid"):
+        repo.get(revision=entry.revision)

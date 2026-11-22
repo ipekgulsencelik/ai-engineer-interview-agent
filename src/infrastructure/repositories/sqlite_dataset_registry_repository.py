@@ -176,6 +176,21 @@ class SQLiteDatasetRegistryRepository:
             ).fetchall()
             if tuple(item[0] for item in tag_rows) != entry.tags:
                 raise ValueError("stored tag index differs")
+            audit = conn.execute(
+                """
+                SELECT event_id, content_sha256, occurred_at
+                FROM dataset_registry_audit
+                WHERE dataset_id = ? AND version = ?
+                """,
+                (dataset_id, version),
+            ).fetchone()
+            if audit is None or not isinstance(audit[0], str) or not audit[0]:
+                raise ValueError("dataset registry audit event is missing")
+            if audit[1] != entry.content_sha256:
+                raise ValueError("dataset registry audit content digest differs")
+            occurred_at = datetime.fromisoformat(audit[2])
+            if occurred_at.tzinfo is None or occurred_at.utcoffset() is None:
+                raise ValueError("dataset registry audit timestamp is naive")
             return entry
         except (KeyError, TypeError, ValueError, OverflowError) as exc:
             raise DatasetRegistryStorageError(
@@ -193,34 +208,29 @@ class SQLiteDatasetRegistryRepository:
         try:
             with closing(self._connect()) as conn, conn:
                 conn.execute("BEGIN IMMEDIATE")
-                existing = conn.execute(
+                rows = conn.execute(
                     """
                     SELECT dataset_id, version, version_major, version_minor,
                            version_patch, entry_json, checksum
-                    FROM dataset_registry_entries
-                    WHERE dataset_id = ? AND version = ?
+                    FROM dataset_registry_entries WHERE dataset_id = ?
                     """,
-                    (revision.dataset_id, revision.version),
-                ).fetchone()
-                if existing is not None:
-                    persisted = self._decode(conn, existing)
+                    (revision.dataset_id,),
+                ).fetchall()
+                # Validate every persisted version and its auxiliary projections
+                # before relying on either metadata or denormalized indexes.
+                registered = tuple(self._decode(conn, row) for row in rows)
+                for persisted in registered:
+                    if persisted.revision.version != revision.version:
+                        continue
                     if persisted != entry:
                         raise DatasetRegistryConflictError(
                             "revision already registered with different metadata"
                         )
                     return False
-                latest = conn.execute(
-                    """
-                    SELECT version_major, version_minor, version_patch
-                    FROM dataset_registry_entries
-                    WHERE dataset_id = ?
-                    ORDER BY version_major DESC, version_minor DESC,
-                             version_patch DESC
-                    LIMIT 1
-                    """,
-                    (revision.dataset_id,),
-                ).fetchone()
-                if latest is not None and version <= tuple(latest):
+                if registered and version <= max(
+                    parse_schema_version(item.revision.version)
+                    for item in registered
+                ):
                     raise DatasetRegistryConflictError(
                         "new dataset version must be greater than latest"
                     )
@@ -295,12 +305,16 @@ class SQLiteDatasetRegistryRepository:
                     SELECT dataset_id, version, version_major, version_minor,
                            version_patch, entry_json, checksum
                     FROM dataset_registry_entries WHERE dataset_id = ?
-                    ORDER BY version_major DESC, version_minor DESC,
-                             version_patch DESC LIMIT ?
                     """,
-                    (dataset_id, limit),
+                    (dataset_id,),
                 ).fetchall()
-                return tuple(self._decode(conn, row) for row in rows)
+                entries = tuple(self._decode(conn, row) for row in rows)
+                ordered = sorted(
+                    entries,
+                    key=lambda item: parse_schema_version(item.revision.version),
+                    reverse=True,
+                )
+                return tuple(ordered[:limit])
         except sqlite3.DatabaseError as exc:
             raise DatasetRegistryStorageError(
                 "dataset registry version listing failed"
@@ -314,22 +328,28 @@ class SQLiteDatasetRegistryRepository:
             raise DatasetRegistryError("tag must be a lowercase identifier")
         try:
             with closing(self._connect()) as conn:
+                # Scan and validate canonical entries, not the tag index:
+                # a deleted tag row otherwise silently hides its owner.
                 rows = conn.execute(
                     """
-                    SELECT r.dataset_id, r.version, r.version_major,
-                           r.version_minor, r.version_patch,
-                           r.entry_json, r.checksum
-                    FROM dataset_registry_entries AS r
-                    JOIN dataset_registry_tags AS t
-                      ON t.dataset_id = r.dataset_id AND t.version = r.version
-                    WHERE t.tag = ?
-                    ORDER BY r.dataset_id, r.version_major DESC,
-                             r.version_minor DESC, r.version_patch DESC
-                    LIMIT ?
-                    """,
-                    (tag, limit),
+                    SELECT dataset_id, version, version_major, version_minor,
+                           version_patch, entry_json, checksum
+                    FROM dataset_registry_entries
+                    """
                 ).fetchall()
-                return tuple(self._decode(conn, row) for row in rows)
+                entries = tuple(self._decode(conn, row) for row in rows)
+                tagged = (item for item in entries if tag in item.tags)
+                ordered = sorted(
+                    tagged,
+                    key=lambda item: (
+                        item.revision.dataset_id,
+                        *(
+                            -part
+                            for part in parse_schema_version(item.revision.version)
+                        ),
+                    ),
+                )
+                return tuple(ordered[:limit])
         except sqlite3.DatabaseError as exc:
             raise DatasetRegistryStorageError(
                 "dataset registry tag listing failed"
