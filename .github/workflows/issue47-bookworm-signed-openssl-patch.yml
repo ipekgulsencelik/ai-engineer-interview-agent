@@ -1,0 +1,93 @@
+name: Issue 47 signed Bookworm OpenSSL image patch experiment
+
+on:
+  push:
+    branches:
+      - test/issue47-bookworm-signed-openssl-patch-20261122
+
+permissions:
+  contents: read
+
+jobs:
+  signed-patch-recheck:
+    name: Signed Debian12 package + nonroot runtime + Trivy
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build and retain no published artifacts
+        run: |
+          docker build --pull -f Dockerfile.distroless-bookworm-openssl-patch \
+            -t "ai-interview-bookworm-patch:${GITHUB_SHA}" .
+      - name: Confirm runtime ABI, exact package contents, and locked deps
+        run: |
+          IMAGE="ai-interview-bookworm-patch:${GITHUB_SHA}"
+          test "$(docker image inspect --format '{{.Config.User}}' "$IMAGE")" = "10001:10001"
+          docker run --rm --network none --entrypoint /app/.venv/bin/python "$IMAGE" -c '
+          import hashlib
+          import importlib.util
+          import os
+          from pathlib import Path
+          import sqlite3
+          import ssl
+          import sys
+
+          assert sys.version_info[:2] == (3, 11)
+          assert os.getuid() == 10001
+          assert ssl.OPENSSL_VERSION_INFO[:3] >= (3, 0, 22)
+          assert ssl.OPENSSL_VERSION_INFO[0:2] == (3, 0)
+          assert importlib.util.find_spec("chromadb") is None
+          assert importlib.util.find_spec("pip") is None
+          assert not Path("/app/data/question_vectors.sqlite3").exists()
+          status = Path("/var/lib/dpkg/status.d/libssl3").read_text()
+          assert "Package: libssl3" in status
+          assert "Version: 3.0.22" in status or "Version: 3.0.23" in status
+          md5sums = Path("/var/lib/dpkg/status.d/libssl3.md5sums").read_text()
+          checked = set()
+          for line in md5sums.splitlines():
+              digest, name = line.split(maxsplit=1)
+              if name.endswith(("/libssl.so.3", "/libcrypto.so.3")):
+                  actual = hashlib.md5(Path("/" + name).read_bytes()).hexdigest()
+                  assert digest == actual, name
+                  checked.add(Path(name).name)
+          assert checked == {"libssl.so.3", "libcrypto.so.3"}
+          assert sqlite3.connect(":memory:").execute("SELECT 1").fetchone()[0] == 1
+          import fastapi
+          import uvicorn
+          import torch
+          import sentence_transformers
+          import src.api.app
+          print("SIGNED_PACKAGE_AND_ABI_PASS", ssl.OPENSSL_VERSION, torch.__version__)
+          '
+      - name: Verify live HTTP health under a read-only root filesystem
+        run: |
+          set -euo pipefail
+          IMAGE="ai-interview-bookworm-patch:${GITHUB_SHA}"
+          CID="$(docker run -d --read-only \
+            --tmpfs /tmp:rw,nosuid,size=64m \
+            --tmpfs /app/data:rw,nosuid,size=64m,uid=10001,gid=10001,mode=0700 \
+            -p 127.0.0.1::8000 "$IMAGE")"
+          trap 'docker logs "$CID" || true; docker rm -f "$CID" >/dev/null || true' EXIT
+          PORT="$(docker inspect --format '{{(index (index .NetworkSettings.Ports "8000/tcp") 0).HostPort}}' "$CID")"
+          for attempt in $(seq 1 45); do
+            if curl --fail --silent --show-error \
+              "http://127.0.0.1:${PORT}/api/v1/health/" > /tmp/ai-health.json; then
+              grep -Fq '"status"' /tmp/ai-health.json
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Read-only nonroot container did not pass live HTTP health check" >&2
+          exit 1
+      - name: Strict HIGH and CRITICAL image scan without exception
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: "ai-interview-bookworm-patch:${{ github.sha }}"
+          format: table
+          exit-code: "1"
+          ignore-unfixed: false
+          severity: "CRITICAL,HIGH"
+          vuln-type: "os,library"
+          scanners: "vuln"

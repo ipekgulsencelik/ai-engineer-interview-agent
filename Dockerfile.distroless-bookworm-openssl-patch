@@ -1,0 +1,62 @@
+# EXPERIMENTAL: apt-signed Debian 12 OpenSSL fix on distroless CC.
+# NEVER use for production without full image provenance and passing release gates.
+# The test is intentionally linux/amd64. No mutable tag is an approved release digest.
+FROM debian:bookworm-slim AS patched-openssl
+
+WORKDIR /patch
+# APT validates signed Debian InRelease and the requested package checksum.
+# Extract the package's *actual* binaries and control data together: do not
+# edit the package version to silence a vulnerability scanner.
+RUN set -eux; \
+    apt-get update; \
+    apt-get download libssl3; \
+    set -- /patch/libssl3_*_amd64.deb; \
+    test "$#" -eq 1; \
+    version="$(dpkg-deb -f "$1" Version)"; \
+    dpkg --compare-versions "$version" ge "3.0.22-1~deb12u2"; \
+    dpkg-deb --extract "$1" /patch/root; \
+    dpkg-deb --field "$1" > /patch/libssl3.status; \
+    dpkg-deb --control "$1" /patch/control; \
+    test -s /patch/control/md5sums; \
+    grep -F "Version: $version" /patch/libssl3.status
+
+FROM python:3.11-slim-bookworm AS builder
+WORKDIR /app
+ENV UV_NO_DEV=1 UV_FROZEN=1 UV_LINK_MODE=copy
+RUN python -m pip install --no-cache-dir "uv>=0.9,<1"
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --frozen --no-dev --no-install-project
+COPY . .
+RUN python -m pip uninstall -y pip setuptools wheel \
+    && mkdir -p /app/data \
+    && chown 10001:10001 /app/data \
+    && chmod 0700 /app/data
+
+FROM gcr.io/distroless/cc-debian12:nonroot AS runtime
+WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    LD_LIBRARY_PATH="/usr/local/lib" \
+    PATH="/app/.venv/bin:/usr/local/bin" \
+    HOME="/app/data"
+
+COPY --from=builder /usr/local/bin/python3.11 /usr/local/bin/python3.11
+COPY --from=builder /usr/local/bin/python3 /usr/local/bin/python3
+COPY --from=builder /usr/local/bin/python /usr/local/bin/python
+COPY --from=builder /usr/local/lib /usr/local/lib
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libffi.so.8 /usr/lib/x86_64-linux-gnu/libffi.so.8
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libsqlite3.so.0 /usr/lib/x86_64-linux-gnu/libsqlite3.so.0
+COPY --from=builder /app /app
+COPY --from=builder --chown=10001:10001 /app/data /app/data
+
+# Overlay the signed, patched *package files* AND their matching package
+# control/checksum metadata in the documented distroless dpkg status.d format.
+COPY --from=patched-openssl /patch/root/usr/lib/x86_64-linux-gnu/libssl.so.3 /usr/lib/x86_64-linux-gnu/libssl.so.3
+COPY --from=patched-openssl /patch/root/usr/lib/x86_64-linux-gnu/libcrypto.so.3 /usr/lib/x86_64-linux-gnu/libcrypto.so.3
+COPY --from=patched-openssl /patch/libssl3.status /var/lib/dpkg/status.d/libssl3
+COPY --from=patched-openssl /patch/control/md5sums /var/lib/dpkg/status.d/libssl3.md5sums
+
+USER 10001:10001
+EXPOSE 8000
+ENTRYPOINT ["/app/.venv/bin/python"]
+CMD ["-m", "uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
