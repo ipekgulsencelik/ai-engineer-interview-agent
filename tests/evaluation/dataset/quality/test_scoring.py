@@ -7,6 +7,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from src.evaluation.dataset.lineage.models import DatasetRevision
 from src.evaluation.dataset.quality.models import (
     IssueSeverity,
     QualityIssue,
@@ -19,6 +20,8 @@ from src.evaluation.dataset.quality.scoring import (
     QualityScoreCalculator,
     QualityScoringPolicy,
 )
+from src.evaluation.dataset.registry.models import DatasetCatalogEntry
+from src.evaluation.dataset.schema_evolution.models import parse_schema_version
 from src.infrastructure.repositories.sqlite_dataset_quality_report_repository import (
     SQLiteDatasetQualityReportRepository,
 )
@@ -75,10 +78,28 @@ class MemoryHistory:
 
 class Registry:
     def __init__(self, versions: tuple[str, ...]) -> None:
-        self.versions = set(versions)
+        self.entries = {
+            version: DatasetCatalogEntry(
+                revision=DatasetRevision(
+                    dataset_id="interview-qa", version=version
+                ),
+                content_sha256="0" * 64,
+                producer="test",
+                created_at=datetime(2026, 11, 1, tzinfo=UTC),
+                name="Test dataset",
+                owner_id="test-team",
+            )
+            for version in versions
+        }
 
-    def get(self, *, revision):
-        return object() if revision.version in self.versions else None
+    def get(self, *, revision: DatasetRevision) -> DatasetCatalogEntry | None:
+        return self.entries.get(revision.version)
+
+    def list_versions(
+        self, *, dataset_id: str, limit: int = 100
+    ) -> tuple[DatasetCatalogEntry, ...]:
+        ordered = sorted(self.entries, key=parse_schema_version, reverse=True)
+        return tuple(self.entries[version] for version in ordered[:limit])
 
 
 def _service(
@@ -168,6 +189,29 @@ def test_latest_run_per_version_selected_by_timestamp_and_tie_breaker() -> None:
     assert len(result) == 2
     assert result[0].run_id == "b"
     assert result[1].baseline_score == 100.0
+
+
+def test_missing_intermediate_registered_version_report_blocks_gate() -> None:
+    old = _report("1.0.0", run_id="old", day=1)
+    current = _report("1.2.0", run_id="new", day=2)
+    result = _service(
+        (current, old), versions=("1.0.0", "1.1.0", "1.2.0")
+    ).score_run(dataset_id="interview-qa", run_id="new")
+    assert not result.passed
+    assert result.baseline_version == "1.1.0"
+    assert result.baseline_score is None
+    assert result.reason_codes == ("baseline_report_missing",)
+
+
+def test_truncated_catalog_versions_fail_closed() -> None:
+    report = _report("1.1.0")
+    service = _service(
+        (report,),
+        versions=("1.0.0", "1.1.0"),
+        policy=QualityScoringPolicy(history_limit=2),
+    )
+    with pytest.raises(DatasetQualityScoringError, match="catalog window"):
+        service.score_versions(dataset_id="interview-qa")
 
 
 def test_rejected_baseline_prevents_unsafe_regression_comparison() -> None:
