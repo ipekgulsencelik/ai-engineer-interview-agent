@@ -9,7 +9,7 @@ WORKDIR /patch
 # edit the package version to silence a vulnerability scanner.
 RUN set -eux; \
     apt-get update; \
-    apt-get download libssl3; \
+    apt-get download libssl3 zlib1g; \
     set -- /patch/libssl3_*_amd64.deb; \
     test "$#" -eq 1; \
     version="$(dpkg-deb -f "$1" Version)"; \
@@ -18,7 +18,13 @@ RUN set -eux; \
     dpkg-deb --field "$1" > /patch/libssl3.status; \
     dpkg-deb --control "$1" /patch/control; \
     test -s /patch/control/md5sums; \
-    grep -F "Version: $version" /patch/libssl3.status
+    grep -F "Version: $version" /patch/libssl3.status; \
+    set -- /patch/zlib1g_*_amd64.deb; \
+    test "$#" -eq 1; \
+    dpkg-deb --extract "$1" /patch/root; \
+    dpkg-deb --field "$1" > /patch/zlib1g.status; \
+    dpkg-deb --control "$1" /patch/zlib-control; \
+    test -s /patch/zlib-control/md5sums
 
 FROM python:3.11-slim-bookworm AS builder
 WORKDIR /app
@@ -55,6 +61,12 @@ COPY --from=patched-openssl /patch/root/usr/lib/x86_64-linux-gnu/libssl.so.3 /us
 COPY --from=patched-openssl /patch/root/usr/lib/x86_64-linux-gnu/libcrypto.so.3 /usr/lib/x86_64-linux-gnu/libcrypto.so.3
 COPY --from=patched-openssl /patch/libssl3.status /var/lib/dpkg/status.d/libssl3
 COPY --from=patched-openssl /patch/control/md5sums /var/lib/dpkg/status.d/libssl3.md5sums
+
+# Python's binascii imports libz.so.1. Include the real signed zlib package
+# and matching scanner metadata; omitting metadata would hide potential CVEs.
+COPY --from=patched-openssl /patch/root/usr/lib/x86_64-linux-gnu/libz.so.1 /usr/lib/x86_64-linux-gnu/libz.so.1
+COPY --from=patched-openssl /patch/zlib1g.status /var/lib/dpkg/status.d/zlib1g
+COPY --from=patched-openssl /patch/zlib-control/md5sums /var/lib/dpkg/status.d/zlib1g.md5sums
 
 USER 10001:10001
 EXPOSE 8000
