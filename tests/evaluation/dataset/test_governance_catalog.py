@@ -15,10 +15,20 @@ from src.evaluation.dataset.governance import (
     GovernedDatasetCatalogReader,
     VerifiedCatalogIdentity,
 )
-from src.evaluation.dataset.lineage.models import DatasetRevision
+from src.evaluation.dataset.lineage.models import (
+    DatasetLineageNode,
+    DatasetRevision,
+)
+from src.evaluation.dataset.registry import DatasetRegistryService
 from src.evaluation.dataset.registry.models import DatasetCatalogEntry
 from src.infrastructure.repositories.sqlite_dataset_governance_audit_repository import (
     SQLiteDatasetGovernanceAuditRepository,
+)
+from src.infrastructure.repositories.sqlite_dataset_lineage_repository import (
+    SQLiteDatasetLineageRepository,
+)
+from src.infrastructure.repositories.sqlite_dataset_registry_repository import (
+    SQLiteDatasetRegistryRepository,
 )
 
 
@@ -254,3 +264,35 @@ def test_audit_does_not_contain_catalog_description_or_raw_artifact(tmp_path):
     assert b"untrusted-owner-not-an-authorization" not in data
     assert b"Interview questions" not in data
     assert b"DO-NOT-STORE-CANDIDATE-ANSWER" not in data
+
+
+
+def test_real_lineage_registry_read_through_governance(tmp_path):
+    lineage = SQLiteDatasetLineageRepository(tmp_path / "lineage.sqlite")
+    catalog = SQLiteDatasetRegistryRepository(tmp_path / "catalog.sqlite")
+    node = DatasetLineageNode.from_artifact(
+        revision=REVISION,
+        content=b"source bytes, never returned by catalog",
+        producer="trusted-publisher",
+        created_at=NOW,
+    )
+    lineage.register(node=node, parents=())
+    DatasetRegistryService(lineage=lineage, registry=catalog).register(
+        node=node, name="Interview QA", owner_id="owner-is-not-authorization"
+    )
+    audit = SQLiteDatasetGovernanceAuditRepository(
+        tmp_path / "governance.sqlite"
+    )
+    governed = GovernedDatasetCatalogReader(
+        registry=catalog,
+        identity=Identity(),
+        policies=Policies(_policy()),
+        audit=audit,
+        clock=Clock(),
+        event_id_factory=lambda: "actual-registry-read-1",
+    )
+    entry = governed.get(revision=REVISION)
+    assert entry.revision == REVISION
+    assert entry.content_sha256 == node.content_sha256
+    assert not hasattr(entry, "content")
+    assert audit.list_events(dataset_id="interview-qa")[0].allowed
