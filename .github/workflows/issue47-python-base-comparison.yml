@@ -1,0 +1,34 @@
+name: Issue 47 Python base CVE comparison
+
+on:
+  push:
+    branches:
+      - test/issue47-python-base-comparison-20261122
+
+permissions:
+  contents: read
+
+jobs:
+  compare-base-images:
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - python:3.11-slim-trixie
+          - python:3.11-slim-bookworm
+    name: Inspect ${{ matrix.image }} for HIGH/CRITICAL
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Pull candidate base image
+        run: docker pull "${{ matrix.image }}"
+      - name: Blocking Trivy HIGH/CRITICAL scan (diagnostic only, no publish)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: "${{ matrix.image }}"
+          format: table
+          exit-code: "1"
+          ignore-unfixed: false
+          severity: "CRITICAL,HIGH"
+          vuln-type: "os,library"
+          scanners: "vuln"
