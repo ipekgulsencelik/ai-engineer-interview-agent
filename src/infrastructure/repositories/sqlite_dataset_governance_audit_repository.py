@@ -6,7 +6,7 @@ import hashlib
 import json
 import sqlite3
 from contextlib import closing
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +37,11 @@ def _encode(event: CatalogAccessAuditEvent) -> str:
 
 def _digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _utc_sort_key(occurred_at: datetime) -> str:
+    """Lexicographically sortable, uniform UTC timestamp with microseconds."""
+    return occurred_at.astimezone(UTC).isoformat(timespec="microseconds")
 
 
 class SQLiteDatasetGovernanceAuditRepository:
@@ -90,7 +95,7 @@ class SQLiteDatasetGovernanceAuditRepository:
                     (
                         event.event_id,
                         event.dataset_id,
-                        event.occurred_at.isoformat(),
+                        _utc_sort_key(event.occurred_at),
                         payload,
                         _digest(payload),
                     ),
@@ -150,7 +155,7 @@ class SQLiteDatasetGovernanceAuditRepository:
             if (
                 event.event_id != event_id
                 or event.dataset_id != row_dataset
-                or event.occurred_at.isoformat() != checked_at
+                or _utc_sort_key(event.occurred_at) != checked_at
                 or event.dataset_id != dataset_id
             ):
                 raise DatasetGovernanceError("audit index and payload differ")
