@@ -60,7 +60,7 @@ jobs:
           zlib_checks = []
           for line in zlib_md5sums.splitlines():
               digest, name = line.split(maxsplit=1)
-              if name.endswith("/libz.so.1"):
+              if Path(name).name.startswith("libz.so.1."):
                   zlib_checks.append(name)
                   assert digest == hashlib.md5(
                       Path("/" + name).read_bytes()
