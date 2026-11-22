@@ -130,15 +130,17 @@ class DatasetQualityScoringService:
         target = next((report for report in reports if report.run_id == run_id), None)
         if target is None:
             raise DatasetQualityScoringError("run_id is not in bounded history")
-        predecessors = [
-            report
-            for report in self._latest_by_version(reports)
-            if parse_schema_version(report.dataset_version)
-            < parse_schema_version(target.dataset_version)
-        ]
+        versions = self._catalog_versions(dataset_id=dataset_id)
+        prior_version = self._previous_version(
+            versions=versions, current=target.dataset_version
+        )
+        baseline = next(
+            (item for item in self._latest_by_version(reports)
+             if item.dataset_version == prior_version),
+            None,
+        )
         return self._decision(
-            report=target,
-            baseline=predecessors[-1] if predecessors else None,
+            report=target, baseline=baseline, expected_baseline=prior_version
         )
 
     def score_versions(
@@ -146,12 +148,21 @@ class DatasetQualityScoringService:
     ) -> tuple[DatasetQualityScore, ...]:
         """Return one latest-run score per SemVer, oldest version first."""
         reports = self._read_history(dataset_id=dataset_id)
+        versions = self._catalog_versions(dataset_id=dataset_id)
         ordered = self._latest_by_version(reports)
+        by_version = {report.dataset_version: report for report in ordered}
         output: list[DatasetQualityScore] = []
-        baseline: QualityReport | None = None
         for report in ordered:
-            output.append(self._decision(report=report, baseline=baseline))
-            baseline = report
+            prior_version = self._previous_version(
+                versions=versions, current=report.dataset_version
+            )
+            output.append(
+                self._decision(
+                    report=report,
+                    baseline=by_version.get(prior_version),
+                    expected_baseline=prior_version,
+                )
+            )
         return tuple(output)
 
     def _read_history(self, *, dataset_id: str) -> tuple[QualityReport, ...]:
@@ -190,6 +201,39 @@ class DatasetQualityScoringService:
                 registered.add(report.dataset_version)
         return reports
 
+    def _catalog_versions(self, *, dataset_id: str) -> tuple[str, ...]:
+        entries = self._registry.list_versions(
+            dataset_id=dataset_id, limit=self._policy.history_limit
+        )
+        if not isinstance(entries, tuple):
+            raise DatasetQualityScoringError("catalog versions must be a tuple")
+        if len(entries) >= self._policy.history_limit:
+            raise DatasetQualityScoringError("catalog window may be truncated")
+        versions: set[str] = set()
+        for entry in entries:
+            if entry.revision.dataset_id != dataset_id:
+                raise DatasetQualityScoringError("catalog dataset identity mismatch")
+            version = entry.revision.version
+            parse_schema_version(version)
+            if version in versions:
+                raise DatasetQualityScoringError("duplicate catalog version")
+            versions.add(version)
+        return tuple(sorted(versions, key=parse_schema_version))
+
+    @staticmethod
+    def _previous_version(
+        *, versions: tuple[str, ...], current: str
+    ) -> str | None:
+        if current not in versions:
+            raise DatasetQualityScoringError(
+                "quality report version missing from catalog"
+            )
+        predecessors = [
+            version for version in versions
+            if parse_schema_version(version) < parse_schema_version(current)
+        ]
+        return predecessors[-1] if predecessors else None
+
     @staticmethod
     def _latest_by_version(
         reports: tuple[QualityReport, ...]
@@ -209,7 +253,11 @@ class DatasetQualityScoringService:
         )
 
     def _decision(
-        self, *, report: QualityReport, baseline: QualityReport | None
+        self,
+        *,
+        report: QualityReport,
+        baseline: QualityReport | None,
+        expected_baseline: str | None,
     ) -> DatasetQualityScore:
         check, record, severity = QualityScoreCalculator.components(report)
         score = round(check + record + severity, 2)
@@ -227,7 +275,9 @@ class DatasetQualityScoringService:
         if score < self._policy.min_score:
             reasons.append("score_below_threshold")
         if baseline is None:
-            if self._policy.require_baseline:
+            if expected_baseline is not None:
+                reasons.append("baseline_report_missing")
+            elif self._policy.require_baseline:
                 reasons.append("baseline_missing")
         else:
             if not baseline.accepted:
@@ -248,9 +298,7 @@ class DatasetQualityScoringService:
             record_points=record,
             severity_points=severity,
             quality_rules_accepted=report.accepted,
-            baseline_version=(
-                baseline.dataset_version if baseline is not None else None
-            ),
+            baseline_version=expected_baseline,
             baseline_score=baseline_score,
             regression_points=regression,
             passed=not reasons,
