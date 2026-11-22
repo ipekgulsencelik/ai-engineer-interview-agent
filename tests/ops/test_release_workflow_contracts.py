@@ -96,6 +96,8 @@ def test_container_runs_as_numeric_nonroot_and_excludes_secrets() -> None:
     attributes = (ROOT / ".gitattributes").read_text()
     assert "data/chroma/" in attributes
     assert "export-ignore" in attributes
+    assert "*.sh text eol=lf" in attributes
+
 
 
 def test_dependabot_targets_uv_lockfile_and_immutable_review_paths() -> None:
@@ -129,8 +131,11 @@ def test_example_release_plan_is_explicitly_not_approved() -> None:
 def test_release_build_script_has_syntax_and_reproducibility_checks() -> None:
     path = ROOT / "ops/release/build_bundle.sh"
     result = subprocess.run(
-        ["bash", "-n", path.as_posix()],
-        check=False, capture_output=True, text=True,
+        ["bash", "-n", "-"],
+        input=path.read_text(encoding="utf-8"),
+        capture_output=True,
+        text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     script = path.read_text(encoding="utf-8")
@@ -295,7 +300,8 @@ def test_container_runtime_smoke_is_independently_blocking() -> None:
     assert trivy["with"]["exit-code"] == "1"
     script_path = ROOT / "ops/release/verify_container_runtime.sh"
     result = subprocess.run(
-        ["bash", "-n", script_path.as_posix()],
+        ["bash", "-n", "-"],
+        input=script_path.read_text(encoding="utf-8"),
         capture_output=True,
         text=True,
         check=False,

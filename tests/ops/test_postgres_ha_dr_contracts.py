@@ -107,7 +107,8 @@ def test_manifest_source_has_no_inline_secret_values() -> None:
 def test_real_pitr_drill_is_syntax_checked() -> None:
     script = BASE / "tests/pitr_docker_drill.sh"
     result = subprocess.run(
-        ["bash", "-n", script.as_posix()],
+        ["bash", "-n", "-"],
+        input=script.read_text(encoding="utf-8"),
         capture_output=True,
         text=True,
         check=False,
