@@ -132,12 +132,13 @@ def test_release_build_script_has_syntax_and_reproducibility_checks() -> None:
     path = ROOT / "ops/release/build_bundle.sh"
     result = subprocess.run(
         ["bash", "-n", "-"],
-        input=path.read_text(encoding="utf-8"),
+        # Bytes, not text: on Windows text-mode stdin rewrites "\n" as "\r\n".
+        input=path.read_bytes(),
         capture_output=True,
-        text=True,
         check=False,
     )
-    assert result.returncode == 0, result.stderr
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+    assert b"\r" not in path.read_bytes(), "shell script has CRLF line endings"
     script = path.read_text(encoding="utf-8")
     assert "git archive" in script
     assert "gzip -n" in script
@@ -301,12 +302,13 @@ def test_container_runtime_smoke_is_independently_blocking() -> None:
     script_path = ROOT / "ops/release/verify_container_runtime.sh"
     result = subprocess.run(
         ["bash", "-n", "-"],
-        input=script_path.read_text(encoding="utf-8"),
+        # Bytes, not text: on Windows text-mode stdin rewrites "\n" as "\r\n".
+        input=script_path.read_bytes(),
         capture_output=True,
-        text=True,
         check=False,
     )
-    assert result.returncode == 0, result.stderr
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+    assert b"\r" not in script_path.read_bytes(), "shell script has CRLF line endings"
     smoke_script = script_path.read_text(encoding="utf-8")
     for required in (
         "--network none",

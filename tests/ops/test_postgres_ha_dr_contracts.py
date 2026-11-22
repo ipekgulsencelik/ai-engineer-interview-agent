@@ -108,12 +108,13 @@ def test_real_pitr_drill_is_syntax_checked() -> None:
     script = BASE / "tests/pitr_docker_drill.sh"
     result = subprocess.run(
         ["bash", "-n", "-"],
-        input=script.read_text(encoding="utf-8"),
+        # Bytes, not text: on Windows text-mode stdin rewrites "\n" as "\r\n".
+        input=script.read_bytes(),
         capture_output=True,
-        text=True,
         check=False,
     )
-    assert result.returncode == 0, result.stderr
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+    assert b"\r" not in script.read_bytes(), "shell script has CRLF line endings"
     text = script.read_text(encoding="utf-8")
     assert "pg_verifybackup" in text
     assert "pg_create_restore_point" in text
