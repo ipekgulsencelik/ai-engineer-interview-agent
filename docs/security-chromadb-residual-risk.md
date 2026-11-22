@@ -85,3 +85,9 @@ Only an explicit `LEGACY_CHROMA_ENABLED=true` **and** `ENV=development`
 or `ENV=test` permits constructing a legacy local client. Do not set
 this flag on any deployment or expose the embedded persistence files to
 untrusted users.
+
+The default embedding provider composition is now wired with the lazy
+SentenceTransformerModelLoader, retry executor, normalized embeddings and
+configured batch size. Loading model weights remains an **explicit runtime
+dependency**; a release must validate model supply-chain provenance and
+pin a reviewed revision before accepting untrusted runtime environments.

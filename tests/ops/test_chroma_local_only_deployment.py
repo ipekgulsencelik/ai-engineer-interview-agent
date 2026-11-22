@@ -90,3 +90,23 @@ def test_legacy_chroma_disabled_by_default_even_in_dev(monkeypatch) -> None:
     monkeypatch.setattr(settings, "LEGACY_CHROMA_ENABLED", False)
     with pytest.raises(VectorStoreError, match="disabled"):
         create_chroma_client(persist_directory="data/chroma")
+
+
+def test_default_retrieval_embedding_provider_is_fully_wired(monkeypatch) -> None:
+    from unittest.mock import Mock
+
+    from src.config.settings import settings
+    from src.infrastructure.containers.retrieval_container import RetrievalContainer
+    from src.infrastructure.embedding.sentence_transformer_model_loader import (
+        SentenceTransformerModelLoader,
+    )
+
+    model = Mock()
+    model.encode.return_value.tolist.return_value = [1.0, 0.0]
+    loader = Mock(return_value=model)
+    monkeypatch.setattr(SentenceTransformerModelLoader, "load", loader)
+
+    provider = RetrievalContainer().embedding_provider
+    assert provider.embed_text(text="RAG question") == [1.0, 0.0]
+    loader.assert_called_once_with(model_name=settings.EMBEDDING_MODEL_NAME)
+    model.encode.assert_called_once()
