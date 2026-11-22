@@ -3,6 +3,9 @@ from pathlib import Path
 import chromadb
 
 from src.domain.entities.question import Question
+from src.infrastructure.vector_stores.chroma.local_only_policy import (
+    LegacyChromaPolicy,
+)
 from src.domain.retrieval.search_result import SearchResult
 from src.domain.retrieval.vector_store import VectorStore
 from src.infrastructure.vector_stores.chroma.chroma_embedding_validator import (
@@ -139,6 +142,7 @@ class ChromaVectorStore(VectorStore):
                 Chroma collection adı.
         """
 
+        LegacyChromaPolicy.require_safe_environment()
         self.persist_directory = self._validate_persist_directory(
             persist_directory,
         )

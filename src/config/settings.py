@@ -233,6 +233,10 @@ class Settings(BaseSettings):
     # Farklı retrieval dataset'leri için farklı collection'lar kullanılabilir.
     CHROMA_COLLECTION_NAME: str = "questions"
 
+    # Default embedded question-vector index. ChromaDB is legacy-only and
+    # never selected by the FastAPI retrieval composition root.
+    QUESTION_VECTOR_DB_PATH: str = "data/question_vectors.sqlite3"
+
     # ---------------------------------------------------------
     # EMBEDDING MODEL NAME
     # ---------------------------------------------------------

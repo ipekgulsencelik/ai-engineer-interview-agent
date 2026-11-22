@@ -174,3 +174,14 @@ uv run pyright
 - Projede `pytest` için `pythonpath = ["."]` ayarı bulunuyor.
 - API için önerilen giriş noktası `src.api.app:app`.
 - Ortam değişkenlerini düzenlerken `src/config/settings.py` ile uyumlu değerler verin.
+
+
+### ChromaDB security isolation (staged)
+
+The FastAPI question retrieval composition root selects a local SQLite
+question-vector adapter via `QUESTION_VECTOR_DB_PATH`. ChromaDB is legacy-only,
+and its constructors reject staging/production. SQLite indexes must be rebuilt
+from the trusted question bank; old Chroma index files are never auto-read.
+See [residual security risks](docs/security-chromadb-residual-risk.md).
+**The vulnerable ChromaDB runtime package and image advisories still block
+release** until dependency removal and clean independent security scans.

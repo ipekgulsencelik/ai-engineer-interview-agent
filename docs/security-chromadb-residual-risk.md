@@ -52,3 +52,29 @@ no `HttpClient` / `CloudClient` Chroma constructor exists in infrastructure,
 and checks production Docker and Compose do not publish a Chroma service.
 These checks guard the current mitigation but are **not** a penetration
 test or vulnerability remediation.
+
+## Chroma-free retrieval migration (staged hardening)
+
+The current FastAPI retrieval composition root now selects the embedded
+`SqliteQuestionVectorStore` behind the existing application
+`QuestionVectorStore` port. It stores complete, validated Question entities,
+performs exact cosine-based retrieval with deterministic tie-breaking and
+bound-parameter filtering, and rejects nonfinite or mismatched embeddings.
+The store uses only the Python standard library and has a 50,000-record
+capacity guard. It is an **exact scan**, not approximate nearest-neighbor
+search; benchmark capacity and p95 latency before a production migration.
+
+The default location is `data/question_vectors.sqlite3` and may be changed
+with `QUESTION_VECTOR_DB_PATH`. Existing Chroma data is **not** imported,
+interpreted, or implicitly trusted. Rebuild the index from the original,
+trusted question dataset using `QuestionIndexingService` and verify embedding
+model/dimension parity. A missing SQLite index is initially empty; it does
+not silently fall back to Chroma. Plan backup, access control, and integrity
+checks for the new local database before production rollout.
+
+Legacy Chroma constructors now refuse staging/production environments. They
+remain for isolated development/test compatibility, not remote service use.
+**This change does not yet remove ChromaDB from the locked runtime dependency
+set or resolve the OS-level Trivy findings. Release security gates remain
+blocking** until dependency isolation, lockfile regeneration, independent
+`pip-audit` and image scanning succeed.

@@ -11,17 +11,16 @@ from src.application.services.question_ranking_service import (
 from src.application.services.semantic_question_retrieval_service import (
     SemanticQuestionRetrievalService,
 )
-from src.infrastructure.constants.chroma_defaults import (
-    DEFAULT_CHROMA_PERSIST_DIRECTORY,
-)
+from src.application.ports.question_vector_store import QuestionVectorStore
+from src.config.settings import settings
 from src.infrastructure.containers.base_container import (
     BaseContainer,
 )
 from src.infrastructure.embedding.sentence_transformer_embedding_provider import (
     SentenceTransformerEmbeddingProvider,
 )
-from src.infrastructure.vector_stores.chroma.chroma_question_vector_store import (
-    ChromaQuestionVectorStore,
+from src.infrastructure.vector_stores.sqlite.sqlite_question_vector_store import (
+    SqliteQuestionVectorStore,
 )
 
 
@@ -39,9 +38,9 @@ class RetrievalContainer(BaseContainer):
     @cached_property
     def vector_store(
         self,
-    ) -> ChromaQuestionVectorStore:
-        return ChromaQuestionVectorStore(
-            persist_directory=DEFAULT_CHROMA_PERSIST_DIRECTORY,
+    ) -> QuestionVectorStore:
+        return SqliteQuestionVectorStore(
+            database_path=settings.QUESTION_VECTOR_DB_PATH,
         )
 
     @cached_property
