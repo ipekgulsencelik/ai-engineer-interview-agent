@@ -71,15 +71,12 @@ def test_idempotency_conflict_and_atomic_audit(tmp_path) -> None:
     with pytest.raises(DatasetRegistryConflictError, match="different metadata"):
         repo.register(entry=replace(first, owner_id="different-team"))
     with sqlite3.connect(path) as conn:
-        assert conn.execute("SELECT COUNT(*) FROM dataset_registry_entries").fetchone() == (
-            1,
-        )
-        assert conn.execute("SELECT COUNT(*) FROM dataset_registry_tags").fetchone() == (
-            2,
-        )
-        assert conn.execute("SELECT COUNT(*) FROM dataset_registry_audit").fetchone() == (
-            1,
-        )
+        count = conn.execute("SELECT COUNT(*) FROM dataset_registry_entries").fetchone()
+        assert count == (1,)
+        count = conn.execute("SELECT COUNT(*) FROM dataset_registry_tags").fetchone()
+        assert count == (2,)
+        count = conn.execute("SELECT COUNT(*) FROM dataset_registry_audit").fetchone()
+        assert count == (1,)
 
 
 def test_tag_queries_are_bounded_and_deterministic(tmp_path) -> None:
@@ -104,7 +101,9 @@ def test_tag_queries_are_bounded_and_deterministic(tmp_path) -> None:
 def test_bad_query_limits_are_rejected(tmp_path, limit: object) -> None:
     repo = SQLiteDatasetRegistryRepository(tmp_path / "registry.sqlite")
     with pytest.raises(DatasetRegistryError, match="limit"):
-        repo.list_versions(dataset_id="evaluation", limit=limit)  # type: ignore[arg-type]
+        repo.list_versions(  # type: ignore[arg-type]
+            dataset_id="evaluation", limit=limit
+        )
     with pytest.raises(DatasetRegistryError, match="limit"):
         repo.list_by_tag(tag="training", limit=limit)  # type: ignore[arg-type]
 
@@ -169,12 +168,10 @@ def test_audit_failure_rolls_back_entry_and_tag_projection(tmp_path) -> None:
         repo.register(entry=entry)
     assert repo.get(revision=entry.revision) is None
     with sqlite3.connect(path) as conn:
-        assert conn.execute("SELECT COUNT(*) FROM dataset_registry_entries").fetchone() == (
-            0,
-        )
-        assert conn.execute("SELECT COUNT(*) FROM dataset_registry_tags").fetchone() == (
-            0,
-        )
+        count = conn.execute("SELECT COUNT(*) FROM dataset_registry_entries").fetchone()
+        assert count == (0,)
+        count = conn.execute("SELECT COUNT(*) FROM dataset_registry_tags").fetchone()
+        assert count == (0,)
 
 
 def test_simultaneous_exact_registration_creates_one_row_and_audit(
@@ -189,9 +186,8 @@ def test_simultaneous_exact_registration_creates_one_row_and_audit(
     assert results.count(True) == 1
     assert results.count(False) == 7
     with sqlite3.connect(path) as conn:
-        assert conn.execute("SELECT COUNT(*) FROM dataset_registry_audit").fetchone() == (
-            1,
-        )
+        count = conn.execute("SELECT COUNT(*) FROM dataset_registry_audit").fetchone()
+        assert count == (1,)
 
 
 def test_non_file_sqlite_and_bad_timeout_are_rejected(tmp_path) -> None:
