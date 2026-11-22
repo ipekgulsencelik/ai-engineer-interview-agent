@@ -304,25 +304,25 @@ def test_audit_limit_sorts_mixed_timezones_in_actual_utc_order(tmp_path):
     store = SQLiteDatasetGovernanceAuditRepository(
         tmp_path / "mixed-offsets.sqlite"
     )
-    common = {
-        "principal_id": "opaque-actor",
-        "tenant_id": "tenant-a",
-        "dataset_id": "interview-qa",
-        "version": "1.0.0",
-        "allowed": True,
-        "reason_code": "allowed",
-    }
-    old = CatalogAccessAuditEvent(
-        event_id="old",
-        occurred_at=datetime(
+    def event(event_id: str, occurred_at: datetime) -> CatalogAccessAuditEvent:
+        return CatalogAccessAuditEvent(
+            event_id=event_id,
+            occurred_at=occurred_at,
+            principal_id="opaque-actor",
+            tenant_id="tenant-a",
+            dataset_id="interview-qa",
+            version="1.0.0",
+            allowed=True,
+            reason_code="allowed",
+        )
+
+    old = event(
+        "old", datetime(
             2026, 11, 23, 10, tzinfo=timezone(timedelta(hours=2))
         ),  # 08:00 UTC
-        **common,
     )
-    newest = CatalogAccessAuditEvent(
-        event_id="new",
-        occurred_at=datetime(2026, 11, 23, 9, tzinfo=UTC),  # 09:00 UTC
-        **common,
+    newest = event(
+        "new", datetime(2026, 11, 23, 9, tzinfo=UTC),  # 09:00 UTC
     )
     assert store.append(event=old)
     assert store.append(event=newest)
