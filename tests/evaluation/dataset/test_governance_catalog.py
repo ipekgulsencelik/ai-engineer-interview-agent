@@ -223,7 +223,6 @@ def test_file_backed_audit_is_append_only_and_reopens(tmp_path):
 
 
 def test_corrupted_event_checksum_blocks_audit_history(tmp_path):
-    path = tmp_path / "audit.sqlite"
     reader, store, _ = _reader(tmp_path)
     assert reader.get(revision=REVISION)
     with sqlite3.connect(tmp_path / "catalog-audit.sqlite") as conn:
