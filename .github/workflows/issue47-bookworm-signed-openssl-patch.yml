@@ -9,7 +9,39 @@ permissions:
   contents: read
 
 jobs:
+  vendor-zlib-prerequisite:
+    name: Signed Bookworm zlib security prerequisite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify candidate package from Debian's signed APT repositories
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --pull always debian:bookworm-slim /bin/sh -euc '
+            apt-get update >/dev/null
+            candidate="$(apt-cache policy zlib1g | sed -n "s/^[[:space:]]*Candidate: //p" | head -n 1)"
+            test -n "$candidate" && test "$candidate" != "(none)"
+            printf "Signed Debian Bookworm zlib1g candidate: %s\\n" "$candidate"
+            if ! dpkg --compare-versions "$candidate" gt "1:1.2.13.dfsg-1"; then
+              echo "BLOCKED: no newer vendor zlib1g package found than the known affected Bookworm version." >&2
+              echo "Do not disable Trivy or alter dpkg metadata to force a green result." >&2
+              exit 1
+            fi
+            echo "A newer candidate exists; this alone does NOT prove the CVE is fixed."
+          '
+      - name: Record unwaived security policy
+        if: always()
+        run: |
+          {
+            echo "## Issue #47: release remains blocked unless EVERY gate passes"
+            echo "This preflight reads signed Debian Bookworm APT metadata and checks for a newer zlib1g candidate."
+            echo "A newer version is not a CVE fix guarantee. A human security review plus actual-image strict Trivy remain required."
+            echo "No waiver, ignore list, image publish, secret access, or deployment is performed."
+          } >> "$GITHUB_STEP_SUMMARY"
+
   signed-patch-recheck:
+    needs: vendor-zlib-prerequisite
     name: Signed Debian12 package + nonroot runtime + Trivy
     runs-on: ubuntu-latest
     timeout-minutes: 60
