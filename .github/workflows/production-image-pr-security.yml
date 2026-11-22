@@ -78,10 +78,10 @@ jobs:
               for issue in result.get("Vulnerabilities", []) or []
           )
           summary = (
-              "### Production image Trivy findings (blocking)\\n"
-              f"HIGH: {counts['HIGH']}\\n"
-              f"CRITICAL: {counts['CRITICAL']}\\n"
-              "The security job fails for any HIGH or CRITICAL finding.\\n"
+              "### Production image Trivy findings (blocking)\n"
+              f"HIGH: {counts['HIGH']}\n"
+              f"CRITICAL: {counts['CRITICAL']}\n"
+              "The security job fails for any HIGH or CRITICAL finding.\n"
           )
           print(summary)
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
