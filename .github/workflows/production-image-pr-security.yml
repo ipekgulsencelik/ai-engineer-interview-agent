@@ -47,10 +47,16 @@ jobs:
         with:
           persist-credentials: false
       - name: Build actual production Dockerfile without publishing
+        id: build_image
         run: |
           docker build --pull -f Dockerfile.release \
             -t "ai-interview-pr-security:${GITHUB_SHA}" .
+      - name: Validate isolated nonroot read-only-root runtime and HTTP health
+        run: |
+          bash ops/release/verify_container_runtime.sh \
+            "ai-interview-pr-security:${GITHUB_SHA}"
       - name: Fail closed on HIGH or CRITICAL OS and library advisories
+        if: always() && steps.build_image.outcome == 'success'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
           image-ref: "ai-interview-pr-security:${{ github.sha }}"
@@ -76,8 +82,3 @@ jobs:
           path: trivy-image-findings.json
           if-no-files-found: warn
           retention-days: 30
-      - name: Enforce nonroot runtime identity
-        run: |
-          test "$(docker image inspect \
-            "ai-interview-pr-security:${GITHUB_SHA}" \
-            --format '{{.Config.User}}')" = "10001:10001"

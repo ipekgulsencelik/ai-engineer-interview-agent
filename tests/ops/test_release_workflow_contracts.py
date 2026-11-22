@@ -263,3 +263,58 @@ def test_release_runtime_requires_signed_vendor_zlib_security_fix() -> None:
     assert "rm -rf /var/lib/apt/lists/*" in runtime
     assert runtime.index("--only-upgrade zlib1g") < runtime.index("USER 10001:10001")
     assert "ignore-unfixed" not in runtime
+
+
+def test_container_runtime_smoke_is_independently_blocking() -> None:
+    """Runtime must be exercised even when Trivy inevitably blocks release."""
+    import subprocess
+
+    workflow = yaml.safe_load(
+        (ROOT / ".github/workflows/production-image-pr-security.yml").read_text(
+            encoding="utf-8"
+        )
+    )
+    steps = workflow["jobs"]["production-image-scan"]["steps"]
+    names = [step.get("name", "") for step in steps]
+    build_name = "Build actual production Dockerfile without publishing"
+    runtime_name = (
+        "Validate isolated nonroot read-only-root runtime and HTTP health"
+    )
+    trivy_name = "Fail closed on HIGH or CRITICAL OS and library advisories"
+    assert names.index(build_name) < names.index(runtime_name)
+    assert names.index(runtime_name) < names.index(trivy_name)
+    build = steps[names.index(build_name)]
+    runtime = steps[names.index(runtime_name)]
+    trivy = steps[names.index(trivy_name)]
+    assert build["id"] == "build_image"
+    assert "verify_container_runtime.sh" in runtime["run"]
+    assert "continue-on-error" not in runtime
+    assert trivy["if"] == (
+        "always() && steps.build_image.outcome == 'success'"
+    )
+    assert trivy["with"]["exit-code"] == "1"
+    script_path = ROOT / "ops/release/verify_container_runtime.sh"
+    result = subprocess.run(
+        ["bash", "-n", str(script_path)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    smoke_script = script_path.read_text(encoding="utf-8")
+    for required in (
+        "--network none",
+        "--read-only",
+        "--cap-drop ALL",
+        "--security-opt no-new-privileges",
+        "--pids-limit 256",
+        "--memory 4g",
+        "--tmpfs /app/data:",
+        "10001:10001",
+        'docker exec "$cid"',
+        "ISOLATED_NONROOT_READONLY_HEALTH_PASS",
+        "/api/v1/health/",
+    ):
+        assert required in smoke_script
+    assert "docker rm -f" in smoke_script
+    assert "trap cleanup EXIT" in smoke_script
