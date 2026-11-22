@@ -3,7 +3,7 @@ from dataclasses import fields
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from src.domain.selection.scored_candidate import ScoredCandidate
+    from src.application.rankers.scored_candidate import ScoredCandidate
 
 
 class ScoredCandidateValidator:
@@ -221,7 +221,7 @@ class ScoredCandidateValidator:
             circular import riskini azaltmaktır.
         """
 
-        from src.domain.selection.scored_candidate import ScoredCandidate
+        from src.application.rankers.scored_candidate import ScoredCandidate
 
         if not isinstance(candidate, ScoredCandidate):
             raise TypeError(
