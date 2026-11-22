@@ -249,3 +249,17 @@ def test_failed_image_scan_retains_machine_readable_evidence() -> None:
         r"actions/upload-artifact@[a-f0-9]{40}",
         archive["uses"].split()[0],
     ) is not None
+
+
+def test_release_runtime_requires_signed_vendor_zlib_security_fix() -> None:
+    """No vulnerable Debian 13 zlib image may pass the Docker build."""
+    dockerfile = (ROOT / "Dockerfile.release").read_text(encoding="utf-8")
+    runtime = dockerfile.split("FROM ${PYTHON_IMAGE} AS runtime", maxsplit=1)[1]
+    assert "apt-get update" in runtime
+    assert "--only-upgrade zlib1g" in runtime
+    assert "dpkg-query --show" in runtime
+    assert "dpkg --compare-versions" in runtime
+    assert "1:1.3.dfsg+really1.3.1-1+deb13u1" in runtime
+    assert "rm -rf /var/lib/apt/lists/*" in runtime
+    assert runtime.index("--only-upgrade zlib1g") < runtime.index("USER 10001:10001")
+    assert "ignore-unfixed" not in runtime

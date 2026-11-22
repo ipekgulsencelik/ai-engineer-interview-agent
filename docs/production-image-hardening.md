@@ -109,3 +109,33 @@ The PR security workflow stores `trivy-image-findings.json` as a
 It also records the unsuppressed HIGH/CRITICAL totals in the run summary.
 The JSON report is audit evidence, not a waiver; scanner exit code 1 and
 all original mandatory release checks remain unchanged.
+
+
+## Signed Debian 13 zlib package hardening (Draft PR only)
+
+`Dockerfile.release` now updates Debian 13's `zlib1g` from the official
+signed APT repository while still running as root *during the build*,
+and verifies that the installed package is at least
+`1:1.3.dfsg+really1.3.1-1+deb13u1`. Package downloads and APT lists
+are cleaned before switching to the nonroot application user.
+
+This is a narrow fix for `CVE-2026-85091`, verified in an independent
+matched-base experiment. The same official upstream Python image manifest
+digest was used for both baseline and patched builds:
+
+- Baseline: **53 HIGH / 0 CRITICAL**, **15 distinct CVEs**
+- Signed zlib update: **52 HIGH / 0 CRITICAL**, **14 distinct CVEs**
+- Exactly one package/advisory match was removed:
+  `zlib1g` / `CVE-2026-85091`
+
+Evidence: [matched-digest CI](https://github.com/ipekgulsencelik/ai-engineer-interview-agent/actions/runs/45054685918),
+[baseline JSON](https://github.com/ipekgulsencelik/ai-engineer-interview-agent/actions/runs/45054685918/artifacts/14766004681),
+[patched JSON](https://github.com/ipekgulsencelik/ai-engineer-interview-agent/actions/runs/45054685918/artifacts/14766741568).
+
+**Important:** The A/B base image differs in date from the earlier
+production candidate image, so 53 vs 51 from separate runs must NOT be
+treated as a regression. Only the matched-digest 53-to-52 comparison
+establishes the update's specific effect. The release candidate must be
+rescanned. 52 remaining HIGH findings still block any release. Signed
+repository packages are not a substitute for immutable final-image
+provenance, reproducibility review, or a clean full-image security gate.
