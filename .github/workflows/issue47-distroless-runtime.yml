@@ -10,18 +10,39 @@ permissions:
 
 jobs:
   compile-runtime:
-    name: Build and validate distroless CPython 3.11 + PyTorch
+    name: Build and validate distroless CPython 3.11 + PyTorch (${{ matrix.variant }})
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: trixie
+            builder: python:3.11-slim-trixie
+            runtime: gcr.io/distroless/cc-debian13:nonroot
+          - variant: bookworm
+            builder: python:3.11-slim-bookworm
+            runtime: gcr.io/distroless/cc-debian12:nonroot
     steps:
       - uses: actions/checkout@v4
       - name: Build a local-only distroless runtime candidate
+        env:
+          BUILDER_IMAGE: ${{ matrix.builder }}
+          RUNTIME_IMAGE: ${{ matrix.runtime }}
+          VARIANT: ${{ matrix.variant }}
         run: |
+          set -euo pipefail
+          docker pull "$BUILDER_IMAGE"
+          docker pull "$RUNTIME_IMAGE"
+          echo "Builder: `$(docker image inspect --format '{{index .RepoDigests 0}}' "$BUILDER_IMAGE")`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Runtime: `$(docker image inspect --format '{{index .RepoDigests 0}}' "$RUNTIME_IMAGE")`" >> "$GITHUB_STEP_SUMMARY"
           docker build --pull -f Dockerfile.distroless-experiment \
-            -t "ai-interview-distroless-test:${GITHUB_SHA}" .
+            --build-arg "BUILDER_PYTHON_IMAGE=$BUILDER_IMAGE" \
+            --build-arg "RUNTIME_BASE_IMAGE=$RUNTIME_IMAGE" \
+            -t "ai-interview-distroless-test:${GITHUB_SHA}-$VARIANT" .
       - name: Runtime ABI and import tests (no network or deployment)
         run: |
-          IMAGE="ai-interview-distroless-test:${GITHUB_SHA}"
+          IMAGE="ai-interview-distroless-test:${GITHUB_SHA}-${{ matrix.variant }}"
           test "$(docker image inspect --format '{{.Config.User}}' "$IMAGE")" = "10001:10001"
           docker run --rm --network none --entrypoint /app/.venv/bin/python "$IMAGE" -c '
           import importlib.util
@@ -49,7 +70,7 @@ jobs:
       - name: No waivers - block HIGH and CRITICAL from actual built image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
-          image-ref: "ai-interview-distroless-test:${{ github.sha }}"
+          image-ref: "ai-interview-distroless-test:${{ github.sha }}-${{ matrix.variant }}"
           format: table
           exit-code: "1"
           ignore-unfixed: false
