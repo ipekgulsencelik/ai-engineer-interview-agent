@@ -98,7 +98,7 @@ class CandidateQuestionRanker:
             RankedCandidate(
                 rank=index,
                 question=candidate.question,
-                score=candidate.score,
+                final_score=candidate.score,
                 breakdown=candidate.breakdown,
             )
             for index, candidate in enumerate(
