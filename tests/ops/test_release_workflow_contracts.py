@@ -231,12 +231,16 @@ def test_failed_image_scan_retains_machine_readable_evidence() -> None:
     assert trivy["with"]["exit-code"] == "1"
     assert trivy["with"]["ignore-unfixed"] is False
     summary = next(
-        step for step in steps if step.get("name") == "Summarize unsuppressed vulnerability counts"
+        step
+        for step in steps
+        if step.get("name") == "Summarize unsuppressed vulnerability counts"
     )
     assert summary["if"] == "always()"
     assert "GITHUB_STEP_SUMMARY" in summary["run"]
     archive = next(
-        step for step in steps if step.get("name") == "Preserve exact Trivy report for independent review"
+        step
+        for step in steps
+        if step.get("name") == "Preserve exact Trivy report for independent review"
     )
     assert archive["if"] == "always()"
     assert archive["with"]["path"] == "trivy-image-findings.json"
