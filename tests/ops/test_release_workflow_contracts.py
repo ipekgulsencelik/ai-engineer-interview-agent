@@ -129,13 +129,16 @@ def test_example_release_plan_is_explicitly_not_approved() -> None:
 
 def test_release_build_script_has_syntax_and_reproducibility_checks() -> None:
     path = ROOT / "ops/release/build_bundle.sh"
-    # Bash stdin is portable across Windows checkout path and EOL formats.
+    # A binary pipe prevents subprocess text mode from restoring CRLF on Windows.
     result = subprocess.run(
         ["bash", "-n", "-"],
-        input=path.read_text(encoding="utf-8"),
-        check=False, capture_output=True, text=True,
+        input=path.read_bytes().replace(b"\r\n", b"\n"),
+        capture_output=True,
+        check=False,
     )
-    assert result.returncode == 0, result.stderr
+    assert result.returncode == 0, result.stderr.decode(
+        "utf-8", errors="replace"
+    )
     script = path.read_text(encoding="utf-8")
     assert "git archive" in script
     assert "gzip -n" in script
