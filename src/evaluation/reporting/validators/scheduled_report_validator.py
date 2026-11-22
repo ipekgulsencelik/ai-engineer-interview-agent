@@ -78,14 +78,8 @@ class ScheduledReportValidator:
                 "benchmark_id": benchmark_id,
                 "model_name": model_name,
                 "generated_by": generated_by,
-                "last_run_at": (
-                    last_run_at
-                    or datetime.min
-                ),
-                "next_run_at": (
-                    next_run_at
-                    or datetime.max
-                ),
+                "last_run_at": last_run_at,
+                "next_run_at": next_run_at,
                 "execution_count": execution_count,
                 "failure_count": failure_count,
                 "last_error": last_error,

@@ -6,7 +6,7 @@ from typing import Final
 
 from src.domain.validation.common_rules import (
     BOOLEAN_RULE,
-    DATETIME_RULE,
+    DATETIME_OBJECT_RULE,
     DICT_RULE,
     NON_EMPTY_STRING_RULE,
     NON_NEGATIVE_NUMBER_RULE,
@@ -31,7 +31,7 @@ REPORT_DELIVERY_RESULT_SCHEMA: Final[
     "delivery_type": NON_EMPTY_STRING_RULE,
     "destination": NON_EMPTY_STRING_RULE,
     "success": BOOLEAN_RULE,
-    "delivered_at": DATETIME_RULE,
+    "delivered_at": DATETIME_OBJECT_RULE,
     "provider": OPTIONAL_STRING_RULE,
     "status_code": OPTIONAL_NUMBER_RULE,
     "error_message": OPTIONAL_STRING_RULE,

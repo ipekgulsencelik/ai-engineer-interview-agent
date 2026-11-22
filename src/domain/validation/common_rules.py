@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Final
 
 from src.domain.validation.schema_rules import (
@@ -225,4 +226,15 @@ OPTIONAL_TUPLE_RULE: Final[ValidationRule] = ValidationRule(
     expected_type=tuple,
     nullable=True,
     allow_empty=True,
+)
+
+
+# Domain entities hold datetime objects; DATETIME_RULE above is for text schemas.
+DATETIME_OBJECT_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=datetime,
+)
+
+OPTIONAL_DATETIME_OBJECT_RULE: Final[ValidationRule] = ValidationRule(
+    expected_type=datetime,
+    nullable=True,
 )
