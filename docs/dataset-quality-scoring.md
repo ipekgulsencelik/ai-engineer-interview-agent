@@ -51,13 +51,15 @@ the v1 formula is fixed and identified by an explicit model version.
 
 A run passes only when the existing rule engine's `report.accepted` flag
 is true, its score meets `min_score`, and the most recent report of the
-highest preceding numeric SemVer is accepted and has not fallen beyond the
-allowed regression. If `require_baseline` is enabled, a first version is
+immediately preceding **registered** numeric SemVer has a quality report,
+that baseline report is accepted, and the score drop is within the allowed
+regression. If `require_baseline` is enabled, a first version is
 rejected with `baseline_missing`.
 
 The baseline is the **latest checked run** for the immediately previous
 registered dataset version (ties broken by run ID), not an arbitrarily
-high-scoring historical run. The score does not modify the original
+high-scoring historical run. If that registered version has no persisted
+quality report, the decision fails with `baseline_report_missing`. The score does not modify the original
 `QualityReport.accepted`. The `reason_codes` provide deterministic,
 non-sensitive gate explanations.
 
@@ -68,8 +70,8 @@ non-sensitive gate explanations.
   evaluated from matching bytes: that provenance comes from using the
   separate registry-bound artifact quality gate.
 - Wrong dataset IDs, repeated run IDs and non-report history are rejected.
-- A full bounded history page is treated as **potentially truncated** and
-  rejected rather than permitting an invalid prior-version comparison.
+- A full bounded history **or registry version** page is treated as
+  **potentially truncated** and rejected rather than permitting an invalid prior-version comparison.
 - A rejected baseline blocks the next version even if the numeric score is
   high. An empty history produces an empty version history.
 - Scoring returns identifiers, dates, numeric scores and fixed reason codes;
