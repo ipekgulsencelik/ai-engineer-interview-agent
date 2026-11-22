@@ -10,6 +10,7 @@ from src.application.ports.scoring_engine import ScoringEngine
 from src.application.rankers.candidate_question_ranker import (
     CandidateQuestionRanker,
 )
+from src.application.rankers.scored_candidate import ScoredCandidate
 from src.domain.entities.question import Question
 from src.domain.enums.level import Level
 from src.domain.enums.question_category import QuestionCategory
@@ -110,4 +111,47 @@ def test_ranker_rejects_non_question_candidates() -> None:
         ranker.rank(
             questions=cast(list[Question], [object()]),
             context=ScoringContext(),
+        )
+
+
+@pytest.mark.parametrize(
+    ("score", "error_type"),
+    [
+        (-0.1, ValueError),
+        (float("nan"), ValueError),
+        (float("inf"), ValueError),
+        (True, TypeError),
+    ],
+)
+def test_scored_candidate_rejects_invalid_scores(
+    score: float,
+    error_type: type[Exception],
+) -> None:
+    question = _question("scored")
+    context = ScoringContext()
+    breakdown = StubScoringEngine({"scored": 0.5}).score(
+        question=question,
+        context=context,
+    )
+
+    with pytest.raises(error_type):
+        ScoredCandidate(
+            question=question,
+            score=score,
+            breakdown=breakdown,
+        )
+
+
+def test_scored_candidate_rejects_invalid_question_type() -> None:
+    question = _question("invalid")
+    breakdown = StubScoringEngine({"invalid": 0.5}).score(
+        question=question,
+        context=ScoringContext(),
+    )
+
+    with pytest.raises(TypeError, match="question"):
+        ScoredCandidate(
+            question=cast(Question, object()),
+            score=0.5,
+            breakdown=breakdown,
         )
