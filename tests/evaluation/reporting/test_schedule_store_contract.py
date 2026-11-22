@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from unittest.mock import Mock
 
 from src.evaluation.reporting.entities.schedule_report import ScheduledReport
+from src.evaluation.reporting.schedulers.report_scheduler import ReportScheduler
 from src.evaluation.reporting.schedulers.scheduled_report_due_checker import (
     ScheduledReportDueChecker,
 )
@@ -121,3 +123,54 @@ def test_schedule_is_due_supports_aware_and_legacy_utc_naive_values() -> None:
         schedule,
         next_run_at=future.replace(tzinfo=None),
     ).is_due
+
+
+def test_due_reports_normalizes_legacy_naive_deadline_and_clock() -> None:
+    """A legacy UTC-naive schedule must not crash a default-clock batch."""
+    from src.evaluation.reporting.services.scheduled_report_runner import (
+        ScheduledReportRunner,
+    )
+
+    naive_due = datetime(2000, 1, 1)
+    store = MemoryScheduledReportStore(_schedule(naive_due))
+    runner = Mock(spec=ScheduledReportRunner)
+    artifact = object()
+    runner.run.return_value = artifact
+
+    scheduler = ReportScheduler(
+        store=store,
+        due_checker=ScheduledReportDueChecker(),
+        runner=runner,
+    )
+    result = scheduler.run_due_reports(summaries={})
+    assert result == (artifact,)
+    params = runner.run.call_args.kwargs
+    assert params["now"].tzinfo == UTC
+    assert params["scheduled_report"].created_at.tzinfo == UTC
+    assert params["scheduled_report"].next_run_at.tzinfo == UTC
+
+    # State updates consume the UTC-aware arguments passed to the runner.
+    updated = ScheduledReportStateService(store=store).mark_success(
+        scheduled_report=params["scheduled_report"],
+        now=params["now"],
+    )
+    assert updated.last_run_at.tzinfo == UTC
+    assert updated.next_run_at is None
+
+
+def test_due_checker_normalizes_explicit_offset_and_naive_dates() -> None:
+    from datetime import timezone
+
+    checker = ScheduledReportDueChecker()
+    instant = datetime(2026, 11, 23, 12, tzinfo=UTC)
+    schedule = _schedule(instant.replace(tzinfo=None))
+    assert checker.is_due(scheduled_report=schedule, now=instant)
+    assert not checker.is_due(
+        scheduled_report=schedule,
+        now=instant - timedelta(seconds=1),
+    )
+    offset = timezone(timedelta(hours=3))
+    assert checker.is_due(
+        scheduled_report=schedule,
+        now=instant.astimezone(offset),
+    )

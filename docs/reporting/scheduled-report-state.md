@@ -14,5 +14,6 @@ rescheduling. Existing early or manual executions retain a future deadline.
 
 `ScheduledReport.is_due` compares aware deadlines to an aware UTC clock;
 for legacy naive timestamps it uses the UTC-naive interpretation. New
-integrations should prefer aware UTC datetimes. Mixed aware/naive inputs to
-state transitions are rejected rather than silently shifted.
+integrations should prefer aware UTC datetimes. Mixed aware/naive inputs are normalized as UTC at the scheduling and
+state-service boundaries, so the runner and persistence adapter receive
+consistent aware UTC timestamps.

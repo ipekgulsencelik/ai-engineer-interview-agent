@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from src.evaluation.reporting.utc_datetime import as_utc
 from src.evaluation.reporting.entities.schedule_report import (
     ScheduledReport,
 )
@@ -24,4 +25,4 @@ class ScheduledReportDueChecker:
         if scheduled_report.next_run_at is None:
             return False
 
-        return now >= scheduled_report.next_run_at
+        return as_utc(now) >= as_utc(scheduled_report.next_run_at)

@@ -3,9 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import datetime
 
-from src.evaluation.domain.errors.evaluation_validation_error import (
-    EvaluationValidationError,
-)
+from src.evaluation.reporting.utc_datetime import as_utc
 
 from src.evaluation.reporting.entities.schedule_report import (
     ScheduledReport,
@@ -38,7 +36,7 @@ class ScheduledReportStateService:
             execution_count=(
                 scheduled_report.execution_count + 1
             ),
-            last_run_at=now,
+            last_run_at=as_utc(now),
             next_run_at=self._pending_next_run(scheduled_report, now),
             last_error=None,
         )
@@ -65,7 +63,7 @@ class ScheduledReportStateService:
                 scheduled_report.failure_count + 1
             ),
             last_error=error,
-            last_run_at=now,
+            last_run_at=as_utc(now),
             next_run_at=self._pending_next_run(scheduled_report, now),
         )
 
@@ -88,9 +86,5 @@ class ScheduledReportStateService:
         if next_run is None:
             return None
 
-        try:
-            return next_run if next_run > now else None
-        except TypeError as exc:
-            raise EvaluationValidationError(
-                "next_run_at and now must have compatible time zones."
-            ) from exc
+        normalized = as_utc(next_run)
+        return normalized if normalized > as_utc(now) else None
