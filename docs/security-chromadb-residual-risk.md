@@ -94,3 +94,21 @@ SentenceTransformerModelLoader, retry executor, normalized embeddings and
 configured batch size. Loading model weights remains an **explicit runtime
 dependency**; a release must validate model supply-chain provenance and
 pin a reviewed revision before accepting untrusted runtime environments.
+
+## One-time trusted question-bank reindex CLI
+
+Use a **fresh, empty** SQLite file path after taking a secure backup of the
+previous index. The command below reads the trusted JSON QuestionRepository,
+validates Question entities, produces embeddings through the configured
+model and writes vectors through QuestionIndexingService:
+
+```bash
+QUESTION_VECTOR_DB_PATH=data/question_vectors.sqlite3 \
+  uv run python -m src.scripts.index_question_bank
+```
+
+The CLI refuses to index into a nonempty SQLite database, avoiding stale
+records from a changed question bank. It never reads existing Chroma storage.
+Model weights may be fetched by sentence-transformers on first execution:
+pre-stage a reviewed revision for controlled environments. After rebuilding,
+verify index count and retrieval quality before switching any traffic.

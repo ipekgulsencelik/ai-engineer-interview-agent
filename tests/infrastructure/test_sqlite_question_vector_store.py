@@ -135,3 +135,43 @@ def test_empty_index_and_invalid_k(tmp_path) -> None:
         store.search_questions(query_embedding=[1.0], top_k=0)
     with pytest.raises(VectorStoreError):
         store.search_questions(query_embedding=[1.0], top_k=True)
+
+
+def test_reindex_use_case_uses_trusted_entities_without_chroma(tmp_path) -> None:
+    from unittest.mock import Mock
+
+    from src.scripts.index_question_bank import index_from_repository
+
+    repository = Mock()
+    repository.list_all.return_value = [question("trusted")]
+    embeddings = Mock()
+    embeddings.embed_many.return_value = [[1.0, 0.0]]
+    store = SqliteQuestionVectorStore(database_path=tmp_path / "index.sqlite3")
+
+    assert index_from_repository(
+        repository=repository,
+        embedding_provider=embeddings,
+        vector_store=store,
+    ) == 1
+    assert store.count() == 1
+    assert store.search_questions(
+        query_embedding=[1.0, 0.0], top_k=1
+    )[0].question.id == "trusted"
+    embeddings.embed_many.assert_called_once_with(texts=[question("trusted").text])
+
+
+def test_reindex_use_case_rejects_empty_question_bank(tmp_path) -> None:
+    from unittest.mock import Mock
+
+    from src.scripts.index_question_bank import index_from_repository
+
+    repository = Mock()
+    repository.list_all.return_value = []
+    with pytest.raises(ValueError, match="empty"):
+        index_from_repository(
+            repository=repository,
+            embedding_provider=Mock(),
+            vector_store=SqliteQuestionVectorStore(
+                database_path=tmp_path / "index.sqlite3"
+            ),
+        )

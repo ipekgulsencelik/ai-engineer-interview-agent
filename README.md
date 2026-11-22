@@ -187,3 +187,9 @@ See [residual security risks](docs/security-chromadb-residual-risk.md).
 runtime dependency set. Production release remains blocked pending
 independent runtime pip-audit and built-image Trivy approval.**
 until dependency removal and clean independent security scans.
+
+### Trusted SQLite question-bank indexing
+
+On a new, empty index path, run `uv run python -m src.scripts.index_question_bank`.
+This command rebuilds from the project question JSON, never the old Chroma
+files. It refuses nonempty indexes to avoid stale question records.
