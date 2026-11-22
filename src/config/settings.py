@@ -237,6 +237,10 @@ class Settings(BaseSettings):
     # never selected by the FastAPI retrieval composition root.
     QUESTION_VECTOR_DB_PATH: str = "data/question_vectors.sqlite3"
 
+    # Explicit opt-in for isolated legacy development/test only. Production
+    # and staging cannot enable Chroma even when this is True.
+    LEGACY_CHROMA_ENABLED: bool = False
+
     # ---------------------------------------------------------
     # EMBEDDING MODEL NAME
     # ---------------------------------------------------------

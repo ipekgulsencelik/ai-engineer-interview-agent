@@ -6,7 +6,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 
-def test_chroma_factory_is_embedded_local_only() -> None:
+def test_chroma_factory_is_embedded_local_only(monkeypatch) -> None:
+    from src.config.settings import settings
+
+    monkeypatch.setattr(settings, "LEGACY_CHROMA_ENABLED", True)
     from src.infrastructure.vector_stores.chroma.chroma_client_factory import (
         create_chroma_client,
     )
@@ -56,6 +59,7 @@ def test_chroma_policy_blocks_production_and_staging(monkeypatch) -> None:
         create_chroma_client,
     )
 
+    monkeypatch.setattr(settings, "LEGACY_CHROMA_ENABLED", True)
     for environment in ("production", "staging", "PRODUCTION"):
         monkeypatch.setattr(settings, "ENV", environment)
         with pytest.raises(VectorStoreError, match="disabled"):
@@ -71,3 +75,18 @@ def test_default_retrieval_composition_is_chroma_free(tmp_path, monkeypatch) -> 
 
     monkeypatch.setattr(settings, "QUESTION_VECTOR_DB_PATH", str(tmp_path / "index.db"))
     assert isinstance(RetrievalContainer().vector_store, SqliteQuestionVectorStore)
+
+
+def test_legacy_chroma_disabled_by_default_even_in_dev(monkeypatch) -> None:
+    import pytest
+
+    from src.config.settings import settings
+    from src.infrastructure.errors.vector_store_error import VectorStoreError
+    from src.infrastructure.vector_stores.chroma.chroma_client_factory import (
+        create_chroma_client,
+    )
+
+    monkeypatch.setattr(settings, "ENV", "development")
+    monkeypatch.setattr(settings, "LEGACY_CHROMA_ENABLED", False)
+    with pytest.raises(VectorStoreError, match="disabled"):
+        create_chroma_client(persist_directory="data/chroma")

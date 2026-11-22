@@ -78,3 +78,10 @@ remain for isolated development/test compatibility, not remote service use.
 set or resolve the OS-level Trivy findings. Release security gates remain
 blocking** until dependency isolation, lockfile regeneration, independent
 `pip-audit` and image scanning succeed.
+
+The legacy environment guard is **opt-in, default disabled**:
+`LEGACY_CHROMA_ENABLED=false` is the default in all environments.
+Only an explicit `LEGACY_CHROMA_ENABLED=true` **and** `ENV=development`
+or `ENV=test` permits constructing a legacy local client. Do not set
+this flag on any deployment or expose the embedded persistence files to
+untrusted users.
