@@ -59,3 +59,26 @@ def test_required_datetime_rule_rejects_iso_string() -> None:
         values={"when": datetime(2026, 11, 22, tzinfo=UTC)},
         schema={"when": DATETIME_OBJECT_RULE},
     )
+
+
+def test_legacy_mapping_rules_remain_supported_for_scoring_entities() -> None:
+    from src.domain.validation.base_schema_validator import (
+        BaseSchemaValidator,
+    )
+
+    BaseSchemaValidator.validate_type(
+        field_name="score",
+        value=0.8,
+        rules={"type": (int, float), "reject_bool": True},
+    )
+    BaseSchemaValidator.validate_numeric_bounds(
+        field_name="score",
+        value=0.8,
+        rules={"finite": True, "min_value": 0, "max_value": 1},
+    )
+    with pytest.raises(TypeError):
+        BaseSchemaValidator.validate_type(
+            field_name="score",
+            value=True,
+            rules={"type": (int, float), "reject_bool": True},
+        )

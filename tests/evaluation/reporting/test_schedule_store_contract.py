@@ -64,7 +64,7 @@ def test_store_port_tracks_success_and_failure_without_mutating_previous() -> No
 
     failed = service.mark_failure(
         scheduled_report=success,
-        now=now + timedelta(minutes=1),
+        now=now,
         error="Export failed",
     )
     assert failed.execution_count == 2

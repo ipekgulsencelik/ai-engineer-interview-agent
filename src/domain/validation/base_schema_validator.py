@@ -3,12 +3,41 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
+from typing import Any
 
 from src.domain.validation.schema_types import ValidationRule
 
 
 class BaseSchemaValidator:
-    """Apply the attributes of a ValidationRule, never assume a mapping."""
+    """Apply typed rules; adapt legacy mapping callers at the boundary."""
+
+    @staticmethod
+    def _normalize(
+        rules: ValidationRule | Mapping[str, Any],
+    ) -> ValidationRule:
+        if isinstance(rules, ValidationRule):
+            return rules
+        if not isinstance(rules, Mapping):
+            raise TypeError("rules must be a ValidationRule or mapping.")
+        return ValidationRule(
+            expected_type=rules.get(
+                "expected_type", rules.get("type", object)
+            ),
+            nullable=bool(rules.get("nullable", False)),
+            non_empty=bool(rules.get("non_empty", False)),
+            strip=bool(rules.get("strip", False)),
+            allow_empty=bool(rules.get("allow_empty", True)),
+            item_type=rules.get("item_type"),
+            strip_items=bool(rules.get("strip_items", False)),
+            reject_bool=bool(rules.get("reject_bool", False)),
+            finite=bool(rules.get("finite", False)),
+            min_value=rules.get("min_value"),
+            max_value=rules.get("max_value"),
+            min_length=rules.get("min_length"),
+            max_length=rules.get("max_length"),
+            allowed_values=rules.get("allowed_values"),
+        )
 
     @staticmethod
     def validate_model_type(
@@ -27,8 +56,9 @@ class BaseSchemaValidator:
         *,
         field_name: str,
         value: object,
-        rules: ValidationRule,
+        rules: ValidationRule | Mapping[str, Any],
     ) -> None:
+        rules = BaseSchemaValidator._normalize(rules)
         if value is None and not rules.nullable:
             raise TypeError(f"{field_name} cannot be None.")
 
@@ -37,8 +67,9 @@ class BaseSchemaValidator:
         *,
         field_name: str,
         value: object,
-        rules: ValidationRule,
+        rules: ValidationRule | Mapping[str, Any],
     ) -> None:
+        rules = BaseSchemaValidator._normalize(rules)
         if rules.reject_bool and isinstance(value, bool):
             raise TypeError(f"{field_name} cannot be bool.")
         if not isinstance(value, rules.expected_type):
@@ -56,12 +87,18 @@ class BaseSchemaValidator:
         *,
         field_name: str,
         value: object,
-        rules: ValidationRule,
+        rules: ValidationRule | Mapping[str, Any],
     ) -> None:
-        if not rules.non_empty and rules.allow_empty:
+        rules = BaseSchemaValidator._normalize(rules)
+        if (
+            not rules.non_empty
+            and rules.allow_empty
+            and rules.min_length is None
+            and rules.max_length is None
+        ):
             return
         candidate = value.strip() if rules.strip and isinstance(value, str) else value
-        if not candidate:
+        if (rules.non_empty or not rules.allow_empty) and not candidate:
             raise ValueError(f"{field_name} cannot be empty.")
         if rules.min_length is not None or rules.max_length is not None:
             if not hasattr(candidate, "__len__"):
@@ -77,8 +114,9 @@ class BaseSchemaValidator:
         *,
         field_name: str,
         value: object,
-        rules: ValidationRule,
+        rules: ValidationRule | Mapping[str, Any],
     ) -> None:
+        rules = BaseSchemaValidator._normalize(rules)
         if not (
             rules.finite or rules.min_value is not None or rules.max_value is not None
         ):
@@ -99,8 +137,9 @@ class BaseSchemaValidator:
         *,
         field_name: str,
         value: object,
-        rules: ValidationRule,
+        rules: ValidationRule | Mapping[str, Any],
     ) -> None:
+        rules = BaseSchemaValidator._normalize(rules)
         if not isinstance(value, (tuple, list)):
             return
         for item in value:
