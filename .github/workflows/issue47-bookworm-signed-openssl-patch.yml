@@ -46,7 +46,10 @@ jobs:
               )
               if path.exists()
           ], flush=True)
-          assert ssl.OPENSSL_VERSION_INFO[:3] >= (3, 0, 22), (
+          # CPython reports OpenSSL 3.0.22 as (3, 0, 0, 22, 0):
+          # the fourth element is the OpenSSL patch number.
+          assert ssl.OPENSSL_VERSION_INFO[:2] == (3, 0), ssl.OPENSSL_VERSION
+          assert ssl.OPENSSL_VERSION_INFO[3] >= 22, (
               "loaded OpenSSL runtime is below the patched minimum: " + ssl.OPENSSL_VERSION
           )
           assert ssl.OPENSSL_VERSION_INFO[0:2] == (3, 0), ssl.OPENSSL_VERSION
