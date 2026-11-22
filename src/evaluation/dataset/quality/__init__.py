@@ -24,6 +24,14 @@ from src.evaluation.dataset.quality.models import (
     QualityReport,
 )
 from src.evaluation.dataset.quality.reporting import QualityReportSerializer
+from src.evaluation.dataset.quality.scoring import (
+    DatasetQualityScore,
+    DatasetQualityScoringError,
+    DatasetQualityScoringService,
+    QualityReportHistoryPort,
+    QualityScoreCalculator,
+    QualityScoringPolicy,
+)
 from src.evaluation.dataset.quality.rules import (
     AllowedValuesRule,
     DatasetQualityRule,
@@ -54,6 +62,12 @@ __all__ = [
     "QualityReportStorageError",
     "QualityReportStorePort",
     "QualityRuleExecutionError",
+    "QualityScoringPolicy",
+    "QualityScoreCalculator",
+    "QualityReportHistoryPort",
+    "DatasetQualityScoringService",
+    "DatasetQualityScoringError",
+    "DatasetQualityScore",
     "RecordQualityRule",
     "RequiredFieldRule",
     "SchemaConformanceRule",
