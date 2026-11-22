@@ -129,7 +129,7 @@ def test_example_release_plan_is_explicitly_not_approved() -> None:
 def test_release_build_script_has_syntax_and_reproducibility_checks() -> None:
     path = ROOT / "ops/release/build_bundle.sh"
     result = subprocess.run(
-        ["bash", "-n", str(path)],
+        ["bash", "-n", path.as_posix()],
         check=False, capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stderr
@@ -295,7 +295,7 @@ def test_container_runtime_smoke_is_independently_blocking() -> None:
     assert trivy["with"]["exit-code"] == "1"
     script_path = ROOT / "ops/release/verify_container_runtime.sh"
     result = subprocess.run(
-        ["bash", "-n", str(script_path)],
+        ["bash", "-n", script_path.as_posix()],
         capture_output=True,
         text=True,
         check=False,
