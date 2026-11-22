@@ -35,8 +35,7 @@ COPY --from=builder /usr/local/bin/python /usr/local/bin/python
 COPY --from=builder /usr/local/lib /usr/local/lib
 # CPython's _ctypes extension links to libffi.so.8; distroless cc does not bundle it.
 # Copy the exact library from the ABI-matched Debian 13 builder, not a broader OS tree.
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libffi.so.8 \\
-    /usr/lib/x86_64-linux-gnu/libffi.so.8
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libffi.so.8 /usr/lib/x86_64-linux-gnu/libffi.so.8
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libsqlite3.so.0 \
     /usr/lib/x86_64-linux-gnu/libsqlite3.so.0
 COPY --from=builder /app /app
