@@ -26,14 +26,9 @@ from src.infrastructure.constants.chroma_defaults import (
     DEFAULT_CHROMA_COLLECTION_NAME,
     DEFAULT_CHROMA_PERSIST_DIRECTORY,
 )
-from src.infrastructure.embedding.embedding_retry_executor import (
-    EmbeddingRetryExecutor,
-)
-from src.infrastructure.embedding.sentence_transformer_embedding_provider import (
-    SentenceTransformerEmbeddingProvider,
-)
-from src.infrastructure.embedding.sentence_transformer_model_loader import (
-    SentenceTransformerModelLoader,
+from src.infrastructure.embedding.sentence_transformer_embedding_provider_factory import (
+    DEFAULT_EMBEDDING_MODEL_NAME,
+    SentenceTransformerEmbeddingProviderFactory,
 )
 from src.infrastructure.repositories.json_question_repository_builder import (
     JsonQuestionRepositoryBuilder,
@@ -49,19 +44,6 @@ from src.infrastructure.vector_stores.chroma.chroma_question_vector_store import
 )
 
 DEFAULT_BANK_PATH = Path("data/question_bank/questions.json")
-DEFAULT_EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-
-
-def build_embedding_provider(model_name: str) -> EmbeddingProvider:
-    return SentenceTransformerEmbeddingProvider(
-        model=SentenceTransformerModelLoader.load(model_name=model_name),
-        retry_executor=EmbeddingRetryExecutor(
-            retry_count=2,
-            retry_backoff_seconds=1.0,
-        ),
-        normalize_embeddings=True,
-        batch_size=32,
-    )
 
 
 def index_question_bank(
@@ -98,14 +80,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--bank", type=Path, default=DEFAULT_BANK_PATH)
     parser.add_argument("--persist-dir", default=DEFAULT_CHROMA_PERSIST_DIRECTORY)
     parser.add_argument("--collection", default=DEFAULT_CHROMA_COLLECTION_NAME)
-    parser.add_argument("--model", default=DEFAULT_EMBEDDING_MODEL)
+    parser.add_argument("--model", default=DEFAULT_EMBEDDING_MODEL_NAME)
     args = parser.parse_args(argv)
 
     questions = index_question_bank(
         bank_path=args.bank,
         persist_directory=args.persist_dir,
         collection_name=args.collection,
-        embedding_provider=build_embedding_provider(args.model),
+        embedding_provider=SentenceTransformerEmbeddingProviderFactory.build(
+            model_name=args.model,
+        ),
     )
     print(
         f"Indexed {len(questions)} questions into "
