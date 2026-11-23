@@ -68,7 +68,7 @@ jobs:
           sha256sum dist/runtime-sbom.cdx.json > dist/runtime-sbom.sha256
 
       - name: Upload verified source, checksum and SBOM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: verified-release-source
           path: dist/
