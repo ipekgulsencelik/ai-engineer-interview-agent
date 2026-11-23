@@ -1,0 +1,100 @@
+# Diagnostic-only: authenticated pulls, no builds or publication.
+# This workflow deliberately runs only on a trusted same-repository push.
+# For use after configuring *read-only* Actions secrets in GitHub.
+name: Issue 47 authenticated Docker Hardened Python 3.11 scan
+
+on:
+  push:
+    branches:
+      - test/issue47-hardened-base-eval-20261122
+
+permissions:
+  contents: read
+
+jobs:
+  dhi-python311-base:
+    name: Authenticated DHI Python 3.11 runtime security
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DHI_RUNTIME: dhi.io/python:3.11-debian13
+      DHI_BUILDER: dhi.io/python:3.11-debian13-dev
+    steps:
+      - name: Require read-only Docker registry credentials
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$DOCKERHUB_USERNAME" || -z "$DOCKERHUB_TOKEN" ]]; then
+            echo "::error::Set GitHub Actions secrets DOCKERHUB_USERNAME and DOCKERHUB_TOKEN (read-only Docker PAT), then re-run this workflow."
+            exit 1
+          fi
+
+      - name: Authenticate to dhi.io without printing credentials
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "$DOCKERHUB_TOKEN" | docker login dhi.io --username "$DOCKERHUB_USERNAME" --password-stdin
+
+      - name: Pull both image variants and record resolved immutable digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for image in "$DHI_RUNTIME" "$DHI_BUILDER"; do
+            docker pull "$image"
+            digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image")"
+            if [[ "$digest" != *@sha256:* ]]; then
+              echo "::error::No immutable repository digest reported for $image"
+              exit 1
+            fi
+            printf 'Base candidate: `%s`\n' "$digest" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Exercise Python 3.11 native runtime without network access
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --network none --entrypoint python "$DHI_RUNTIME" -c '
+          import ctypes
+          import os
+          import sqlite3
+          import ssl
+          import sys
+          assert sys.version_info[:2] == (3, 11), sys.version
+          assert os.getuid() != 0, "Hardened runtime is running as root"
+          assert sqlite3.connect(":memory:").execute("select 1").fetchone()[0] == 1
+          assert ssl.OPENSSL_VERSION
+          print("DHI_PYTHON311_CORE_ABI_PASS", sys.version.split()[0])
+          '
+
+      - name: Strict Trivy scan of authenticated runtime image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: dhi.io/python:3.11-debian13
+          scan-type: image
+          scanners: vuln
+          vuln-type: os,library
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: 'false'
+          exit-code: '1'
+
+      - name: Explain what a base-only scan does not prove
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "### Release remains blocked"
+            echo "This scans a DHI base, not the built application. A clean scan alone is not release approval."
+            echo "The final locked runtime image still requires strict pip-audit + Trivy, Python/PyTorch/sentence-transformers imports, API and SQLite retrieval smoke tests, model provenance, immutable digest and human security/operator review."
+            echo "No security waiver, PR merge, image publication or deployment is performed."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Log out of DHI registry
+        if: always()
+        run: docker logout dhi.io || true
