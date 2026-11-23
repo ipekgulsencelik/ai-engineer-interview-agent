@@ -1,8 +1,8 @@
 from src.domain.entities.question import Question
-from src.domain.validators.candidate_filter_validator import (
+from src.application.validators.candidate_filter_validator import (
     CandidateFilterValidator,
 )
-from src.domain.policies.filter_policy import (
+from src.application.policies.filter_policy import (
     FilterPolicy,
 )
 

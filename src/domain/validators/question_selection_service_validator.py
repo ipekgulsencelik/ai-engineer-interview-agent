@@ -1,11 +1,11 @@
 from src.application.factories.selection_result_factory import (
     SelectionResultFactory,
 )
-from src.application.services.ranking.candidate_question_ranker import (
+from src.application.rankers.candidate_question_ranker import (
     CandidateQuestionRanker,
 )
 from src.domain.entities.question import Question
-from src.domain.filtering.candidate_filter import CandidateFilter
+from src.application.filters.candidate_filter import CandidateFilter
 from src.domain.scoring.scoring_context import ScoringContext
 
 

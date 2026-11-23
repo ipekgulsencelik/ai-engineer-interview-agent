@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.application.constants.prompts.candidate_profile_extraction_prompt_template import (
+from src.infrastructure.constants.candidate_profile_extraction_prompt_template import (
     CANDIDATE_PROFILE_EXTRACTION_PROMPT_TEMPLATE,
 )
 from src.application.ports.cv_skill_extraction_prompt_builder import (

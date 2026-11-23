@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from src.application.ports.embedding_provider import EmbeddingProvider
 from src.application.ports.vector_store import VectorStore
-from src.domain.repositories.question_repository import QuestionRepository
+from src.application.ports.question_repository import QuestionRepository
 from src.domain.scoring.scoring_context import ScoringContext
 
 

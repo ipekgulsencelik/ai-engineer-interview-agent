@@ -4,10 +4,10 @@ from src.domain.constants.adaptive_pacing import (
     INCREASE_SCORE_THRESHOLD,
     REDUCE_SCORE_THRESHOLD,
 )
-from src.domain.pacing.adaptive_pacing_factory import (
+from src.domain.scoring.adaptive_pacing_factory import (
     AdaptivePacingFactory,
 )
-from src.domain.pacing.difficulty_transition_policy import (
+from src.domain.scoring.difficulty_transition_policy import (
     DifficultyTransitionPolicy,
 )
 from src.domain.value_objects.adaptive_pacing import (

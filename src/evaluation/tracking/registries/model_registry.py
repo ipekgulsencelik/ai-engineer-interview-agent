@@ -12,7 +12,7 @@ from src.evaluation.tracking.services.model_registry_query_service import (
 from src.evaluation.tracking.services.model_registry_service import (
     ModelRegistryService,
 )
-from src.evaluation.tracking.stores.model_registry_store import (
+from src.evaluation.tracking.ports.model_registry_store import (
     ModelRegistryStore,
 )
 

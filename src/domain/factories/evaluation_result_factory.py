@@ -10,7 +10,7 @@ from src.application.constants.evaluation import (
     MIN_CONFIDENCE_SCORE,
     MIN_EVALUATION_SCORE,
 )
-from src.application.models.evaluation_metadata import EvaluationMetadata
+from src.domain.metadata.evaluation_metadata import EvaluationMetadata
 from src.application.models.evaluation_payload import EvaluationPayload
 from src.domain.results.evaluation_result import EvaluationResult
 

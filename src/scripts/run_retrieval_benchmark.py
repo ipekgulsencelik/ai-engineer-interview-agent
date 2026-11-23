@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.application.benchmarking.loaders.benchmark_dataset_loader import (
+from src.infrastructure.loaders.benchmark_dataset_loader import (
     BenchmarkDatasetLoader,
 )
-from src.application.benchmarking.services.retrieval_benchmark_service import (
+from src.application.services.retrieval_benchmark_service import (
     RetrievalBenchmarkService,
 )
 from src.application.services.semantic_question_retrieval_service import (
@@ -14,7 +14,7 @@ from src.application.services.semantic_question_retrieval_service import (
 from src.infrastructure.embeddings.sentence_transformer_embedding_model import (
     SentenceTransformerEmbeddingModel,
 )
-from src.infrastructure.vector_store.chroma_question_vector_store import (
+from src.infrastructure.vector_stores.chroma.chroma_question_vector_store import (
     ChromaQuestionVectorStore,
 )
 

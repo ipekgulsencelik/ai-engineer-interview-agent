@@ -20,7 +20,7 @@ from src.infrastructure.embeddings.sentence_transformer_embedding_model import (
 from src.infrastructure.repositories.json_question_repository import (
     JsonQuestionRepository,
 )
-from src.infrastructure.vector_store.chroma_question_vector_store import (
+from src.infrastructure.vector_stores.chroma.chroma_question_vector_store import (
     ChromaQuestionVectorStore,
 )
 from src.infrastructure.config.app_paths import (

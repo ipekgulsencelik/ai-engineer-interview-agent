@@ -4,7 +4,7 @@ from src.domain.entities.question import Question
 from src.infrastructure.constants.vector_metadata_keys import (
     QUESTION_ID_METADATA_KEY,
 )
-from src.infrastructure.rehydrators.question_rehydrator import (
+from src.application.rehydrators.question_rehydrator import (
     QuestionRehydrator,
 )
 from src.infrastructure.validators.chroma_question_metadata_validator import (

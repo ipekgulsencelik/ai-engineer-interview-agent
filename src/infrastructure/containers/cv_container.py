@@ -20,7 +20,7 @@ from src.infrastructure.containers.base_container import (
 from src.infrastructure.extractors.groq_skill_extractor import (
     GroqSkillExtractor,
 )
-from src.infrastructure.extractors.pdfplumber_cv_text_extractor import (
+from src.infrastructure.cv.pdfplumber_cv_text_extractor import (
     PdfPlumberCVTextExtractor,
 )
 from src.infrastructure.prompting.cv_skill_extraction_prompt_builder import (

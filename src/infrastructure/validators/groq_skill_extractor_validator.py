@@ -9,7 +9,7 @@ from src.application.ports.cv_skill_extraction_prompt_builder import (
 from src.application.ports.llm_client import (
     LLMClient,
 )
-from src.domain.schemas.cv_extraction_schema import (
+from src.infrastructure.validations.cv_extraction_schema import (
     CV_TEXT_RULE,
 )
 from src.domain.validation.base_schema_validator import (

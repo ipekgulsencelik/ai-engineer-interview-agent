@@ -16,7 +16,7 @@ from src.evaluation.ops.constants.dashboard_card_sort_orders import (
 from src.evaluation.ops.constants.dashboard_card_titles import (
     CI_POLICY_TITLE,
 )
-from src.evaluation.ops.entities.dashboard_metric_card import (
+from src.evaluation.ops.value_objects.dashboard_metric_card import (
     DashboardMetricCard,
 )
 from src.evaluation.ops.resolvers.ci_policy_dashboard_severity_resolver import (

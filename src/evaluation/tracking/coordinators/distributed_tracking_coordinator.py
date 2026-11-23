@@ -11,7 +11,7 @@ from src.evaluation.tracking.factories.worker_tracking_event_factory import (
 from src.evaluation.tracking.publishers.tracking_event_publisher import (
     TrackingEventPublisher,
 )
-from src.evaluation.tracking.queues.async_event_queue import (
+from src.evaluation.tracking.events.async_event_queue import (
     AsyncEventQueue,
 )
 from src.evaluation.tracking.registries.worker_node_registry import (

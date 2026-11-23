@@ -5,11 +5,11 @@ import chromadb
 from src.domain.entities.question import Question
 from src.domain.retrieval.search_result import SearchResult
 from src.domain.retrieval.vector_store import VectorStore
-from src.infrastructure.vector_stores.chroma.chroma_embedding_validator import (
+from src.infrastructure.validators.chroma_embedding_validator import (
     ChromaEmbeddingValidator,
 )
-from src.infrastructure.vector_stores.chroma.chroma_metadata_mapper import (
-    ChromaMetadataMapper,
+from src.infrastructure.vector_stores.chroma.question_vector_metadata_mapper import (
+    QuestionVectorMetadataMapper,
 )
 from src.infrastructure.vector_stores.chroma.chroma_search_result_mapper import (
     ChromaSearchResultMapper,
@@ -161,7 +161,7 @@ class ChromaVectorStore(VectorStore):
         question: Question,
         embedding: list[float],
     ) -> None:
-        metadata = ChromaMetadataMapper.from_question(question)
+        metadata = QuestionVectorMetadataMapper.from_question(question)
 
         self.add(
             id=question.id,

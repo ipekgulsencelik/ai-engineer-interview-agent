@@ -6,7 +6,7 @@ from pathlib import Path
 from src.infrastructure.mappers.benchmark_case_mapper import (
     BenchmarkCaseMapper,
 )
-from src.infrastructure.benchmarking.models.benchmark_case import (
+from src.infrastructure.models.benchmark_case import (
     BenchmarkCase,
 )
 

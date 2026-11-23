@@ -6,7 +6,7 @@ from src.application.validators.question_retrieval_service_validator import (
     QuestionRetrievalServiceValidator,
 )
 from src.domain.entities.question import Question
-from src.domain.repositories.question_repository import QuestionRepository
+from src.application.ports.question_repository import QuestionRepository
 from src.domain.scoring.scoring_context import ScoringContext
 
 

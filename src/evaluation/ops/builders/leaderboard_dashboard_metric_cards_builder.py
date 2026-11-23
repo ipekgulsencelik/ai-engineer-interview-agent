@@ -12,7 +12,7 @@ from src.evaluation.ops.constants.dashboard_card_sort_orders import (
 from src.evaluation.ops.constants.dashboard_card_titles import (
     LEADERBOARD_TOP_SCORE_TITLE,
 )
-from src.evaluation.ops.entities.dashboard_metric_card import (
+from src.evaluation.ops.value_objects.dashboard_metric_card import (
     DashboardMetricCard,
 )
 from src.evaluation.ops.enums.dashboard_severity import (

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.domain.validators.evaluation_trace_validator import (
+from src.application.validators.evaluation_trace_validator import (
     EvaluationTraceValidator,
 )
 

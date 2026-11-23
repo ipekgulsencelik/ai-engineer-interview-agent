@@ -4,7 +4,7 @@ import math
 from dataclasses import fields
 from typing import Any
 
-from src.domain.models.selection_breakdown import (
+from src.domain.value_objects.selection_breakdown import (
     SelectionBreakdown,
 )
 from src.domain.validation.selection_breakdown_validation_schema import (

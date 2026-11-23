@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from src.application.graph.interview_graph_state import (
+from src.application.graph.state.interview_graph_state import (
     InterviewGraphState,
 )
 

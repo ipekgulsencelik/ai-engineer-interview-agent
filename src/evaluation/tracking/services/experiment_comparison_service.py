@@ -12,7 +12,7 @@ from src.evaluation.tracking.interpreters.experiment_comparison_interpreter impo
 from src.evaluation.tracking.selectors.experiment_winner_selector import (
     ExperimentWinnerSelector,
 )
-from src.evaluation.tracking.value_objects.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
 

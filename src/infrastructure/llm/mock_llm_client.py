@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from src.application.ports.llm_client import LLMClient
-from src.domain.llm.llm_response import LLMResponse
+from src.application.models.llm_response import LLMResponse
 
 
 class MockLLMClient(LLMClient):

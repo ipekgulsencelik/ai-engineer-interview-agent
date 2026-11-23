@@ -13,8 +13,8 @@ from src.domain.retrieval.search_filters import (
 from src.infrastructure.errors.vector_store_error import (
     VectorStoreError,
 )
-from src.infrastructure.mappers.chroma_metadata_mapper import (
-    ChromaMetadataMapper,
+from src.infrastructure.vector_stores.chroma.question_vector_metadata_mapper import (
+    QuestionVectorMetadataMapper,
 )
 from src.infrastructure.mappers.chroma_question_search_result_mapper import (
     ChromaQuestionSearchResultMapper,
@@ -64,7 +64,7 @@ class ChromaQuestionVectorStore(QuestionVectorStore):
                 embeddings=embeddings,
                 documents=[question.text for question in questions],
                 metadatas=[
-                    ChromaMetadataMapper.from_question(
+                    QuestionVectorMetadataMapper.from_question(
                         question=question,
                     )
                     for question in questions

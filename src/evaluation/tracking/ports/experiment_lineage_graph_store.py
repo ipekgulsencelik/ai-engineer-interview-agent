@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from abc import abstractmethod
 
-from src.evaluation.tracking.entities.experiment_lineage_graph import (
+from src.evaluation.rag.entities.experiment_lineage_graph import (
     ExperimentLineageGraph,
 )
 

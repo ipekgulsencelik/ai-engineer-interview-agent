@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from src.domain.retrieval.search_filters import (
+    SearchFilters,
+)
 from src.infrastructure.errors.vector_store_error import (
     VectorStoreError,
 )
-from src.infrastructure.schemas.chroma_question_vector_store_schema import (
+from src.infrastructure.validations.chroma_question_vector_store_schema import (
     CHROMA_QUESTION_VECTOR_STORE_SCHEMA,
 )
 
@@ -78,7 +81,13 @@ class ChromaQuestionVectorStoreValidator:
         *,
         query_embedding: object,
         top_k: object,
+        filters: object = None,
     ) -> None:
+        if filters is not None and not isinstance(filters, SearchFilters):
+            raise VectorStoreError(
+                "filters must be SearchFilters or None."
+            )
+
         cls.validate_embedding(
             embedding=query_embedding,
         )

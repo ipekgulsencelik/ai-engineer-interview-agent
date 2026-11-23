@@ -5,7 +5,7 @@ from dataclasses import fields
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from src.application.models.evaluation_metadata import (
+    from src.domain.metadata.evaluation_metadata import (
         EvaluationMetadata,
     )
 
@@ -88,7 +88,7 @@ class EvaluationMetadataValidator:
         Runtime'da doğru model tipinin validate edildiğini garanti eder.
         """
 
-        from src.application.models.evaluation_metadata import (
+        from src.domain.metadata.evaluation_metadata import (
             EvaluationMetadata,
         )
 

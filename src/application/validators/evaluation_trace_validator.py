@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from src.domain.schemas.evaluation_trace_schema import (
+from src.application.validation.evaluation_trace_schema import (
     EVALUATION_TRACE_SCORE_RULE,
     NON_EMPTY_EVALUATION_TRACE_STRING_RULE,
     NON_NEGATIVE_EVALUATION_LATENCY_RULE,
     NON_NEGATIVE_TOKENS_USED_RULE,
 )
-from src.domain.telemetry.evaluation_trace import (
+from src.application.observability.evaluation_trace import (
     EvaluationTrace,
 )
 from src.domain.validation.base_schema_validator import (

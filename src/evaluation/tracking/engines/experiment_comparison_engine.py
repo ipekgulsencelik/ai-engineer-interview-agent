@@ -3,13 +3,13 @@ from __future__ import annotations
 from src.evaluation.domain.errors.evaluation_validation_error import (
     EvaluationValidationError,
 )
-from src.evaluation.ops.repositories.experiment_run_repository import (
+from src.evaluation.tracking.repositories.experiment_run_repository import (
     ExperimentRunRepository,
 )
-from src.evaluation.ops.services.experiment_comparison_service import (
+from src.evaluation.tracking.services.experiment_comparison_service import (
     ExperimentComparisonService,
 )
-from src.evaluation.ops.value_objects.experiment_comparison_result import (
+from src.evaluation.tracking.entities.experiment_comparison_result import (
     ExperimentComparisonResult,
 )
 

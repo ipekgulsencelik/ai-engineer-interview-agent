@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 REQUIRED_QUESTION_METADATA_FIELDS = (
-    "id",
+    "question_id",
     "text",
     "category",
     "level",

@@ -5,7 +5,7 @@ from src.domain.schemas.interview_trace_schema import (
     NON_NEGATIVE_INTEGER_RULE,
     NON_NEGATIVE_LATENCY_RULE,
 )
-from src.domain.telemetry.interview_trace import (
+from src.application.observability.interview_trace import (
     InterviewTrace,
 )
 from src.domain.validation.base_schema_validator import (

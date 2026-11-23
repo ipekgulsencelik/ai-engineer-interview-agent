@@ -5,7 +5,7 @@ import sqlite3
 from datetime import datetime
 from typing import Any
 
-from src.evaluation.tracking.entities.experiment_node import (
+from src.evaluation.rag.entities.experiment_node import (
     ExperimentNode,
 )
 

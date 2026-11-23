@@ -12,7 +12,7 @@ from src.evaluation.ops.builders.leaderboard_dashboard_metric_cards_builder impo
 from src.evaluation.ops.builders.regression_dashboard_metric_cards_builder import (
     RegressionDashboardMetricCardsBuilder,
 )
-from src.evaluation.ops.entities.dashboard_metric_card import (
+from src.evaluation.ops.value_objects.dashboard_metric_card import (
     DashboardMetricCard,
 )
 

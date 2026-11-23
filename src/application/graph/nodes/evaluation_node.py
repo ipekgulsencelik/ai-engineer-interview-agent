@@ -4,7 +4,7 @@ from src.application.constants.mock_evaluation import (
     DEFAULT_EVALUATION_SCORE,
     DEFAULT_FEEDBACK_TEXT,
 )
-from src.application.graph.interview_graph_state import (
+from src.application.graph.state.interview_graph_state import (
     InterviewGraphState,
 )
 from src.application.graph.nodes.base_graph_node import (

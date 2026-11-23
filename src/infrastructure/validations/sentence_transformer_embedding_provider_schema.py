@@ -10,7 +10,7 @@ from src.infrastructure.constants.validation_limits import (
 from src.infrastructure.constants.validation_types import (
     NONE_TYPE,
 )
-from src.infrastructure.validation.schema_types import (
+from src.infrastructure.validations.schema_types import (
     SchemaDefinition,
 )
 

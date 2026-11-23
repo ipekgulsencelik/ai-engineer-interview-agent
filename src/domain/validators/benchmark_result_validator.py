@@ -7,7 +7,7 @@ if TYPE_CHECKING:
         BenchmarkResult,
     )
     
-from src.application.benchmarking.schemas.benchmark_result_schema import (
+from src.domain.validation.benchmark_result_schema import (
     BENCHMARK_BOOLEAN_RULE,
     BENCHMARK_LATENCY_RULE,
     BENCHMARK_OPTIONAL_SCORE_RULE,

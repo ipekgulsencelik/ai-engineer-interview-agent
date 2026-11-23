@@ -9,7 +9,7 @@ from src.domain.parsers.factories.question_field_parser_factory import (
 from src.domain.parsers.question_field_parser import (
     QuestionFieldParser,
 )
-from src.infrastructure.constants.question_rehydration_defaults import (
+from src.application.constants.question_rehydration_defaults import (
     DEFAULT_REHYDRATED_FOLLOWUP_ALLOWED,
     DEFAULT_REHYDRATED_MARKET_WEIGHT,
 )
@@ -26,7 +26,7 @@ from src.infrastructure.constants.vector_metadata_keys import (
     QUESTION_TYPE_METADATA_KEY,
     TEXT_METADATA_KEY,
 )
-from src.infrastructure.validators.question_metadata_rehydration_validator import (
+from src.application.validators.question_metadata_rehydration_validator import (
     QuestionMetadataRehydrationValidator,
 )
 

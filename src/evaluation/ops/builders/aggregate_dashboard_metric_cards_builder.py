@@ -16,7 +16,7 @@ from src.evaluation.ops.constants.dashboard_card_titles import (
     OVERALL_SCORE_TITLE,
     SAMPLE_COUNT_TITLE,
 )
-from src.evaluation.ops.entities.dashboard_metric_card import (
+from src.evaluation.ops.value_objects.dashboard_metric_card import (
     DashboardMetricCard,
 )
 from src.evaluation.ops.enums.dashboard_severity import (

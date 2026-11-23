@@ -19,7 +19,7 @@ from src.infrastructure.errors.vector_store_error import (
 from src.infrastructure.mappers.chroma_question_result_mapper import (
     ChromaQuestionResultMapper,
 )
-from src.infrastructure.scorers.distance_score_converter import (
+from src.infrastructure.scoring.distance_score_converter import (
     DistanceScoreConverter,
 )
 from src.infrastructure.vector_stores.chroma.chroma_question_types import (

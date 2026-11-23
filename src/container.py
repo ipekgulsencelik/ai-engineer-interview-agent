@@ -2,13 +2,13 @@ from src.config.settings import settings
 from src.infrastructure.embedding.sentence_transformer_embedding_model import (
     SentenceTransformerEmbeddingModel,
 )
-from src.infrastructure.evaluator.groq_rubric_evaluator import (
+from src.infrastructure.evaluators.groq_rubric_evaluator import (
     GroqRubricEvaluator,
 )
 from src.infrastructure.repositories.json_question_repository import (
     JsonQuestionRepository,
 )
-from src.infrastructure.vector_stores.chroma_vector_store import (
+from src.infrastructure.vector_stores.chroma.chroma_vector_store import (
     ChromaVectorStore,
 )
 from src.logging.logger import (
@@ -17,10 +17,10 @@ from src.logging.logger import (
 from src.services.follow_up_generation_service import (
     FollowUpGenerationService,
 )
-from src.services.level_transition_service import (
+from src.application.services.level_transition_service import (
     LevelTransitionService,
 )
-from src.services.question_retrieval_service import (
+from src.services.semantic_question_retrieval_service import (
     QuestionRetrievalService,
 )
 

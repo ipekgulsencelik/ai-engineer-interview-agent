@@ -54,7 +54,25 @@ class ChromaFilterBuilder:
             filters=filters,
         )
 
-        return where or None
+        return cls._to_chroma_where(where)
+
+    @staticmethod
+    def _to_chroma_where(
+        where: ChromaWhereFilter,
+    ) -> ChromaWhereFilter | None:
+        """Chroma accepts one condition per clause; combine several with $and."""
+        conditions: list[dict[str, object]] = []
+        for key, value in where.items():
+            if isinstance(value, dict):
+                conditions.extend({key: {op: v}} for op, v in value.items())
+            else:
+                conditions.append({key: value})
+
+        if not conditions:
+            return None
+        if len(conditions) == 1:
+            return conditions[0]  # type: ignore[return-value]
+        return {"$and": conditions}  # type: ignore[dict-item]
 
     @staticmethod
     def _add_category_filter(

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from src.domain.results.evaluation_result import EvaluationResult
-from src.infrastructure.evaluator.evaluation_metadata import (
+from src.domain.metadata.evaluation_metadata import (
     EvaluationMetadata,
 )
 

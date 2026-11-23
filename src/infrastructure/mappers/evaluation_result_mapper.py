@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from src.application.models.evaluation_metadata import EvaluationMetadata
+from src.domain.metadata.evaluation_metadata import EvaluationMetadata
 from src.application.models.evaluation_payload import EvaluationPayload
 
 

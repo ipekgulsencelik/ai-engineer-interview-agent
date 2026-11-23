@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from src.domain.results.ranked_candidate import RankedCandidate
-from src.domain.time.clock import Clock
+from src.application.ports.clock import Clock
 
 
 class SelectionResultFactoryValidator:

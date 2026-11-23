@@ -5,7 +5,7 @@ import asyncio
 from src.evaluation.tracking.entities.tracking_event import (
     TrackingEvent,
 )
-from src.evaluation.tracking.events.event_handler import (
+from src.evaluation.tracking.registries.event_handler_registry import (
     EventHandler,
 )
 from src.evaluation.tracking.registries.event_handler_registry import (

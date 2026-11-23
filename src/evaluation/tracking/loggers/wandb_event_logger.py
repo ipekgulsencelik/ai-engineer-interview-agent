@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from src.evaluation.tracking.clients.wandb_payload_mapper import (
+from src.evaluation.tracking.mappers.wandb_payload_mapper import (
     WandBPayloadMapper,
 )
-from src.evaluation.tracking.clients.wandb_run_initializer import (
+from src.evaluation.tracking.initializers.wandb_run_initializer import (
     WandBRunInitializer,
 )
 from src.evaluation.tracking.entities.tracking_event import (

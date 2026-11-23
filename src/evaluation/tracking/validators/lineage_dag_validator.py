@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.evaluation.domain.errors.evaluation_validation_error import (
     EvaluationValidationError,
 )
-from src.evaluation.tracking.entities.experiment_node import (
+from src.evaluation.rag.entities.experiment_node import (
     ExperimentNode,
 )
 from src.evaluation.tracking.entities.lineage_edge import (

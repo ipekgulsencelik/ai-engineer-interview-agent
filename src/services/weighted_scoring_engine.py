@@ -3,7 +3,7 @@ from src.domain.scoring.scoring_context import ScoringContext
 from src.domain.scoring.semantic_diversity import (
     compute_semantic_diversity_score,
 )
-from src.interfaces.scoring_engine import ScoringEngine
+from src.application.ports.scoring_engine import ScoringEngine
 
 
 class WeightedScoringEngine(ScoringEngine):

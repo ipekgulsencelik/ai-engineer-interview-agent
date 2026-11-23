@@ -6,7 +6,7 @@ from src.domain.entities.question import Question
 from src.infrastructure.constants.vector_store_limits import (
     MIN_TOP_K,
 )
-from src.infrastructure.validation.schema_types import (
+from src.infrastructure.validations.schema_types import (
     SchemaDefinition,
 )
 
