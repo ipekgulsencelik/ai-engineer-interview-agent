@@ -32,6 +32,15 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      - name: Verify locked runtime dependency export excludes legacy Chroma
+        run: |
+          uv export --locked --no-dev --no-hashes --no-emit-project \
+            --format requirements-txt > /tmp/interview-runtime-requirements.txt
+          if grep -Ei '^chromadb([=<> ]|$)' /tmp/interview-runtime-requirements.txt; then
+            echo "Legacy ChromaDB leaked into production dependencies" >&2
+            exit 1
+          fi
+
       - name: Ruff (required)
         run: uv run ruff check .
 
