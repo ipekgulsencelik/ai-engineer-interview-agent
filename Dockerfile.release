@@ -1,6 +1,6 @@
 # Production image reference. Build is optional and never auto-deployed.
 # Pin Python base image to a reviewed SHA256 digest before actual production.
-FROM python:3.11-slim
+FROM python:3.15-slim
 
 WORKDIR /app
 
