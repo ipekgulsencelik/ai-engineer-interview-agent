@@ -39,6 +39,14 @@ LATENCY_RULE: Final[
 }
 
 
+TOTAL_TOKENS_RULE: Final[
+    ValidationRule
+] = {
+    "type": int,
+    "nullable": True,
+    "reject_bool": True,
+    "min_value": 0,
+}
 RUBRIC_VERSION_RULE: Final[
     ValidationRule
 ] = {
@@ -73,6 +81,7 @@ EVALUATION_METADATA_VALIDATION_SCHEMA: Final[
 ] = {
     "confidence": CONFIDENCE_RULE,
     "latency_seconds": LATENCY_RULE,
+    "total_tokens": TOTAL_TOKENS_RULE,
     "rubric_version": RUBRIC_VERSION_RULE,
     "missing_keywords": MISSING_KEYWORDS_RULE,
     "follow_up_question": FOLLOW_UP_QUESTION_RULE,

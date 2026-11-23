@@ -32,7 +32,9 @@ class LevelTransitionPolicy:
         current_level: Level,
         recent_scores: list[float],
     ) -> Level:
-        if not recent_scores:
+        # Warm-up: a level change needs a full window of scores
+        # (DECISIONS.md, decision 7: average of the last 3 answers).
+        if len(recent_scores) < self._config.recent_window_size:
             return current_level
 
         recent_window = recent_scores[
