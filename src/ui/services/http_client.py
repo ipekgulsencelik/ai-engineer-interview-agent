@@ -44,3 +44,24 @@ class HTTPClient:
             raise APIClientError(
                 "API request failed.",
             ) from exc
+
+    @classmethod
+    def get_json(
+        cls,
+        *,
+        url: str,
+        timeout: int,
+    ) -> dict[str, Any]:
+        try:
+            response = cls._session.get(
+                url,
+                timeout=timeout,
+            )
+            response.raise_for_status()
+            return APIResponseValidator.validate_json_object(
+                value=response.json(),
+            )
+        except requests.RequestException as exc:
+            raise APIClientError(
+                "API request failed.",
+            ) from exc

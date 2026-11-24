@@ -214,3 +214,19 @@ def test_keyword_evaluator_rewards_better_answers() -> None:
 
     assert weak.score < 2 < 6 < strong.score
     assert strong.metadata.follow_up_question == question.followup
+
+
+def test_failing_retriever_does_not_stop_the_interview() -> None:
+    calls = []
+
+    def broken(**_):
+        calls.append(1)
+        raise RuntimeError("index missing")
+
+    service = make_service([6, 6, 6], retriever=broken)
+    session = service.start_session(starting_level="JR", max_questions=3)
+
+    session, _ = run(service, session, 3)
+
+    assert len(session.turns) == 3
+    assert len(calls) == 1  # disabled after the first failure

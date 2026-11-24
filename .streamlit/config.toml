@@ -1,0 +1,7 @@
+[client]
+# Navigation is the app's own sidebar radio; hide Streamlit's automatic
+# multipage menu (it lists every module under src/ui/pages).
+showSidebarNavigation = false
+
+[browser]
+gatherUsageStats = false

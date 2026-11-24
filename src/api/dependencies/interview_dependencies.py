@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import Annotated, TypeAlias
 
-from fastapi import Depends
+from fastapi import Depends, Request
 
 from src.api.app_state import get_service_container
-from src.application.use_cases.run_interview_step_use_case import (
-    RunInterviewStepUseCase,
+from src.api.storage.interview_session_store import InMemoryInterviewSessionStore
+from src.application.services.interview_session_service import (
+    InterviewSessionService,
 )
 from src.infrastructure.containers.service_container import ServiceContainer
-
 
 ServiceContainerDependency: TypeAlias = Annotated[
     ServiceContainer,
@@ -17,17 +17,25 @@ ServiceContainerDependency: TypeAlias = Annotated[
 ]
 
 
-def get_run_interview_step_use_case(
+def get_interview_session_service(
     container: ServiceContainerDependency,
-) -> RunInterviewStepUseCase:
-    """
-    Resolve RunInterviewStepUseCase from the application service container.
-    """
-
-    return container.run_interview_step_use_case
+) -> InterviewSessionService:
+    return container.interview_session_service
 
 
-RunInterviewStepUseCaseDependency: TypeAlias = Annotated[
-    RunInterviewStepUseCase,
-    Depends(get_run_interview_step_use_case),
+def get_interview_session_store(request: Request) -> InMemoryInterviewSessionStore:
+    store = getattr(request.app.state, "interview_sessions", None)
+    if not isinstance(store, InMemoryInterviewSessionStore):
+        raise RuntimeError("Interview session store is not initialized.")
+    return store
+
+
+InterviewSessionServiceDependency: TypeAlias = Annotated[
+    InterviewSessionService,
+    Depends(get_interview_session_service),
+]
+
+InterviewSessionStoreDependency: TypeAlias = Annotated[
+    InMemoryInterviewSessionStore,
+    Depends(get_interview_session_store),
 ]

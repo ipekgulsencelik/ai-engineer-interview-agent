@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -28,6 +28,9 @@ from src.api.routes.interview_routes import (
 from src.api.routes.retrieval_routes import (
     router as retrieval_router,
 )
+from src.api.storage.interview_session_store import (
+    InMemoryInterviewSessionStore,
+)
 from src.infrastructure.containers.service_container import (
     ServiceContainer,
 )
@@ -40,12 +43,14 @@ async def lifespan(
     """
     Application lifecycle management.
     """
-
-    app.state.container = ServiceContainer()
-
+    factory: Callable[[], ServiceContainer] = getattr(
+        app.state, "container_factory", ServiceContainer
+    )
+    app.state.container = factory()
+    app.state.interview_sessions = InMemoryInterviewSessionStore()
     yield
-
     app.state.container = None
+    app.state.interview_sessions = None
 
 
 def registered_route_templates(app: FastAPI) -> frozenset[str]:
@@ -70,13 +75,17 @@ def instrument_http_app(
 
 
 def create_app(
-    *, http_telemetry: HTTPServerTelemetryPort | None = None
+    *,
+    http_telemetry: HTTPServerTelemetryPort | None = None,
+    container_factory: Callable[[], ServiceContainer] | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="AI Engineer Interview Agent",
         version="0.1.0",
         lifespan=lifespan,
     )
+    if container_factory is not None:
+        app.state.container_factory = container_factory
 
     app.include_router(
         health_router,

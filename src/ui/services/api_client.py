@@ -5,6 +5,7 @@ from typing import Any
 from src.ui.constants.api_routes import (
     BASE_API_URL,
     EVALUATION_ROUTE,
+    INTERVIEW_SESSIONS_ROUTE,
     NEXT_QUESTION_ROUTE,
 )
 from src.ui.constants.api_timeouts import (
@@ -56,4 +57,46 @@ class APIClient:
                 "answer": answer,
             },
             timeout=EVALUATION_TIMEOUT_SECONDS,
+        )
+
+    @classmethod
+    def start_interview(
+        cls,
+        *,
+        starting_level: str,
+        cv_skills: list[str],
+        max_questions: int,
+    ) -> dict[str, Any]:
+        return HTTPClient.post_json(
+            url=f"{BASE_API_URL}{INTERVIEW_SESSIONS_ROUTE}",
+            payload={
+                "starting_level": starting_level,
+                "cv_skills": cv_skills,
+                "max_questions": max_questions,
+            },
+            timeout=NEXT_QUESTION_TIMEOUT_SECONDS,
+        )
+
+    @classmethod
+    def submit_interview_answer(
+        cls,
+        *,
+        session_id: str,
+        answer: str,
+    ) -> dict[str, Any]:
+        return HTTPClient.post_json(
+            url=f"{BASE_API_URL}{INTERVIEW_SESSIONS_ROUTE}/{session_id}/answers",
+            payload={"answer": answer},
+            timeout=EVALUATION_TIMEOUT_SECONDS,
+        )
+
+    @classmethod
+    def get_interview(
+        cls,
+        *,
+        session_id: str,
+    ) -> dict[str, Any]:
+        return HTTPClient.get_json(
+            url=f"{BASE_API_URL}{INTERVIEW_SESSIONS_ROUTE}/{session_id}",
+            timeout=NEXT_QUESTION_TIMEOUT_SECONDS,
         )

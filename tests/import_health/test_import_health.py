@@ -24,6 +24,10 @@ ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "src"
 KNOWN_BROKEN_FILE = Path(__file__).with_name("known_broken_modules.txt")
 
+# Entry-point scripts that render or run on import; importing them here would
+# execute the app (and leak Streamlit runtime state into other tests).
+SCRIPTS = frozenset({"src.ui.app"})
+
 
 def _all_modules() -> list[str]:
     modules = []
@@ -33,7 +37,9 @@ def _all_modules() -> list[str]:
         parts = path.relative_to(ROOT).with_suffix("").parts
         if parts[-1] == "__init__":
             parts = parts[:-1]
-        modules.append(".".join(parts))
+        module = ".".join(parts)
+        if module not in SCRIPTS:
+            modules.append(module)
     return modules
 
 

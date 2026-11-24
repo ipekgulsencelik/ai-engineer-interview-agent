@@ -32,6 +32,7 @@ from src.domain.enums.level import Level
 from src.domain.evaluation.evaluator import Evaluator
 from src.domain.results.evaluation_result import EvaluationResult
 from src.domain.scoring.scoring_context import ScoringContext
+from src.shared.logging.logger import logger
 
 DEFAULT_MAX_QUESTIONS = 15
 DEFAULT_RETRIEVAL_TOP_K = 10
@@ -123,6 +124,7 @@ class InterviewSessionService:
     retriever: CandidateRetriever | None = None
     retrieval_top_k: int = DEFAULT_RETRIEVAL_TOP_K
     focus_builder: Callable[[InterviewSession], str] | None = None
+    _retrieval_disabled: bool = field(default=False, init=False, repr=False)
 
     def start_session(
         self,
@@ -205,13 +207,21 @@ class InterviewSessionService:
         least = min((coverage[str(q.category)] for q in pool), default=0)
         pool = _narrow(pool, lambda q: coverage[str(q.category)] == least)
 
-        if self.retriever is not None:
+        if self.retriever is not None and not self._retrieval_disabled:
             focus = (self.focus_builder or _default_focus)(session)
-            relevant = {
-                q.id
-                for q in self.retriever(query=focus, context=context, top_k=self.retrieval_top_k)
-            }
-            pool = _narrow(pool, lambda q: q.id in relevant)
+            try:
+                found = self.retriever(query=focus, context=context, top_k=self.retrieval_top_k)
+            except Exception as exc:  # noqa: BLE001 - retrieval is optional
+                # Missing index, model download failure, ...: keep interviewing
+                # from the bank and stop retrying on every question.
+                self._retrieval_disabled = True
+                logger.warning(
+                    "Semantic retrieval failed; continuing without it.",
+                    error_type=type(exc).__name__,
+                )
+            else:
+                relevant = {q.id for q in found}
+                pool = _narrow(pool, lambda q: q.id in relevant)
 
         return pool
 
