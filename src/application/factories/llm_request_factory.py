@@ -19,10 +19,17 @@ class LLMRequestFactory:
         max_tokens: int | None = None,
         stop: tuple[str, ...] = (),
     ) -> LLMRequest:
+        # Only forward what the caller set, so LLMRequest defaults apply
+        # instead of being overwritten with None.
+        optional: dict[str, float | int] = {}
+        if temperature is not None:
+            optional["temperature"] = temperature
+        if max_tokens is not None:
+            optional["max_tokens"] = max_tokens
+
         return LLMRequest(
             prompt=prompt,
             system_prompt=system_prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
             stop=stop,
+            **optional,  # type: ignore[arg-type]
         )

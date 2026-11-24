@@ -33,39 +33,39 @@ class EvaluationPayloadMapper:
 
         return EvaluationPayload(
             score=PayloadFieldExtractor.get_optional_float(
-                payload,
-                "score",
+                payload=payload,
+                key="score",
             ),
             feedback=PayloadFieldExtractor.get_optional_string(
-                payload,
-                "feedback",
+                payload=payload,
+                key="feedback",
             ),
             technical_accuracy=PayloadFieldExtractor.get_optional_float(
-                payload,
-                "technical_accuracy",
+                payload=payload,
+                key="technical_accuracy",
             ),
             depth=PayloadFieldExtractor.get_optional_float(
-                payload,
-                "depth",
+                payload=payload,
+                key="depth",
             ),
             communication=PayloadFieldExtractor.get_optional_float(
-                payload,
-                "communication",
+                payload=payload,
+                key="communication",
             ),
             missing_keywords=PayloadFieldExtractor.get_optional_string_tuple(
-                payload,
-                "missing_keywords",
+                payload=payload,
+                key="missing_keywords",
             ),
             follow_up_question=PayloadFieldExtractor.get_optional_string(
-                payload,
-                "follow_up_question",
+                payload=payload,
+                key="follow_up_question",
             ),
             confidence=PayloadFieldExtractor.get_optional_float(
-                payload,
-                "confidence",
+                payload=payload,
+                key="confidence",
             ),
             rubric_version=PayloadFieldExtractor.get_optional_string(
-                payload,
-                "rubric_version",
+                payload=payload,
+                key="rubric_version",
             ),
         )

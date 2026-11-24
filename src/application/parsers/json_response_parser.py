@@ -24,7 +24,7 @@ class JsonResponseParser:
 
         try:
             payload = json.loads(
-                raw_text,
+                JsonResponseParser._extract_object_text(raw_text),
             )
 
         except json.JSONDecodeError as exc:
@@ -37,3 +37,14 @@ class JsonResponseParser:
         )
 
         return payload
+
+    @staticmethod
+    def _extract_object_text(
+        raw_text: str,
+    ) -> str:
+        """Tolerate code fences or prose around the JSON object LLMs return."""
+        start = raw_text.find("{")
+        end = raw_text.rfind("}")
+        if start == -1 or end <= start:
+            return raw_text
+        return raw_text[start : end + 1]

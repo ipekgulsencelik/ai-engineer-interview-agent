@@ -278,7 +278,7 @@ class Settings(BaseSettings):
     #
     # Bu config sayesinde:
     #   model switching centralized hale gelir.
-    GROQ_MODEL_NAME: str = "llama3-70b-8192"
+    GROQ_MODEL_NAME: str = "llama-3.3-70b-versatile"
 
 
 # ---------------------------------------------------------

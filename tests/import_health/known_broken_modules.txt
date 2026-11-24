@@ -2,7 +2,6 @@
 # Remove a line when you repair the module; test_import_health enforces both directions.
 src.api.dependencies.container
 src.application.benchmarking.runners.benchmark_case_runner
-src.application.factories.evaluation_result_factory
 src.application.factories.telemetry_payload_factory
 src.application.graph.builders.graph_node_registrar
 src.application.graph.builders.interview_graph_builder
@@ -12,10 +11,8 @@ src.application.graph.nodes.followup_generation_node
 src.application.graph.nodes.level_transition_node
 src.application.graph.nodes.question_selection_node
 src.application.graph.state.interview_graph_state
-src.application.mappers.evaluation_payload_mapper
 src.application.observability.evaluation_trace
 src.application.observability.interview_trace
-src.application.parsers.evaluator_response_parser
 src.application.policies.category_hit_policy
 src.application.services.retrieval_benchmark_service
 src.application.services.telemetry_service
@@ -62,9 +59,6 @@ src.evaluation.tracking.services.worker_lifecycle_service
 src.evaluation.tracking.validators.worker_node_validator
 src.infrastructure.containers.interview_container
 src.infrastructure.containers.scoring_container
-src.infrastructure.evaluators.groq_rubric_evaluator
-src.infrastructure.mappers.evaluation_result_mapper
-src.infrastructure.validators.groq_rubric_evaluator_validator
 src.infrastructure.vector_stores.chroma.chroma_vector_store
 src.scripts.helpers.graph_input_builder
 src.scripts.run_interview_graph

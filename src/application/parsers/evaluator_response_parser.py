@@ -41,7 +41,7 @@ class EvaluatorResponseParser:
         )
 
         raw_payload = JsonResponseParser.parse_object(
-            response.text,
+            raw_text=response.text,
         )
 
         evaluation_payload = EvaluationPayloadMapper.from_dict(

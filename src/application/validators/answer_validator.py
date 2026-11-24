@@ -9,7 +9,8 @@ class AnswerValidator:
     @staticmethod
     def validate(
         answer: str,
-    ) -> None:
+    ) -> str:
+        """Validate and return the answer with surrounding whitespace removed."""
         if not isinstance(answer, str):
             raise TypeError(
                 "answer must be a string."
@@ -19,3 +20,5 @@ class AnswerValidator:
             raise ValueError(
                 "answer cannot be empty."
             )
+
+        return answer.strip()
